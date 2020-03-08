@@ -1,0 +1,96 @@
+---
+title: "Normal Proficiency Problem"
+subtitle: "Approximate Normality of Intelligence Test Scores"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+"when we apply a continuous normal model we should consider the category boundaries to be at the half-step between levels; e.g., 109.5 rather than 109 or 110." -- you have the right general idea in the second part, but did not use the half-steps as your boundaries so your values do not add up to 100%. // Remember to round the MENSA score down. Refer to the Help for the round() function. // For the Catell, above you found what % of people are in the "average" category. This should be the same for both tests, so what are the corresponding boundaries?
+
+#### The Problem
+
+Most widely used intelligence tests, such as the Wechsler Adult Intelligence Scale and the Stanford-Binet, are scaled so that scores have an approximately normal distribution with a mean of 100 and a standard deviation of 15. The distribution is approximate in part because scores are generally reported as discrete values while the theoretical normal curve is continuous, as well as the fact that IQ scores do not extent to $\pm\infty$. Use the normal distribution functions in `R` to answer the following questions.
+
+
+Classification systems for IQ scores vary from test to test, though many use roughly the same categories with different names. The current Weschler uses the following groupings.
+
+* 130 and above = very superior
+* 120 to 129 = superior
+* 109 - 119 = high average
+* 90 - 109 = average
+* 80 - 89 = low average
+* 70 - 79 = borderline
+* 69 and below = extremely low
+
+Since IQ scores are discrete, when we apply a continuous normal model we should consider the category boundaries to be at the half-step between levels; e.g., 109.5 rather than 109 or 110. What percentage of the population falls into each category?
+
+A: Half-steps would never be counted since data is discrete. It shouldn't affect the model. 
+
+```{r}
+#10015#
+x1 <- pnorm(69.5, mean = 100, sd = 15, lower.tail = TRUE, log.p = FALSE)# 69 and below = extremely low
+x2 <- pnorm(79.5, mean = 100, sd = 15) - pnorm( 69.5 , mean = 100 , sd = 15)# 70 - 79 = borderline
+x3 <- pnorm(89.5, mean = 100, sd = 15) - pnorm( 79.5 , mean = 100 , sd = 15)# 80 - 89 = low average
+x4 <- pnorm(109.5, mean = 100, sd = 15) - pnorm( 89.5 , mean = 100 , sd = 15)#  90 - 109 = average
+x5 <- pnorm(119.5, mean = 100, sd = 15) - pnorm( 109.5 , mean = 100 , sd = 15)# 109 - 119 = high average
+x6 <- pnorm(129.5, mean = 100, sd = 15) - pnorm( 119.5 , mean = 100 , sd = 15)#  120 to 129 = superior
+x7 <- 1 - pnorm( 129.5 , mean = 100 , sd = 15)# * 130 and above = very superior
+
+x1 + x2 + x3 + x4 + x5 + x6 + x7
+
+``` 
+
+Mensa is a high IQ society. According to their website, "Membership of Mensa is open to persons who have attained a score within the upper two percent of the general population on an approved intelligence test..." What IQ score is required to join? Round your answer down to the nearest whole number.
+
+```{r}
+# 
+Y <- qnorm(.02, mean = 100, sd = 15, lower.tail = FALSE, log.p = FALSE)
+
+round(Y, -1)
+```
+
+A: About 131 IQ
+
+IQ tests have been criticized as being racially and culturally biased. The Cattell Culture Fair Test aims to remove sociocultural and environmental influences to obtain a more accurate measure of intelligence. Cattell scores are approximately normal, but with a standard deviation of 24 rather than 15. If we wish to be consistent with other tests, what would be the boundaries for classifying someone in the average intelligence category?
+
+
+```{r}
+x4 <- pnorm(109.5, mean = 100, sd = 15) - pnorm( 89.5 , mean = 100 , sd = 15)#  90 - 109 = average
+
+
+Q1 <- qnorm(x4, mean = 100, sd = 24, lower.tail = T, log.p = FALSE)
+
+Q2 <- 1 - qnorm(x4, mean = 100, sd = 24, lower.tail = F, log.p = FALSE)
+
+x4
+
+pnorm(Q1, mean = 100, sd =  24) - pnorm( Q2  , mean = 100 , sd = 24)
+
+Q1
+Q2
+
+```
+
+A: Q1 and Q2 are the boundaries. 
+
+***
+```{r}
+sessionInfo()
+```

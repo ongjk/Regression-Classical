@@ -1,0 +1,134 @@
+---
+title: "Correlation Regression Presentation---Group #4"
+author: "Maribeth Cook, Jared Mark, Danni Miranda-Hernandez, Jefferson Ong"
+date: 'Last compiled: `r format(Sys.time(), "%b %d, %Y")`'
+output: 
+  ioslides_presentation
+  
+---
+
+```{r setup, include=FALSE, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(readr)
+library(plotly)
+forest <- read_csv("forestfires.csv")
+knitr::opts_chunk$set(echo = FALSE, comment = NA)
+attach(forest) # will attach so we don't have to keep calling forest
+```
+
+## Portugal Forest Fires  {.smaller}
+
+- This dataset attempts to predict the burnt area of forest fires in Northeast Portugal during 2007: 
+
+
+```{r, echo = FALSE, message = FALSE, fig.align='center', fig.height=1.5, fig.width = 2.5}
+head(forest) 
+```
+ 
+- <font size="2">  **area** - the burned area of the forest (in ha): 0.00 to 1090.84</font> 
+- <font size="2"> **month** - month of the year: 'jan' to 'dec'</font> 
+- <font size="2"> **temp** - temperature in degrees Celsius: 2.2 to 33.30</font>
+- <font size="2"> **rain** - outside rain in mm/m^2: 0.0 to 6.4</font> 
+- <font size="2"> **FFMC** - FFMC index from the FWI system: 18.7 - 96.20</font>
+- <font size="2"> **DC** - DC index from the FWI system: 7.9 to 860.6</font> 
+
+ 
+
+
+## The International Standard Fire and Weather Index {.smaller}
+
+
+```{r, fig.align = "center", echo = FALSE, message = FALSE}
+knitr::include_graphics("./PICS/437-cffdrs-overview-fwi-flowchart.png", dpi = 145)
+
+#![Fire Weather Index](437-cffdrs-overview-fwi-flowchart.png)
+
+```
+
+* The three predictors: **FFMC**, **DMC**, and **DC**, act as multi-variates for our regression
+* **temp**, **RH**, **wind**, and **rain** are all components of the Fire Weather Index System.
+
+## Boxplot of Burnt Area by Month
+```{r, echo = FALSE, fig.align='center', comment = NA}
+ggplot(forest, mapping = aes(y = area)) +
+  geom_boxplot(col = "light blue") +
+  facet_wrap(.~forest$month)
+```
+
+
+## Scatterplot of Temperature (Degrees Celsius) against Area {.smaller}
+
+
+```{r label = "temperature", echo = FALSE, fig.align='center', fig.height=3, fig.width = 5.5, comment = NA, warning= FALSE}
+
+ggplot(data = forest, aes(y = area, x = temp)) +
+  geom_point(color = "light blue", colour = "black") +
+  geom_smooth(method = "lm", color = "black", size = .45, se = FALSE) +
+  theme_bw()   
+```
+
+- As temperature increases, area affected by fire also increases
+
+- $\hat{area} = -7.414 + 1.073(temp)$
+
+- t-value: 2.231 and p-value of `0.0261`
+
+
+
+
+## Scatterplot of rain against Area {.smaller}
+
+
+```{r, echo = FALSE, fig.align='center', fig.height=3, fig.width = 5.5, comment = NA}
+ggplot(data = forest, aes(y = area, x = rain)) +
+  geom_point(color = "light blue") +
+  geom_smooth(method = "lm", color = "black", size = .25, se = FALSE) +
+  theme_bw()
+```
+
+- As Rain increases, area affected by fire also decreases
+
+- $\hat{area} = 12.882 - 1.584(rain)$
+
+- t-value: -0.167 and p-value of 0.867
+
+
+
+
+
+## Scatterplot of DC against Area {.smaller}
+
+
+```{r, message = FALSE, fig.align='center', fig.height=3, fig.width = 5.5}
+ggplot(forest, aes(x = DC, y = area)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm", se = F) +
+  theme_bw()
+```
+
+- As DC increases, area affected by DC also increase
+
+- $\hat{area} = 5.90372 + 0.01267(DC)$
+
+- t-value: 1.122 and p-value of 0.262
+
+
+
+## Scatterplot of FFMC against Area {.smaller}
+
+```{r, message = FALSE, fig.align='center', fig.height=3, fig.width = 5.5}
+ggplot(forest, aes(x = FFMC, y = area)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm", se = F) +
+  theme_bw()
+```
+
+- As FFMC increases, area affected by FFMC also increase
+
+- $\hat{area} = -29.0914 + 0.4627(FFMC)$
+
+- t-value: 0.911 and p-value of 0.363
+
+
+
+

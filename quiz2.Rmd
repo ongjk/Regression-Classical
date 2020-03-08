@@ -1,0 +1,143 @@
+---
+title: "quiz2"
+author: "Jefferson Ong"
+date: "3/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1 Import data
+
+```{r}
+library(readr)
+
+power <- read.csv("powerplant.csv")
+
+str(power)
+```
+
+```{r}
+power$NE <- factor(ifelse(power$NE == 1, 1, 0))
+# power$Pior <- ifelse(power$Pior == 1, 1, 0)
+power$Cooling.Tower <- factor(ifelse(power$Cooling.Tower == 1, 1, 0))
+power$BW <- factor(ifelse(power$BW == 1, 1, 0))
+# power$partial <- factor(ifelse(power$partial == 1, 1, 0))
+# typeof(power$partial)
+
+# power$Prior
+```
+
+
+
+The data lists the construction costs of 32 light water reactor powerplants, along with characteristics of the plants and details on their construction.  The objective of the modeling is to learn which of the predictors influence capital cost.
+
+The variables are:
+Cost = cost in dollars x 10 -6, adjusted to a 1976 base
+Date = date the construction permit was issued
+Time1 = time between application for permit and issue of permit
+Time2  = time between issue of operating license and construction permit
+Capacity = power plant net capacity (MWe)
+Pior = prior existence of an LWR on the same site (=1 if true)
+NE = plant constructed in northeast region of the US (=1 if true)
+Cooling Tower = use of cooling tower (=1 if true)
+BW = nuclear steam supply system manufactured by Babcock-Wilcox (=1 if true)
+experience = cumulative number of power plants constructed by each architect-engineer
+partial = partial turnkey plant (=1 if true), a special feature in the contract that may affect capital cost.
+
+
+
+# 2 Regression model
+
+```{r}
+model <- lm(Cost ~ . , power)
+summary(model)
+```
+
+# 3 Second model
+
+```{r}
+model2 <- lm(Cost ~ Date + Capacity + NE, power)
+summary(model2)
+```
+
+
+# 4 Diagnostic
+
+```{r}
+par(mfrow = c(2,2))
+plot(model2)
+```
+
+
+There is a problem is all the plots.
+
+Residual vs Fitted: The line has a wierd curve towards the end. Its also going from low spread to high spread.
+
+Normnal QQ: Isn't too bad, most are on the line, there is a point that is quite off(19)
+
+Scale location: There seems to be some sort of upward trend. There are also clusters rather than purely random
+
+Resididuals vs Leverage: There are points that have high leverage and high influence. A great deal of spread in the y axis for the residuals.
+
+
+# 5
+
+I want to apply a log transformation to bring the normality in line and hopefully that will also fix the residual vs fitted. The clusters of points is worrying but I think thats due to how the data is set up, likely with discrete variables.
+
+
+```{r}
+model3 <- lm(Cost ~ Date + log(Capacity) + NE, power)
+summary(model3)
+par(mfrow = c(2,2))
+plot(model3)
+```
+
+This sort of improves the Scale location plot with the clusters by a little bit. But doesn't really fix the problems that I wanted to fix. I'll applied log to both response and predictor now.
+
+```{r}
+model4 <- lm(log(Cost) ~ Date + log(Capacity) + NE, power)
+summary(model4)
+par(mfrow = c(2,2))
+plot(model4)
+```
+
+I want to say that made it worst, especially when my qqplot is completely off now. I still have issues with these larger points. The scale location is more spread out I guess and the residual vs leverage is less spread but still those points that have high influence. I need to look at specific points
+
+
+
+```{r}
+library(broom)
+modeldata <- augment(model2)
+modeldata[19,]
+```
+
+I went and look at the model without any transformation and see where these issues are arising and what these points are saying.
+
+So looking at 19. Tempted to just delete it but not sure. So looking at it its a plant that is Not constructed in the northeast region. Date of 69.17 which means that it look that long to be permitted. The last thing is capacity of 1090. All attempting to predict the Cost of 881.24. So now I want to know how if these are relevant numbers.
+
+
+```{r}
+boxplot(power$Date)
+boxplot(power$ Capacity)
+boxplot(power$Cost)
+sum(as.integer(power$NE)) / length(power$NE) 
+```
+
+We can see here that it took a bit longer to build than the median time to build that particular building, Its capacity is beyond the first quartile. I also wanted to know the ratio of builds that are built in NE compare to ones that are not, 1.25 is not a number I can interpret properly so I will pass up on this for now. Finally I looked at the cost and its also below the first quartile. All in all I don't see anything thats a glaring issue with this particular building, its one of the more expensive, bigger ones. So I will keep it. 
+
+I want to look back at the model and attempt to look at the interaction term between Data and NE, whether being in that region makes any difference or not in terms of how long its built and wheres its at.
+
+```{r}
+model5 <- lm(Cost ~ Date + Capacity + NE + Date:NE, power)
+summary(model5)
+par(mfrow = c(2,2))
+plot(model5)
+```
+
+
+It's no longer significant, which is wierd and made the residuals vs leverage plot even worst. 
+
+

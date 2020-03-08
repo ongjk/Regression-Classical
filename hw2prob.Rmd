@@ -1,0 +1,537 @@
+---
+title: "hw2prob2020(6.2)"
+author: "Jefferson Ong"
+date: "1/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Sec 6.2 - 2,4,6,8,10
+
+# 2
+
+When you purchase “1-pound bags” of carrots, you
+can buy either “baby” carrots or regular carrots. We shall
+compare the weights of 75 bags of each of these types of
+carrots. The following table gives the weights of the bags
+of baby carrots:
+
+
+## (a) 
+
+Calculate the five-number summary of each set of
+weights
+
+```{r}
+baby <- c(1.03, 1.03, 1.06, 1.02, 1.03, 1.03, 1.03, 1.02, 1.03, 1.03,
+1.06, 1.04, 1.05, 1.03, 1.04, 1.03, 1.05, 1.06, 1.04, 1.04,
+1.03, 1.04, 1.04, 1.06, 1.03, 1.04, 1.05, 1.04, 1.04, 1.02,
+1.03, 1.05, 1.05, 1.03, 1.04, 1.03, 1.04, 1.04, 1.03, 1.04,
+1.03, 1.04, 1.04, 1.04, 1.05, 1.04, 1.04, 1.03, 1.03, 1.05,
+1.04, 1.04, 1.05, 1.04, 1.03, 1.03, 1.05, 1.03, 1.04, 1.05,
+1.04, 1.04, 1.04, 1.05, 1.03, 1.04, 1.04, 1.04, 1.04, 1.03,
+1.05, 1.05, 1.05, 1.03, 1.04) 
+
+baby <- sort(baby)
+range(baby)
+length(baby)
+```
+length() to get lowest and largest of dataset
+0th percentile = 1.02
+25th percentile = 1.03
+50th percentile = 1.04
+75th percentile = 1.04
+100th percentile = 1.06
+
+
+```{r}
+baby[19]
+baby[38]
+baby[57]
+p <- c(.25, .5, .75)
+n <- 75
+(n+1)*p
+fivenum(baby)
+```
+
+
+```{r}
+reg <- c(1.29, 1.10, 1.28, 1.29, 1.23, 1.20, 1.31, 1.25, 1.13, 1.26,
+1.19, 1.33, 1.24, 1.20, 1.26, 1.24, 1.11, 1.14, 1.15, 1.15,
+1.19, 1.26, 1.14, 1.20, 1.20, 1.20, 1.24, 1.25, 1.28, 1.24,
+1.26, 1.20, 1.30, 1.23, 1.26, 1.16, 1.34, 1.10, 1.22, 1.27,
+1.21, 1.09, 1.23, 1.03, 1.32, 1.21, 1.23, 1.34, 1.19, 1.18,
+1.20, 1.20, 1.13, 1.43, 1.19, 1.05, 1.16, 1.19, 1.07, 1.21,
+1.36, 1.21, 1.00, 1.23, 1.22, 1.13, 1.24, 1.10, 1.18, 1.26,
+1.12, 1.10, 1.19, 1.10, 1.24)
+
+reg <- sort(reg)
+range(reg)
+length(reg)
+```
+
+0th percentile = 1.00
+25th percentile = 1.15
+50th percentile = 1.21
+75th percentile = 1.26
+100th percentile = 1.43
+
+```{r}
+reg[19]
+reg[38]
+reg[57]
+```
+
+## (b)
+
+On the same graph, construct box plots for each set of
+weights.
+
+```{r}
+boxplot(baby, reg)
+```
+
+## (b)
+
+If the carrots are the same price per package, which
+is the better buy? Which type of carrots would you
+select?
+
+Its clear from the boxplot that it is generally better to take the regular carrots if one wants more carrots for their dollar.
+
+
+# 4 
+
+An insurance company experienced the following
+mobile home losses in 10,000’s of dollars for 50 catastrophic events:
+
+```{r}
+mobile <- sort(c(1,2,2,3,3,4,4,5,5,5,
+5, 6, 7, 7, 9, 9, 9, 10, 11, 12,
+22, 24, 28, 29, 31, 33, 36, 38, 38, 38,
+39, 41, 48, 49, 53, 55, 74, 82, 117, 134,
+192, 207, 224, 225, 236 ,280, 301, 308, 351, 527))
+
+length(mobile)
+```
+
+
+## (a) Find the five-number summary of the data and draw
+a box-and-whisker diagram.
+
+```{r}
+range(mobile) # 0th and 100th
+p = c(.25,.5,.75)
+n = 50
+(n + 1)*p
+
+```
+
+$\tilde{\pi_1} = (1 - a/b)* y_r + (a/b) * y_{r+1} $
+
+
+```{r}
+mobile[c(12,13,25,26,38,39)]
+
+(1 - 3/4)*(mobile[12]) + (3/4)*mobile[13] # 25th
+(1 - 1/2)*(mobile[25]) + (1/2)*mobile[26] # 50th  
+(1 - 1/4)*(mobile[38]) + (1/4)*mobile[39] # 75th
+fivenum(mobile)
+```
+
+```{r}
+
+boxplot(mobile, horizontal = TRUE)
+```
+
+
+
+## (b) Calculate the IQR and the locations of the inner and
+outer fences.
+
+IQR is q4 - q2 
+
+```{r}
+
+90.75 - 6.75 # IQR
+IQR(mobile)
+```
+
+```{r}
+q1 <- 6.75
+q3 <- 90.75
+# inner fence
+inn <- (1.5 * 84)
+q1 - inn
+q3 + inn
+
+# outer fence
+out <- (3 * 84)
+q1 - out 
+q3 + out 
+```
+
+
+
+## (c) Draw a box plot that shows the fences, suspected
+outliers, and outliers.
+
+```{r}
+boxplot(mobile, horizontal = T)
+```
+
+
+## (d) Describe the distribution of losses. 
+
+heavily skewed right
+
+# 6
+
+In the casino game roulette, if a player bets $1 on
+red (or on black or on odd or on even), the probability
+of winning $1 is 18/38 and the probability of losing $1 is
+20/38. Suppose that a player begins with $5 and makes
+successive $1 bets. Let Y equal the player’s maximum capital before losing the $5. One hundred observations of
+Y were simulated on a computer, yielding the following
+data:
+
+```{r}
+roulette <- sort(c(25, 9, 5, 5, 5, 9, 6, 5, 15, 45,
+55, 6, 5, 6 ,24, 21, 16 ,5 ,8 ,7,
+7 ,5, 5, 35, 13, 9, 5, 18, 6, 10,
+19, 16, 21, 8 ,13, 5, 9, 10 ,10, 6,
+23, 8 ,5, 10, 15, 7, 5, 5 ,24, 9,
+11, 34, 12, 11 ,17 ,11, 16, 5, 15, 5,
+12, 6, 5, 5 ,7 ,6, 17, 20 ,7 ,8,
+8 ,6 ,10, 11, 6, 7 ,5 ,12 ,11, 18,
+6 ,21, 6, 5 ,24, 7, 16 ,21, 23, 15,
+11, 8, 6 ,8 ,14, 11 ,6, 9, 6 ,10))
+
+
+range(roulette)
+length(roulette)
+
+```
+
+
+## (a) Construct an ordered stem-and-leaf display.
+
+```{r}
+stem(roulette, scale = 1, width = 80, atom = 1e-08)
+```
+
+
+
+## (b) Find the five-number summary of the data and draw
+a box-and-whisker diagram.
+
+```{r}
+
+range(roulette) # 0th and 100th
+p = c(.25,.5,.75)
+n = 100
+(n + 1)*p
+
+roulette[c(25,26,50,51,75,76)]
+
+(1 - 1/4)*(roulette[25]) + (1/4)*roulette[26] # 25th  
+(1 - 1/2)*(roulette[50]) + (1/2)*roulette[51] # 50th  
+(1 - 3/4)*(roulette[75]) + (3/4)*roulette[76] # 75th
+fivenum(roulette)
+```
+
+five sum 5, 6, 9, 15, 55
+
+
+
+
+## (c) Calculate the IQR and the locations of the inner and
+outer fences.
+
+
+```{r}
+q1 = 6
+q2 = 9
+q3 = 15
+q3 - q1 # IQR
+IQR(roulette)
+iqr = 9
+inn <- (1.5 * 9)
+q1 - inn
+q3 + inn
+
+# outer fence
+out <- (3 * 9)
+q1 - out 
+q3 + out 
+```
+-7.5 to 28.5 for inner
+
+-21 to 42 for outer
+
+## (d) Draw a box plot that shows the fences, suspected
+outliers, and outliers.
+
+```{r}
+boxplot(roulette)
+```
+The suspected outliers are the tails of the boxplot while the outleiers are past the tail up to 42 and below the graph to -21
+
+
+
+
+## (e) Find the 90th percentile.
+
+```{r}
+p = .9
+n = 100
+(n + 1)*p
+
+(1 - 9/10)*(roulette[90]) + (9/10)*roulette[91] # 90th 
+```
+22.8
+
+
+
+# 8
+
+. The weights (in grams) of 25 indicator housings
+used on gauges are as follows:
+
+
+```{r}
+house <- sort(c(102.0, 106.3, 106.6 ,108.8 ,107.7,
+106.1 ,105.9 ,106.7 ,106.8, 110.2,
+101.7 ,106.6 ,106.3 ,110.2, 109.9,
+102.0 ,105.8 ,109.1 ,106.7, 107.3,
+102.0 ,106.8 ,110.0 ,107.9 ,109.3))
+
+
+range(house)
+length(house)
+```
+
+## (a) Construct an ordered stem-and-leaf display, using
+integers as the stems and tenths as the leaves.
+
+```{r}
+stem(house, scale = 1, width = 80, atom = 1e-08)
+```
+
+
+## (b) Find the five-number summary of the data and draw
+a box plot.
+
+```{r}
+range(house) # 0th and 100th
+p = c(.25,.5,.75)
+n = 25
+(n + 1)*p
+
+house[c(6,7,13,19,20)]
+
+(1 - 1/2)*(house[6]) + (1/2)*house[7] # 25th  
+#(1 - 1/2)*(house[50]) + (1/2)*house[51] 
+house[13]# 50th  
+(1 - 1/2)*(house[19]) + (1/2)*house[20] # 75th
+fivenum(house)
+```
+
+101.7, 106, 106.7, 108.95, 110.2
+
+```{r}
+boxplot(house)
+```
+
+
+## (c) Are there any suspected outliers? Are there any outliers?
+
+```{r}
+q1 = 106
+q2 = 106.7
+q3 = 108.95
+q3 - q1 # IQR
+IQR(house)
+iqr =  2.95
+inn <- (1.5 *  2.95)
+q1 - inn
+q3 + inn
+
+# outer fence
+out <- (3 *  2.95)
+q1 - out 
+q3 + out 
+```
+ 101.575 - 113.375 suspected
+ 
+ 97.15 -  117.8 outliers
+ 
+ Yes there are a handful of elements past 101.575 and some above q3 for suspected outliers
+ 
+ There is no elements above 113.375 or below 101.575 so there are no clear outliers
+
+
+
+# 10
+
+
+In Exercise 6.1-7, lead concentrations near the
+San Diego Freeway in 1976 are given. During the fall
+of 1977, the weekday afternoon lead concentrations (in
+μg/m3) at the measurement station near the San Diego
+Freeway in Los Angeles were as follows:
+
+```{r}
+lead <- sort(c(9.5 ,10.7, 8.3 ,9.8 ,9.1 ,9.4 ,9.6 ,11.9 ,9.5 ,12.6, 10.5,
+8.9 ,11.4, 12.0,12.4, 9.9,10.9,12.3, 11.0, 9.2, 9.3, 9.3,
+10.5, 9.4, 9.4 ,8.2 ,10.4, 9.3, 8.7, 9.8 ,9.1 ,2.9 ,9.8,
+5.7 ,8.2 ,8.1  ,8.8 ,9.7 ,8.1 ,8.8 ,10.3 ,8.6 ,10.2, 9.4,
+14.8, 9.9, 9.3 ,8.2 ,9.9 ,11.6, 8.7, 5.0 ,9.9 ,6.3 ,6.5,
+10.2, 8.8, 8.0 ,8.7 ,8.9 ,6.8 ,6.6 ,7.3  ,16.7))
+
+range(lead)
+length(lead)
+lead
+```
+
+
+## (a) Construct a frequency distribution and display the
+ results in the form of a histogram. Is this distribution
+symmetric?
+
+#install.package("summarytools")
+
+frequencies: 1  2  6 37 13  3  1  1
+
+```{r}
+#library(summarytools)
+#summarytools::freq(lead, order = "freq")
+tomato <- hist(lead)
+tomato
+summary(tomato)
+```
+
+Yes fairly symmetric 
+
+## (b) Calculate the sample mean and sample standard deviation.
+
+$\bar{x} = \frac{1}{n}*\sum\limits_{i=1}^n x_i$
+
+$S^2 = \frac{1}{n-1}*\sum\limits_{i=1}^n (x_i-\bar{x})^2$
+
+```{r}
+n = 64
+xbar <- sum(lead)/n
+potato <- (lead - xbar)^2
+var <- sum(potato) / (n - 1)
+# var <- (sum(lead - xbar)^2)/(n - 1)
+sd <- sqrt(var)
+
+xbar
+sd
+mean(lead)
+sd(lead)
+```
+
+
+
+
+
+## (c) Locate x, x ± s on your histogram. How many observations lie within one standard deviation of the mean?
+ How many lie within two standard deviations of the
+ mean?
+ 
+```{r}
+xbar + sd
+xbar - sd
+
+xbar + 2*sd
+xbar - 2*sd
+
+```
+
+11.50243 - 7.341317 one sd: obs: 37 + 6 + 13 = 56
+
+13.58299 - 5.26076 two sd: obs: 37 + 6 + 13 + 2 + 3 = 61
+
+
+
+```{r}
+hist(lead,labels = TRUE ) 
+
+# freq 1  2  6 37 13  3  1  1
+```
+
+ 
+## (d) Using the data from Exercise 6.1-7 and the data from
+ this exercise, construct a back-to-back stem-and-leaf
+ diagram with integer stems in the center and the
+ leaves for 1976 going to the left and those for 1977
+ going to the right.
+ 
+ 
+```{r}
+# 6.1 data
+free <- c(6.7 ,5.4 ,5.2 ,6.0 ,8.7 ,6.0 ,6.4 ,8.3 ,5.3 ,5.9 ,7.6,
+5.0 ,6.9 ,6.8 ,4.9 ,6.3 ,5.0 ,6.0 ,7.2 ,8.0 ,8.1 ,7.2,
+10.9, 9.2, 8.6, 6.2, 6.1, 6.5, 7.8, 6.2, 8.5, 6.4, 8.1,
+2.1 ,6.1 ,6.5 ,7.9 ,14.1, 9.5,10.6, 8.4, 8.3, 5.9, 6.0,
+6.4 ,3.9 ,9.9 ,7.6 ,6.8 ,8.6 ,8.5 ,11.2, 7.0, 7.1, 6.0,
+9.0 ,10.1, 8.0, 6.8, 7.3, 9.7, 9.3, 3.2, 6.4)
+
+library(aplpack)
+stem.leaf.backback(free,lead)
+```
+ 
+ 
+## (e) Construct box-and-whisker displays of both sets of
+ data on the same graph.
+ 
+ 
+```{r}
+boxplot(free, lead, names = c('free', 'lead'))
+```
+ 
+ 
+## (f) Use your numerical and graphical results to interpret
+ what you see.
+
+The data for 1977(lead) has a higher five number summary and smaller IQR but also more outliers compare to its 1976(free) counterpart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

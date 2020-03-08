@@ -1,0 +1,97 @@
+---
+title: "Sampling Proficiency Problem"
+subtitle: "Distribution of the Thickness of Plywood Boards"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tidyverse)
+library(readr)
+library(moments)
+
+
+```
+
+
+"Determine analytically" -- you can't use simulation here, you need to use theory and math. See CH04 HW sols for examples, and the glossary entry for expected value and variance. Also need analytical results for the "goal" problem using theoretical R norm functions. // Otherwise, good job!
+
+#### The Problem
+
+Plywood is made by gluing together several very thin sheets of wood veneer. A cross-layering process where sheets are laid so the grain is right angles in alternate layers produces a strong composite. However, like any product, there is variation in the materials. Suppose a particular type of half-inch plywood board (i.e., board that is supposed to be half an inch thick) is made by layering five veneer sheets. The individual thickness of each sheet is normally distributed with a mean of 0.1 inches and a standard deviation of 0.005 inches. If sheets are randomly and independently selected during the assembly process and glue adds negligible thickness because of the pressure applied during the layering process, then total thickness is a random variable.
+
+board thickness = sheet 1 thickness + sheet 2 thickness + sheet 3 thickness + sheet 4 thickness + sheet 5 thickness
+
+Determine analytically (i.e., using mathematics) the expected value, variance, and standard deviation of the distribution of board thickness. What shape would the distribution have?
+
+
+```{r}
+#
+m <- c(.1, .005^2)
+
+
+X <- m
+Y <- m
+Z <- m
+D <- m
+W <- m
+
+S <- X + Y + Z + D + W
+
+S
+
+(sqrt(.000125))
+
+```
+
+A: mean(expected value) is .5, variance is 0.000125, standard deviation is sqrt of variance so  0.01118034. Shape is normal since other ones were already normal. 
+
+**ANSWER (shape):**  The theoretical shape is symmetrical but just using rnorm as is with n = 5 will show wild variability. Changing it to n = 10^4 follows the CLT. 
+
+
+**ANSWER (meeting goal):** Not completely base on the interval. For 99% of all the plywood, a small portion of that will still vary outside the intended interval. In order to meet that constrain there would need to be a smaller variance. 
+
+Sometimes the machine that produces the veneer sheets needs to be recalibrated, so an inspector periodically selects a random sample of 100 sheets and takes the average of their thicknesses. Today's mean was 0.0989. Would this be an unusual value, given the distribution of veneer sheets? Determine the sampling distribution of $\bar{x}$ either analytically of using simulation and then use it to answer the question.
+
+```{r}
+
+N <- 10^4
+
+S <- numeric(N)
+
+for (i in 1:N) {
+
+S[i] <- mean(rnorm(100, .1, 0.005))
+
+
+}
+
+ggplot(NULL, aes(x = S)) +
+  geom_density()
+
+mean(S <= 0.0989)
+```
+
+```{r}
+
+pnorm(.0989, mean = .5, sd =   0.01118034)
+```
+
+**ANSWER (unusual or not):**
+
+Yes unusual, since something like that would only occur about 1% of the time. 
+
+***
+```{r}
+sessionInfo()
+```

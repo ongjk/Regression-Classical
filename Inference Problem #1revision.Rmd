@@ -1,0 +1,170 @@
+---
+title: "Inference Proficiency Problem"
+subtitle: "Comparison of Smallpox Vaccine Pre-Treatments"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+Print the summaries, not the structure of the summaries. You also didn't filter for Experiment 1 only. // Permutation test and t.test() are generally OK except for the data you're using. // The bootstrapping is a separate simulation. // Do you reject Ho in your test, yes or no? If no, do not interpret the difference. If Yes, use your interval. // "No, the difference in the means of the different groups are too unequal to conclude a reliability in two sample t-test." No, the whole point is to test for a difference in means. 
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tidyverse)
+library(readr)
+
+smallpox <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/smallpox.csv")
+```
+
+#### The Problem
+
+In the late 1700s, smallpox killed about one in four children born in London. Scientists knew that inoculations (i.e., vaccines) were effective in reducing mortality, but no one was sure how they worked. Doctors often prescribed tonics to prepare patients before vaccination. Dr. William Watson became the physician for a large London orphanage 1762. Administrators were concerned about rapid spread of disease in crowded conditions and ordered vaccinations for all of the children who lived there. Watson used this chance to investigate the effectiveness of vaccine pre-treatments. This is considered to be one of the first historical examples of the kind of research we now call a clinical trial. 
+
+In his first experiment, Watson divided thirty-one children into three groups. 
+
+* pre-vaccination treatment of mercury and jalap (a strong laxative)
+* pre-vaccination treatment of senna and syrup of roses (a mild laxative)
+* no pre-vaccination treatment (control group)
+
+Watson observed and counted the number of smallpox lesions that appeared on each child. In general, more pocks is a sign of a more severe infection and greater chance of mortality. The data from Watson's experiment can be found in the file [smallpox.csv](https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/smallpox.csv). (Note: It was perfectly acceptable to conduct experiments like this throughout much of human history, but in the present day this generally would be considered unethical, especially with children as subjects.)
+
+
+#### The Analysis
+
+Extract the data belonging to the control and senna/syrup of roses groups in Watson's first experiment. Then `summarize` n, mean, and standard deviation for number of pocks in each group. Also create a boxplot to compare the groups. 
+
+
+```{r}
+list(smallpox)
+```
+
+
+```{r}
+smallpoxTest <- smallpox %>%
+   filter(experiment == 1) %>%
+   filter(pretreatment != "mercuryandjalap", pretreatment != "mercury")
+
+#
+
+smallpox_sums <- smallpox %>%
+  filter(experiment == 1) %>%
+  group_by(pretreatment) %>%
+  filter(pretreatment != "mercuryandjalap", pretreatment != "mercury") %>% 
+  summarize(n     = n(),
+            xbar  = mean(pocks, na.rm = TRUE),
+            stdev = sd(pocks, na.rm = TRUE)
+            )
+smallpox_sums
+ggplot(smallpoxTest, aes(x = (pretreatment), y = pocks)) +
+  geom_boxplot()
+```
+
+
+
+Conduct a permutation resampling test to determine whether the two group means are different. Do not use `infer` or any other pre-packaged resampling packages/functions. Write your own sampling loop. 
+
+```{r}
+#
+pocksG <- smallpox %>% pull(pocks) # Pulls out with no group info from the buckets. 
+
+n_all <- length(pocksG)
+
+smallpox_none <- smallpox %>% filter(experiment == 1, pretreatment == "none") %>% pull(pocks) #makes bucket
+
+smallpox_sennaandrose <- smallpox %>% filter(experiment == 1, pretreatment == "sennaandrose") %>% pull(pocks) 
+#makes other bucket
+observed_diff <- mean(smallpox_none) - mean(smallpox_sennaandrose)
+
+n_F <- length(smallpox_none)
+  
+n_NF <- length(smallpox_sennaandrose)
+
+N <- 10^4 - 1  
+
+random_diffs <- numeric(N) 
+
+for (i in 1:N)
+{
+  index <- sample(n_all, size = n_F, replace = FALSE) 
+  random_diffs[i] <- mean(pocksG[index]) - mean(pocksG[-index])
+}
+
+ggplot() + 
+  geom_histogram(aes(random_diffs), fill = "light blue") + 
+  geom_vline(xintercept = observed_diff, colour = "red") +
+ xlab("xbar1-xbar2")
+
+
+
+
+```
+
+Compute a 95% bootstrap percentile interval to estimate the difference in the two group means.
+
+chp 5-7 last one
+
+```{r}
+#
+tgt <-  smallpox %>% filter(experiment == 1, pretreatment == "none") %>% pull(pocks)
+tgt_n = length(tgt)
+wmt <- smallpox %>% filter(experiment == 1, pretreatment == "sennaandrose") %>% pull(pocks) 
+wmt_n = length(wmt)
+
+obs_diffs <- mean(tgt) - mean(wmt)
+
+N <- 10^4
+boot_diffs <- numeric(N)
+
+for (i in 1:N) {
+  boot_diffs[i] <- mean(sample(tgt, tgt_n, replace = TRUE)) - mean(sample(wmt, wmt_n, replace = TRUE))
+}
+quantile(boot_diffs, c(0.025, 0.975))
+
+ggplot(NULL, aes(x = boot_diffs)) + geom_density()
+ggplot(NULL, aes(sample = boot_diffs)) + 
+  stat_qq() +
+  stat_qq_line(color = "red")
+```
+
+A: The bootstrap percentile interval contains zero, so there is no evidence of a difference.
+
+Conduct a classical two-sample t-test for the same hypotheses using the `t.test` function. (Be sure to set the appropriate H~a~.)
+
+```{r}
+
+smallpoxTest <- smallpox %>%
+   filter(pretreatment != "mercuryandjalap", pretreatment != "mercury")
+#
+t.test(pocks ~ pretreatment, data = smallpoxTest, alternative = "greater")
+```
+
+Using the results of the permutation resampling test, can we conclude at the &alpha; = 0.05 level of significance that the two groups had different mean numbers of pocks? If so, which group had more pocks, on average, and how large is the difference, based on the bootstrap percentile interval?
+
+```{r}
+#
+(sum(boot_diffs >= abs(obs_diffs)) + 1) / (N + 1)
+
+
+mean(boot_diffs) - obs_diffs
+```
+
+A: No significance difference found base on the bootstrap with alpha = .05
+
+Given the assumptions of the classical two-sample t-test, is the p-value from the classical two-sample t-test reliable? Use evidence from your descriptive analysis.
+
+
+A: No, t-test are not reliable for this sample since the data is not normal looking at bootstrap testing. T.test looks to see if there is a difference between the means however it assumes that they are both normal, which they are not. 
+
+
+***
+```{r}
+sessionInfo()
+```

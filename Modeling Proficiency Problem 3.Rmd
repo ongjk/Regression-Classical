@@ -1,0 +1,113 @@
+---
+title: "Modeling Proficiency Problem"
+subtitle: "Ideal Height vs. Measured Height in College Students"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages you need here.
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(moderndive)
+anthro <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/anthropometric.csv")
+```
+
+EDA: Are there any unusual values that might influence the analysis? // You don't need the plot twice. You also don't need the get_regression_table() since you have summary() // You only have three heights, not five. // "Hard to really see a pattern from such a small sample but the further away they are from the standard height, the bigger of a change they want from their heights." -- Not really that hard. There are a few hundred data points.  Also, what is a "standard" height? If you are referring to a mean or median, then the statement is incorrect. Be more specific.
+
+#### The Problem
+
+Are people generally happy with their heights? If not, how tall do they want to be? Dr. Thomley's  [anthropometric](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/anthropometric.html) dataset contains measurements of students' heights and their self-selected ideal heights. You will fit a parallel slopes model to predict ideal height using measured height and gender. This is a potentially interesting question because psychological research shows that American society seems to associate height with power, especially when it comes to men, and that women tend to prefer their partners to be much taller than them ([example source](https://www.psychologytoday.com/us/blog/fulfillment-any-age/201306/why-women-want-tall-men)). One may also wish to consider that our physical spaces, clothing, and professions we wish to pursue also may be better suited to people of particular dimensions.
+
+#### The Analysis
+
+Filter the dataset to include only students who self-identified as male or female (there are not enough data points in other groups to model them). Perform EDA to determine whether you need to transformation or remove any additional data before you fit your model. Explain your rationale for any transformations or deletions you chose to make. Include any plots or calculations relevant to your explanation.
+
+```{r}
+# EDA here
+str(anthro)
+summary(anthro)
+names(anthro)
+```
+```{r}
+# Filter/transform data here
+anthroX <- anthro %>%
+  filter(gender == "male" | gender == "female") %>%
+  filter(!is.na(ideal)) %>%
+  filter(!is.na(height)) %>%
+  filter(!is.na(armspan)) %>%
+  filter(!is.na(forearm)) %>%
+  filter(!is.na(hand)) %>%
+  filter(!is.na(leg)) %>%
+  filter(!is.na(foot))
+```
+
+ANSWER: I just removed all the NA and reduced the gender to male or female. I didn't want to mess with the numbers too much. Ideal looks like its going to break some pattern with a bigger range but I figure its what people want and I don't want to recalculate someone's fantasy. 
+
+Create a plot for the relationship using your analysis dataset. Display only the fitted  linear models for male and female students (with no points). Add a red line representing the function ideal height = measured height. Be sure to include an appropriate title and axis labels for this plot. 
+
+```{r}
+#
+ggplot(anthroX, aes(x = height, y = ideal)) +
+  geom_smooth(data = anthroX, aes(col = gender), method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", se = FALSE, linetype = 9, color = "red") +
+  annotate("text", x = 65, y = 68, angle = 33, label = "ideal height = measured height") +
+  labs(title = expression("Regression model seperated by gender"), 
+       y = "ideal",
+       x = "height") 
+```
+
+Fit a parallel slopes least squares linear model to the data and display the `summary()` of results. Interpret the gender coefficient in the context of the problem. 
+
+```{r}
+#
+#
+anthroX_parallel <- lm(ideal ~ gender + height, data = anthroX)
+coef(anthroX_parallel)
+
+summary(anthroX_parallel)
+
+ggplot(anthroX, aes(x = height, y = ideal)) +
+  geom_smooth(data = anthroX, aes(col = gender), method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", se = FALSE, linetype = 9, color = "red") +
+  annotate("text", x = 65, y = 68, angle = 33, label = "ideal height = measured height") +
+  labs(title = expression("Regression model seperated by gender"), 
+       y = "ideal",
+       x = "height")
+```
+
+ANSWER: I just used the same graph since it does the same thing. I could've faceted in the beginning. As for the parallel slope model it has R^2 of .68 so its pretty good and intercept of ~33. Looking at the data, a parallel model would be better. 
+
+Choose five different heights within the range of the measured height data and predict the ideal heights of both male and female students with those heights.
+
+```{r}
+#
+anthroXmodel_parallel <- lm(ideal ~ gender + height, data = anthroX)
+get_regression_table(anthroXmodel_parallel)
+
+anthropred_data <- tibble(height  = c(63, 63, 69, 69, 74, 74),
+                    gender = c("male", "female", "male", "female", "male", "female"))
+
+get_regression_points(anthroXmodel_parallel, newdata = anthropred_data)
+```
+
+Do the people in this sample seem to be happy with their heights, or do their ideal heights typically differ? Do males and females seem to have the same attitudes regarding ideal height? What group patterns do you notice? Support your answer using relevant evidence from your analysis.
+
+ANSWER: This sample looks a bit wonky but it looks like no one is really satisfied with their height, they all want it either be a couple inchs taller or shorter. Hard to really see a pattern from such a small sample but the further away they are from the standard height, the bigger of a change they want from their heights. 
+
+***
+```{r}
+sessionInfo()
+```

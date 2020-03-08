@@ -1,0 +1,140 @@
+---
+title: "Discriminant Analysis"
+author: "Jefferson Ong"
+date: "3/4/2020"
+output: html_document
+---
+
+# Discriminant Analysis
+
+* Classifies an observation
+
+* Uses the logic of Bayes Rule( Bayes theorem) to help guide the decision
+
+* Works relatively easily for outcome variables with > 2 categories
+
+
+      ex: Whats their favorite sport(more than 2 outcomes), (mild, moderate, severe)
+      
+  
+# Bayes Rule: helps us reverse the direction of a conditional probability.
+
+              Pr(B given A) <==> Pr(A given B)
+
+    ex: A condition(disease) is affecting 2% of the population.
+    
+        A test for the condition exist
+        
+        For people with the disease the test detects it, 97% of the time
+        
+        For people without the disease the test gives a negative reading of 95% of the time
+        
+        
+        * A person tests positive for the disease(corovirus), 
+        
+          what is the chance they have the disease?
+        
+          
+          True condition:  Either: Disease: .02  ---> Test: Positive: .97  ==> (.0194)
+          
+                                                          : Negative: .03 ==> (.006)
+          
+                                   No disease: .98 --> Test: Positive: .05 ==> (.049)
+          
+                                                           : Negative: .95 ==> ( .931)
+
+
+Disease( .02 ) * TestPostive ( .97 ) = .0194, the probability of having the disease
+
+                                   Disease: .02  ---> Test: Positive: .97  ==> (.0194)
+
+                                   No disease: .98 --> Test: Positive: .05 ==> (.049)
+                                   
+                                   This is the positive test, 2% of the population.
+                                   
+                                   Pr(disease given a postive test) = (.0194) / ((.0194) + (.049)) = 28% chance of having the disease(because the disease isn't that common)
+                                   
+                                   
+                                   
+How doe sthis fit with discriminant analysis?
+
+## Application to discriminant analysis
+
+Y = outcome variable
+    
+    * assume 2 groups (1,2)
+    
+X = predictor variable
+
+    * single
+    
+    * assume in group 1, X~N(mu1, sigma)
+    
+                group 2 , X~N(mu2, sigma)
+                
+                
+ex: Dogs of a particular breed are 55% female, 45% male. 
+
+              weights -> females N ~ (48 lbs, 5 lbs)
+              
+                         males N ~ (53 lbs, 5 lbs)
+                
+    A dog weights 51.5 pounds how should be classify it? 
+    
+    Mimic bayes rule: Female: .55 --> weights: pretend a normal curve, centered at 48
+    
+                      Male: .45 ----> weights: pretend a normal curve, centered at 53
+                      
+                      We multiple .55 * N(48, 5) distribution
+                      
+                      We multiple .45 * N(53, 5) distribution
+                
+                      We end up with 2 different distribution, a scaled female/weight distribution
+                      
+                                                               a scaled male/weight distribution 
+                                                               
+                                        Now pick which curve is higher at that point
+                                        
+                                        There is a dividing line that arises
+    
+Use training data:
+
+    * Outcomes Y are known
+    
+
+_________________________________
+
+
+
+How do we classify a 56 LB dog? 
+
+
+           Female: .55 --> weights: pretend a normal curve, centered at 48
+               
+           Male: .45 ----> weights: pretend a normal curve, centered at 60
+           
+           We multiple .55 * N(48, 5) distribution
+           
+           We multiple .45 * N(60, 5) distribution   
+                                
+Pr( male and 56 lbs) = P(male[.45]) * P(56 lbs if male)                                   
+
+Pr( male and 56 lbs) = P(female[.55]) * P(56 lbs if female[bell curve])  
+
+Which probability is bigger?
+
+
+```{r}
+library(readr)
+workbook <- read_xlsx("Simple-Workbook-Discriminant-Analysis.xlsx")
+str(workbook)
+```
+
+
+
+
+
+
+
+
+

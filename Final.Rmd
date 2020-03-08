@@ -1,0 +1,283 @@
+---
+title: "Final Exam Spring 2019"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# load required packages here
+library(readr)
+library(tidyverse)
+kneedat <- read.csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/surgery.csv")
+```
+
+```{r}
+str(kneedat)
+summary(kneedat)
+```
+
+```{r}
+kneedat
+```
+
+
+### Problem 1
+
+Doctors investigated a new treatment intended to better control post-operative pain in patients who had total knee replacement surgery. Data were collected over three years on several outcomes for each patient, including length of stay in the hospital after surgery (LOS), total units of post-op pain relief medication received (Meds), and self-reported post-op pain on a scale of 0 to 10 (Pain). This was an observational study rather than an experiment---the patients were not randomly assigned to type of pain relief. Treatment was chosen by the surgeon performing the procedure.
+
+a) Summarize sample size, mean, and standard deviation for both groups. Also make boxplots to compare the two groups. Include an appropriate title and axis labels.
+
+```{r}
+kneedat %>%
+  group_by(TRT) %>%
+  summarize(n     = n(),
+            xbar  = mean(Pain, na.rm = TRUE),
+            stdev = sd(Pain, na.rm = TRUE)
+            )
+
+ggplot(kneedat, aes(x = TRT, y = Pain)) +
+  geom_boxplot()
+```
+
+b) Perform a permutation resampling test to determine whether patients receiving the traditional (NB) versus the new (EXP) treatment reported different levels of pain, on average. 
+
+```{r}
+kneedat <- kneedat %>%
+  mutate(Pain = replace_na(Pain, 0))
+
+kneedatPulled <- kneedat %>% pull(Pain)
+
+n_all <- length(kneedatPulled)
+
+kneedat_EXP <- kneedat %>% filter(TRT == "EXP") %>% pull(Pain) #makes bucket
+
+kneedat_NB <- kneedat %>% filter(TRT == "NB") %>% pull(Pain) #makes other bucket
+
+observed_diff <- mean(kneedat_NB) - mean(kneedat_EXP)
+
+n_EXP <- length(kneedat_EXP)
+  
+n_NB <- length(kneedat_NB)
+
+N <- 10^4 - 1  
+
+random_diffs <- numeric(N) 
+
+for (i in 1:N)
+{
+  index <- sample(n_all, size = n_EXP, replace = FALSE) 
+  random_diffs[i] <- mean(kneedatPulled[index]) - mean(kneedatPulled[-index])
+}
+
+ggplot() + 
+  geom_histogram(aes(random_diffs), fill = "light blue") + 
+  geom_vline(xintercept = observed_diff, colour = "red") +
+ xlab("xbar1-xbar2")
+```
+```{r}
+(sum(random_diffs <= -abs(observed_diff)) + 1) / (N + 1)
+
+sprintf("The observed difference in sample means between first and second is %0.4f.", observed_diff)
+```
+A: Yes, there is a difference
+
+
+c) Large sample sizes can often produce statistically significant results where the magnitude of the difference is not meaningful in a real life context. For example, from a clinician's point of view, a difference on a subjective, self-reported pain scale is only meaningful if it's at least one point (or even more). This real-world importance is called *practical* significance. Did your results achieve statistical significance at the $\alpha$ = 0.05 level? If yes, is the difference you found practically significant? Explain.
+
+**ANSWER:** Yes there is a statistical significance at alpha of .05. However the observed difference is only 0.5 which is not practical enough for real world importance. 
+
+d) Would it have been reasonable and valid to use `t.test()` for this analysis? Explain.
+
+```{r}
+tgt <-  kneedat %>% filter(TRT == "EXP") %>% pull(Pain)
+tgt_n = length(tgt)
+wmt <- kneedat %>% filter(TRT == "NB") %>% pull(Pain)
+wmt_n = length(wmt)
+
+obs_diffs <- mean(tgt) - mean(wmt)
+
+N <- 10^4
+boot_diffs <- numeric(N)
+
+for (i in 1:N) {
+  boot_diffs[i] <- mean(sample(tgt, tgt_n, replace = TRUE)) - mean(sample(wmt, wmt_n, replace = TRUE))
+}
+quantile(boot_diffs, c(0.025, 0.975))
+
+ggplot(NULL, aes(x = boot_diffs)) + geom_density()
+
+ggplot(NULL, aes(sample = boot_diffs)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+```
+
+
+**ANSWER:** Yes it would be reasonable to conduct a t.test for this analysis. We want to know if the distribution follows the CLT since its required for the t.test to work out. I've used a bootstrap distribution to mimic this and looked at the qqplot and found that it's normal. This means that it is ok to use t.test.
+
+
+```{r}
+str(kneedat)
+summary(kneedat)
+```
+
+### Problem 2
+
+In the knee replacement dataset, the `Meds` variable is the total amount of opioid pain relief medication a patient received during their hospital stay (LOS). Since several different analgesics may have been used, the relative potencies of all opioids ordered for a patient were converted to morphine equivalents, where one unit is the equivalent of 10mg intravenous morphine. Thus, a `Meds` value of 138 means that the patient received a total amount of opoid medications equivalent to 1380 mg of IV morphine. Some patients may have received non-opoid analgesics as well, such as Tylenol, which are not included in the `Meds` value. The variable `Pain` is an average of all self-reports of pain a patient may have given during their hospital stay.
+
+a) Since the patients in the study had different lengths of stay, create a variable in the dataset called `MedsPerDay` by dividing the `Meds` variable by `LOS`.
+
+```{r}
+#
+kneedat <- kneedat %>%
+  mutate(MedsPerDay = Meds/LOS)
+
+str(kneedat)
+```
+
+b) Create a scatterplot with a fitted linear model representing `MedsPerDay` as a function of `Pain`. Include an appropriate title and axis labels.
+
+```{r}
+ggplot(kneedat, aes(x = Pain, y = MedsPerDay)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  ggtitle(expression("Linear Model of MedsPerDay as a function of Pain")) +
+  ylab("MedsPerDay") +
+  xlab("Pain")
+```
+
+c) Fit a linear model to the data and show a `summary()` of the results. You may use the `moderndive` functions if you prefer.
+
+```{r}
+#
+library(moderndive)
+kneedat_model <- lm(MedsPerDay ~ Pain, data = kneedat)
+
+get_regression_table(kneedat_model)
+```
+
+d) Create a histogram and QQ plot to assess the normality of the residuals.
+
+```{r}
+#
+ggplot(get_regression_points(kneedat_model), aes(x = residual)) +
+  geom_histogram() 
+
+ggplot(get_regression_points(kneedat_model), aes(sample = residual)) + 
+  geom_qq() +
+  geom_qq_line(color = "red")
+```
+
+e) Is self-reported pain a good predictor of the amount of opioid medication a patient received? Discuss using information from your model and the problem description.
+
+**ANSWER:** No, there's too much variability and our model isn't normal. The scatterplot shows that there's patients that report a particular pain level like 0 or 8 and the amount of medicine they receive can widely vary. It makes our residuals not normal and shows that its skewed right. 
+
+
+### Problem 3
+
+In many user-assembled bookshelf kit, metal pins are inserted into holes drilled in the sides of the bookshelf to hold up movable shelves. For one particular type of bookshelf, all holes are supposed to be 0.25 inches in diameter, but variation in the process of drilling the holes results in hole diameters that are normally distributed with a mean of 0.25 inches and a standard deviation of 0.001 inch. The pin diameters are normally distributed with a mean of 0.2475 inches and a standard deviation of 0.0001 inches.
+
+* Let X be the diameter of a randomly selected hole.
+
+* Let Y be the diameter of a randomly selected pin.
+
+* The difference between the diameters is D = X - Y.
+
+a) Use theoretical/analytical methods to determine E(D) and Var(D).
+
+X ~ N(0.25, 0.001)  distribution for the holes in wood
+Y ~ N(0.2475, 0.0001) distribution of pins being inserted
+
+We want the difference in diameter
+
+```{r}
+mu <- (0.25 - 0.2475) # subtracted the means
+
+Var <- (0.001^2) + (0.0001^2) # converted sd into var then added
+Sd <- sqrt(Var) # New sd
+```
+E(D) = 0.0025
+
+Var(D) = 1.01e-06
+
+D ~ N(mu, sd)
+
+b) Using your results in (a), calculate the probability that the pin doesn't fit in the hole. In other words, the pin diameter is larger than the hole diameter. (Hint: First ask yourself what values D will have if Y is larger than X.
+
+Y will need to be a greater value than X so D must be a negative number. I went and just chose -.10^10 since I want to be as close to zero as I can while still being less than zero. 
+
+```{r}
+#
+pnorm(-.1^5, mean = mu, sd =  Sd)
+pnorm(-.1^10, mean = mu, sd =  Sd)
+```
+
+A: About 0.6% of the time.
+
+c) Perform a simulation with 100,000 repetitions to verify your results in (a) and (b).
+
+```{r}
+#
+N <- 10^5
+
+S <- numeric(N)
+
+for (i in 1:N) {
+
+S[i] <- mean(rnorm(100, mu, Sd))
+
+
+}
+
+ggplot(NULL, aes(x = S)) +
+  geom_density()
+
+```
+
+```{r}
+mean(S <= -.1^10)
+```
+
+
+d) The difference in diameter between the hole and the pin needs to be at least 0.0025 inches for the pin to slide in easily by hand. If a person is positioning three shelves, 12 holes will be used. What is the chance that a single randomly selected pin will not slide easily into any of the 12 holes (i.e., it slides easily into none of them)? You may solve this either mathematically or by performing a simulation.
+
+Slide easy = .0025 or higher in difference
+
+Shelves holes position= (03)(33)(30)
+
+percent of pins not slide easy = lower than .0025 (too tight)
+
+.0025 is the mean of the distribution. We want to find out what is the percentage of everything else less than that, which should be 50%. That means that each hole has 50% chance of not sliding easily. 
+
+```{r}
+#
+pnorm(.0025, mean = mu, sd =  Sd)
+
+1 - pbinom(1, 12, .5)
+```
+pbinom(1, 12, .5) is the probability of a getting 1 or less out of the 12 with a probability of .5. subtracting from 1 will give the probability that one will randomly not slide easily.  
+
+
+Simulation
+```{r}
+mean(rbinom(100000, 12, .5) >= 1)
+```
+
+
+
+
+***
+```{r}
+sessionInfo()
+```

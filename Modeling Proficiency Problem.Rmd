@@ -1,0 +1,140 @@
+---
+title: "Modeling Proficiency Problem"
+subtitle: "WCS Inclement Weather Days vs. Total Snowfall"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages you need here.
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(moderndive)
+SchoolWed <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/wcsweatherdays.csv")
+```
+
+```{r}
+str(SchoolWed)
+summary(SchoolWed)
+names(SchoolWed)
+```
+
+#### The Problem
+
+All K-12 schools in North Carolina are required to complete a minimum number of instructional days per year. Watauga County Schools starts the school year with calendar that has 180 student days. However, the system typically has several cancelations every year as a result of inclement weather. These days must be made up either during the year (e.g., Saturday school or moving teacher workdays) or by adding days to the end of the year. Even with makeups, the number of days students miss is of concern to many people because they feel canceled days disrupt student learning, especially considering the pressure to perform well on standardized tests and the NC School Report Cards. ([school closing data](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/wcsweatherdays.html))
+
+#### The Analysis
+
+Compute the correlation between each month's number of canceled days and total snowfall. Assuming all of the relationships are linear, which month is most strongly correlated with total snowfall? Which is most weakly correlated? 
+
+There is a function for correlation, and you can do them all as one summarize(). You cannot group my month because each month is its own column, you'd have to gather() first. Also, September is not the weakest corr. // "Intercept of 5.7 can be taught of as the baseline number of days that will have snow." No--snow is the predictor, the y-intercept reflects a value of y. Interpretation of slope? Months do not directly come into play in this model since we are looking at total days. // Residuals too far from what? You're also missing a plot. 
+
+```{r}
+##
+ # filter(!is.na(height)) %>%
+  
+SchoolWed_gathered <- SchoolWed %>% 
+  gather(key = "Months", value = "days_number", aug_days:may_days)
+
+
+ SchoolWed_gathered %>%
+    filter(Months == "aug_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+
+#  str(SchoolWed_gathered)
+
+ SchoolWed_gathered %>%
+    filter(Months == "sep_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+ 
+  SchoolWed_gathered %>%
+    filter(Months == "oct_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+  
+   SchoolWed_gathered %>%
+    filter(Months == "nov_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+   
+  SchoolWed_gathered %>%
+    filter(Months == "dec_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+  
+
+ SchoolWed_gathered %>%
+    filter(Months == "jan_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+ 
+  SchoolWed_gathered %>%
+    filter(Months == "feb_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+  
+   SchoolWed_gathered %>%
+    filter(Months == "mar_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+   
+  SchoolWed_gathered %>%
+    filter(Months == "apr_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+  
+  SchoolWed_gathered %>%
+    filter(Months == "may_days") %>%
+    filter(!is.na(total_snow)) %>%
+    get_correlation(formula = total_snow ~ days_number)
+```
+
+ANSWER: Febuary has the greatest correlation. With september being the weakest correlation. I'm not completely sure why I couldn't just group_by(month) compare to filtering for individual rows but it just gave me a single correlation value, not completely sure. 
+
+Fit a least squares linear model to examine the relationship between total number of inclement weather days (response variable) and total snowfall (explanatory variable). Display the table of coefficients as well as the model summaries using functions from the `moderndive` package. Interpret the coefficients and R^2^ in the context of the problem. 
+
+```{r}
+SchoolWed_gathered_model <- lm(total_days ~ total_snow, data = SchoolWed_gathered)
+
+get_regression_table(SchoolWed_gathered_model)
+
+summary(SchoolWed_gathered_model)
+```
+
+ANSWER: Intercept of 5.7 can be taught of as the baseline number of days that will have snow. The model isn't all that linear with R^2 of .39 which isn't completely bad but also not great either. It makes sense since snow in the year isn't completely constant and linear in every month. So there will be more snow days in winter compare to summer/spring months. 
+
+Create plots to assess the residuals. Do you see anything potentially problematic?
+
+```{r}
+#
+get_regression_points(SchoolWed_gathered_model)
+
+ggplot(get_regression_points(SchoolWed_gathered_model), aes(x = total_snow, y = residual)) +
+  geom_point() +
+  geom_hline(yintercept = 0, col = "blue")
+```
+
+ANSWER: Yes, theres residuals that are too far that could be omitted and have a better calculation. Overall however its looks good, no systemic pattern. 
+
+Does total snowfall in a given year seem to be the primary reason for the total number of WCS inclement weather cancelations? Support your answer using relevant evidence from your analysis. 
+
+ANSWER: Ehh..hmmm.. not really. They're correlated but it isn't all that strong of a correlation, theres even some months where they are negatively correlated. I believe the cause of the cancellation has to do more with the school and how they take precautions rather than the actual amount of snow that happens in the school year. 
+
+***
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,41 @@
+---
+title: "Bootstrap"
+author: "Jefferson Ong"
+date: "3/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Stt 3851: Ch 5: Bootstrap
+
+Recall from Stt 3811 that resampling from your original sample repeatedly, with replacement, creates a set of what are called bootstrap resamples.
+
+You can calculate statistics of interest on these bootstrap resamples to obtain an estimate of the standard deviation of the statistic, and also a confidence interval for the corresponding quantity (parameter) in the population. The method we discused in Stt 5811 for creating these confidence intervals was called the percentile method, which formed (for example) a 95% confidence interval for the population parameter of interest (often μ) by taking the 2.5th and 97.5th percentiles of the bootstrap statistic (x¯).
+
+The standard deviation of a statistic is called a standard error, and in bootstrapping you can obtain an estimate of the standard error of a statistic by taking the standard deviation of the statistic across the bootstrap resamples.
+
+Today we will illustrate the use of the bootstrap for a different statistic than the population mean.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,183 @@
+---
+title: "HW Chapter 3"
+author: "Céline Prunet and Jefferson Ong"
+date: "2/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Question 9
+
+```{r}
+library(ISLR)
+library(readr)
+```
+
+
+
+
+```{r}
+# auto <- read.csv("Auto.csv")
+# auto <- na.omit(auto)
+# summary(auto)
+# # View(auto)
+# str(auto)
+
+auto <- Auto
+str(auto)
+```
+
+a)
+```{r}
+plot(auto[,c(1:4)])
+plot(auto[,c(5:9)])
+
+```
+
+b)
+
+```{r}
+cor(auto[,1:8])
+```
+
+c)
+
+```{r}
+lm1 <- lm(mpg ~ . -name, auto)
+summary(lm1)
+
+```
+
+```{r}
+summary(lm(mpg~ year, auto))
+```
+
+i) Yes, there is a relationship between the predictors and the response variable because of the high f statistic and the low p value that goes along with it.
+ii) Yes for predictors: displacement, weight, year, origin because they have a low p value and a high t test. They also have an asterisk beside the p value, indicating a smaller p value. 
+iii) The coefficient for the year variable suggests that for every one year that passes, mpg increases by .750773, which means that newer cars are more fuel efficient. yhat(mpg) = b0(-17) + b1x1(.75 * year) + ...
+
+
+d)
+
+```{r}
+plot(lm1)
+```
+Interpretation:
+
+Plot 1, Residuals vs Fitted: Since our residual plot shows curvature, this indicate that our residual is non-lineary. We can see that for the lot fitted values the residuals are clustered and not quiet as spread, meaning that our outcome was higher than expected for smaller predicted values. 
+
+Plot 2, Normal QQ Plot: QQ plot checks for a normal distribution of the residuals. The dotted straight line is what should have theoretically happened. Since our plots do not fall on the dotted line and is curved upwards towards the end,  this indicates that our model has non-normality.
+
+Plot 3, Scale Location Plot: The scale location plot is good for identifying equal variance among the residuals and helps us detect non-constant error variation. If the red line shows obvious trend, we have a problem. We want there to be no trend and to have a constant spread of the residuals throughout the plot. Our graph is not terrible, but it could be better. Towards the left side of the graph, our residuals are not as spread out as we want them to be and sort of follow the red line, which indicated non-constant error. As we move closer to the right side of the plot, our residuals become more spread out, which we want.
+                      
+Plot 4, Residuals vs Leverage: The Residuals vs. Leverage plots helps you identify influential data points on your model. There are two types of points: leverage points nd influential points. Leverage is the amount impact a point potentially has on the fitted regression line. Influential points do have an impact on the fitted regression line and are found outside of Cook's distance line. To be more clear, leverage points can change your fitted regression line, and influential points do change your fitted regression line. If we were to remove influential points for the model, it will noticeably chnage the results. In our plot, there are not points outside of Cook's distance lines, which means we do not have any influential points that significantly change our results.
+
+e)
+```{r}
+lm0 <- lm(mpg ~ . -name + cylinders*weight + displacement*weight + cylinders*displacement , auto)
+summary(lm0)
+```
+
+```{r}
+# Adding interaction terms
+lm2 <- lm(mpg ~ . -name + cylinders:weight + displacement:weight + cylinders:displacement , auto)
+summary(lm2)
+```
+
+```{r}
+lm3 <- lm(mpg ~ . -name + displacement:cylinders, auto)
+summary(lm3)
+```
+
+```{r}
+lm4 <- lm(mpg ~ . -name + displacement:weight, auto)
+summary(lm4)
+```
+
+Interpretation:
+
+Yes, we ran a handful of models that use the interaction term. For example, lm2 has displacement:cylinders not that significant because of a high p value, but it is significant for lm3 because of a small p value. For our third model, the interaction term displacement:weight is significant, again, because of a small p value. Also, in the multiple linear regression model we created in part c, we had a R^2 of 82.15. Our linear regression model with interactions effects are significant because of a low p value and an increase on R^2, which is now 85.88.                                                                                         
+
+f)
+
+```{r}
+log <- lm(log(mpg) ~ displacement + horsepower + weight + year + displacement:weight, auto)
+sqrt <- lm(sqrt(mpg) ~ displacement + horsepower + weight + year + displacement:weight, auto)
+cubed<- lm(mpg^2 ~ displacement + horsepower + weight + year + displacement:weight, auto)
+final<- lm(mpg ~ displacement + horsepower + weight + year + displacement:weight, auto)
+summary(final)
+
+par(mfrow = c(2,2))
+plot(final)
+plot(log)
+plot(sqrt)
+plot(cubed)
+```
+interpret: 
+
+
+
+Question 10
+
+a)
+
+```{r}
+library(ISLR)
+```
+
+```{r}
+Carseats
+```
+```{r}
+str(Carseats)
+```
+
+```{r}
+mult.reg <- lm(Sales ~ Price + Urban + US, Carseats)
+summary(mult.reg)
+```
+
+b) Interpret: 
+
+
+
+c) Model equation
+
+USYes prediction = 13.043469 + -0.054459(Price) + 1.200573(USYes) + epsilon
+      UrbanYes = 13.043469 + -0.054459(Price) + 1.200573(USYes) + -0.021916(UrbanYes) + epsilon
+      UrbanNo = 13.043469 + -0.054459(Price) + 1.200573(USYes) + epsilon
+      
+      
+USno prediction = 13.043469 + -0.054459(Price) + epsilon
+      UrbanYes = 13.043469 + -0.054459(Price) + -0.021916(UrbanYes) + epsilon
+      UrbanNo = 13.043469 + -0.054459(Price) + epsilon
+
+
+d) We can reject the null hypothesis for  Price and USYes because of the low p values. 
+
+
+e) 
+
+```{r}
+mult.reg2 <- lm(Sales ~ Price  + US, Carseats)
+summary(mult.reg2)
+```
+
+f)
+
+g)
+
+```{r}
+confint(mult.reg2, level=.95)
+```
+
+h)
+
+```{r}
+par(mfrow = c(2,2))
+plot(mult.reg2)
+```
+

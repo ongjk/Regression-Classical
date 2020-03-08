@@ -1,0 +1,292 @@
+---
+title: "day1data2"
+author: "Jefferson Ong"
+date: "1/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+key ideas in our book: 
+1) supervised learning vs unsupervised learning
+
+-model building : using some statistical model for multivariate data.
+
+-supervised learning: one variable is an outcome variable(target variable), 
+the other varibles are predictor variables. 
+
++Using the predictor variables somehow to create a predictive model for the target variable. 
++ some predictors may be irrelerant
++ model selection is the overall process in determining which important predictors
+
+-(In regression models: outcome is quantitative(number), classification models: outcome is categorical)
+
+classification example: admittion, graduation, hand size
+
+----------
+
+
+Unsupervised learning: no target outcome variable exist, the goal is to find groups of similar observations 
+in over to understand the data
+
+example: a company wants to understand its customers. An analysis might find three groups:
+
+=frequent small perchases, proximity to store, 
+
+=less frequent, large purchases, high disposable imcome
+
+=less frequent, small purchases
+
+grouping problems, not the focus on the course
+
+-----
+
+
+2) Prediction accuracy vs. statistical inference
+
+-statistical inference: build a model.
++draw conclusion about the model at the population level
+
+example: experience helps salary, how much is each year in predictive salary, draw conclusion from the model
+
+
+-prediction accuracy: understanding the model is less important than accurate prediction. 
+
+example: black box, football commentator clemson vs LSA predicting that LSA will win by 21. If want more systematic explanation S.I.
+
+
+
+
+
+3) Model complexity: a balance between simplier models that predict fairly well may be prefered over a complex model. 
+
+-----------------------
+
+# Day 2
+
+watch video -> recap -> code and make markdown
+
+
+(draws positive linear scatterplot)
+
+-least square regression: 
++ simplier to interpret
++ special case of polynomial model
+
+-big time polynomial:
++ more accurate
+
+
+which fits the observed data better?
+
+giving polynomials more degrees will fit the model better. Too much fit will often overfit the data, "fitting white noise" and will not predict future outcomes as well as a linear model would. 
+
+= which one reflects the real relationship between x and y most accurately? the polynomial
+
+= which one would predict future outcomes more accurately? the linear
+
+
+
+
+```{r}
+set.seed(39058)
+x <- runif(50, 0, 20) # 50 is the # of random variables with a mean of 0 and sd of 20
+error <- rnorm(50, 0, 15)
+y <- 15 + 4*x + error
+plot(x,y, main = "Simulated data from Y = 15 + 4x + e where X = (0,20) and e ~ N(0,15)")
+```
+
+
+## Fitting Models to the Data
+
+```{r}
+simdata <- data.frame(x,y,error)
+simdata
+
+plot(x,y, main = "Simulated data from Y = 15 + 4x + e where X = (0,20) and e ~ N(0,15)")
+abline(lm(y~x), col = "red")   #y~x Y is a function of X
+```
+```{r}
+straight.line.model <- lm(y~x)
+summary(straight.line.model)
+```
+
+predict function? need a model to make the bases for the prediction, "straight.line.model" is our model
+
+our model says that our predicted Y(y_hat) = 15.6144 + 3.78x close to the true model but not the same( the true model is 15 + 4*x + error)
+
+```{r}
+anova(straight.line.model)
+```
+
+summary how well the model explains the variance in Y
+
+```{r}
+str(err)
+str(prd)
+```
+
+```{r}
+
+library(ggplot2)
+fit <- lm(y ~ x + I(x^2) + I(x^3) + I(x^4), data = simdata) #it comes from the fit I, get prediction values. 
+prd <- data.frame(x = seq(from = 0, to = 20, length.out = 100))
+err <- predict(fit, newdata = prd, se.fit = TRUE)
+
+prd$lci <- err$fit - 1.96 * err$se.fit
+prd$fit <- err$fit
+prd$uci <- err$fit + 1.96 * err$se.fit
+
+ggplot(prd, aes(x = x, y = fit)) +
+  theme_bw() +
+  geom_line() +
+  geom_smooth(aes(ymin = lci, ymax = uci), stat = "identity") +
+  geom_point(data = simdata, aes(x = x, y = y))
+```
+
+```{r}
+summary(fit)
+```
+
+
+
+## which fit is better. Which one would predict future outcomes more accurately?
+
+```{r}
+#set.seed(39058)
+xnew <- runif(50,0,20)
+errornew <- rnorm(50, 0, 15)
+ynew <- 15 + 4*x + error
+
+new.x <- data.frame(x=xnew)
+predict.list <- predict(straight.line.model, newdata = new.x)#, se.fit = TRUE) 
+predict.list
+```
+
+```{r}
+predict.poly.list <- predict(fit, newdata = new.x) # fit is the 4 degreee polynomial model
+predict.poly.list
+```
+
+```{r}
+slr.abs.errors <- abs(ynew - predict.list) # prediction error from straightline model, abs is the absolute value
+mean(slr.abs.errors) #
+```
+
+y_new data - prediction(what I predict) = prediction error
+
+if the model is 20 and I predict 15, the error is 5
+
+```{r}
+poly.abs.errors <- abs(ynew - predict.poly.list)
+mean(poly.abs.errors)
+```
+
+we want small prediction errors. we predicted outside the model and the simple model make less mistakes than the polynomial model in predictions. An explanation for this might be because the polynomial fitted the white noises compare to the linear model. Overfitting the data will have issues in predictions
+
+---------------------
+
+
+Standardized value is the z score is = (value - mean)/(standard deviation)
+
+The Z-score measures how many std. deviations above the mean a value is.
+
+Z-score is -3 then thats basically saying that the value is 3 standard deviations below average. If its -0.25 its a quarter below from the average, 0 it is exactly at average, if its 1.5 its above average.
+
+```{r}
+library(readxl)
+library(tidyverse)
+data <- read_excel("CFB2018completeISLR.xlsx")
+```
+
+```{r}
+str(data)
+```
+```{r}
+pairs(Zsagarin ~ Jr3star + Fravg + Sonbrrecruits, data)
+```
+
+
+
+```{r}
+ggplot(data, aes(y = Zsagarin, x = Jr3star)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+
+____________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

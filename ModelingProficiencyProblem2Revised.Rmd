@@ -1,0 +1,87 @@
+---
+title: "Modeling Proficiency Problem"
+subtitle: "Height vs. Diameter of Black Spruce Trees"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+# install.packages("stringi")
+```
+
+You do not need summary(model); use the moderndive functions for both model coefficients and R2/RMSE/etc. // Does this model seem potentially useful for prediction? How large are the residuals (including units)? Would a prediction generally be close enough to the true value to be useful? // You reversed X and Y in the parallel slopes plots. Are the two slopes parallel?
+
+***
+```{r}
+# Load any packages you need here.
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(resampledata)
+library(moderndive)
+```
+
+#### The Problem
+
+Case Study 1.10 in your MSRR textbook discusses an experiment performed on black spruce pine seedlings. Historically, this tree was valuable to the First Nations people of Canada. The long fibers found in black spruce make it one of the preferred species for producing paper products. It is also used for fast food chopsticks, flooring, and essential oils. Researchers tracked tree height and circumference over the course of five years. Generally, it is easier to measure a tree's circumference than its height, so it might be useful to have a model by which we could predict height from diameter (which can be calculated from circumference). You will be predicting the heights of the trees at the end of the study using their diameters at the end of the study.
+
+Fit a least squares linear model to the data. Display the table of coefficients as well as the model summaries using functions from the `moderndive` package. 
+
+```{r}
+str(Spruce)
+```
+
+
+```{r}
+#
+Spruce_model <- lm(Height5 ~ Diameter5, data = Spruce)
+
+get_regression_table(Spruce_model)
+
+get_regression_points(Spruce_model)
+
+get_regression_summaries(Spruce_model) # This one will give the coefficients. 
+```
+
+Create plots to assess the residuals.
+
+```{r}
+#
+ggplot(get_regression_points(Spruce_model), aes(x = Diameter5, y = residual)) +
+  geom_point() +
+  geom_hline(yintercept = 0, col = "blue")
+
+ggplot(get_regression_points(Spruce_model), aes(x = residual)) +
+  geom_histogram()
+```
+
+Does this model seem potentially useful for prediction? Are there any problems with the fit? Support your answer using relevant evidence from your analysis.
+
+ANSWER: Its not the best model to use. Theres a bit of problem with the distribution of the residuals looking at the histogram. too skewed. The residuals can get quiet large from -10 to 10 units away from the true prediction. 
+
+
+Create a scatterplot for the relationship that also displays the fitted a linear model based on whether a tree was in the fertilizer or no fertilizer condition. Be sure to include an appropriate title and axis labels. Does fertilizer seems to make a difference? Would a parallel slopes model be appropriate? Why or why not?
+
+```{r}
+#
+ggplot(Spruce, aes(x = Di.change, y = Ht.change)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  ggtitle(expression("Linear Model of Spruce")) +
+  ylab("Height change") +
+  xlab("Diameter change") +
+  facet_wrap(. ~ Fertilizer)
+```
+
+ANSWER: The fertilizer makes a difference in that trees are much taller. As for the linear fit however it looks like Non - fertilized looks like it has the better fitted line over the fertilized one. The parallel slope model would not be appropriate for this because the slopes aren't parallel. 
+
+***
+```{r}
+sessionInfo()
+```

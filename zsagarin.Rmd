@@ -1,0 +1,93 @@
+---
+title: "zsagarin"
+author: "Jefferson Ong"
+date: "1/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(tidyverse)
+data <- read_excel("CFB2018completeISLR.xlsx")
+```
+
+```{r}
+str(data)
+```
+```{r}
+pairs(Zsagarin ~ Jr3star + Fravg + Sonbrrecruits +  coachexp_total, data)
+```
+
+```{r}
+summary(lm(Zsagarin~Fravg, data))
+```
+
+```{r}
+
+cor.test( ~ Zsagarin + Fravg,
+         data=data,
+         method = "pearson",
+         conf.level = 0.95)
+```
+
+
+```{r}
+ggplot(data, aes(y = Zsagarin, x = Fravg)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+
+```{r}
+ggplot(data, aes(y = Zsagarin, x =  coachexp_total)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+cor.test( ~ Zsagarin +  coachexp_total,
+         data=data,
+         method = "pearson",
+         conf.level = 0.95)
+```
+
+----------------------------------------------
+
+y = zsagarin
+
+x = zlysagarin, fravg
+
+
+```{r}
+potato <- lm(data$Zsagarin~data$z_lysagarin)
+summary(potato)
+```
+
+b1hat = .6567
+
+SE(b1hat) = .02537
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

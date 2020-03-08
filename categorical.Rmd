@@ -1,0 +1,862 @@
+---
+title: "chapter4"
+author: "Jefferson Ong"
+date: "2/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Classification models
+
+y = target variable => categorical
+
+Approaches: 
+
+* Logistic regression: we will focus on Y has 2 categories
+
+                      Whether the outcome happens or it doesn't 
+                      
+                      Y = 1 " success" -> occurrance of the category we track happen
+                      
+                      Y = 0 "failure" -> category we track did not occur
+                      
+                      
+
+* discriminant analysis: Can we used for Y with 2 or more categories
+
+
+* K-nearest neighbors: Can be used for more than 2 categories.
+
+                        Fairly easy to understand
+
+_____________
+
+
+## Logistic Regression
+
+Y = 1 if an outcome happpens
+
+Y = 0 if outcome does not occur
+
+generically X = predictor
+
+* Suppose likelihood of Y = 1, increases with X
+
+  Let Y = 1, if admitted to college and X as HS GPA
+  
+  *Pretend a graph* X = HS GPA, (0..5), 
+        
+                    Y = college admission, (0 , 1)
+                    
+                    The data will seperate, once your GPA rises to a certain level it becomes unusually 0
+                    
+
+### Could we just fit a linear regression?
+
+-Yes, technically but assumptions will be violated
+
+Problems: + Predictions could exceed 1 or be negative
+
+          + Residual plots would be terrible(not normally distributed)
+          
+          + Residual variance is not constant at all X levels
+
+_______
+
+How does logistic regression handle this?
+
+We model the probability that Y = 1 as a function of X.
+
+* This is bounded between 0 and 1, 0 <= Pr(Y = 1) <= 1
+
+* We model Pr(Y=1) = (e^(B0 + B1 X))/(1 + e^(B0 + B1 X))
+
+                      The numerator is bounded between 0 and infinity
+                      
+                      The denominator is bounded between 1 to infinity
+                      
+                      = When B0 + B1 X is negative, the numerator is small near zero
+                      
+                                                    the denominator is small near 1
+                                                    
+                                                    So Pr(Y = 1) will be small near 0
+                                                    
+                      = When B0 + B1 X is positive, the numerator is large
+                      
+                                                    the denominator is large
+                                                    
+
+                                                   Pr( Y = 1) will approach 1
+                                                   
+pretend a graph with X = x, Y = Pr(Y = 1)                                                  
+                                                    
+* B0 < 0 
+
+Backwards(inverse?) logistic graph, Pr(Y = 1) decreases with X
+
+Pretend a waterslide
+
+* B1 = 1
+
+constant, Pr(Y = 1) does not depend on X
+
+
+* B1 > 0
+
+logistic graph, Pr(Y = 1) increases with X
+
+
+
+* B1 is still the most important parameter.
+
+_______
+
+
+What does B1 tell us? What does it all mean?
+
+* Pr(Y = 1) = (e^(B0 + B1 X))/(1 + e^(B0 + B1 X))
+
+* Algebra happens, Pr(Y = 1) + e^(B0 + B1 X)* Pr(Y = 1) = e^(B0 + B1 X)
+
+                   Pr(Y = 1) = e^(B0 + B1 X)* (1 = Pr(Y = 1))
+                   
+                   Pr(Y = 1)/(1 - Pr(Y = 1)) = e^(B0 + B1 X)
+                   
+                   * The "Odds" that Y = 1
+                   
+                   * A ratio
+                   
+                  
+                   
+* Probability
+
+  + 0.5, 0.1, 0.8, 0.999, 0.001
+
+* Odds
+
+  + (0.5/(1 - 0.5)) = 1, the "odds" are one to one. "1:1" or 50/50
+
+  + (0.1/(1 - 0.1)) = 1/9, the "odds" are one to nice. "1:9" or 1:9, its nine times likely not to happen compare to as it happen
+  
+  + (0.8/(1 - 0.8)) = 4/1, the "odds" are four to one. "4:1" 
+  
+  + (0.999/(1 - 0.999)) = 999/1, the "odds" are nine/nine/nine to one. "999:1" 
+  
+  + (0.001/(1 - 0.001)) = 1/999, the "odds" are one to nine/nine/nine. "1:999"
+
+* Now we take the log of odds, Ln(odds that Y = 1) = B0 + B1*X
+
+____________
+
+
+Example: Lab animal does it develop a tumor or not.
+
+Is the probability of having atumor related to the concentration of chemical?
+
+```{r}
+library(readr)
+library(readxl)
+library(tidyverse)
+tumors <- read_xls("tumors.xls")
+
+```
+
+```{r}
+str(tumors)
+```
+```{r}
+
+#link = "logit" just specify the  e^(B0 + B1 X)
+
+# links to probability to the Xs
+model <- glm(tumors ~ concentration, family = binomial(link = "logit"), data = tumors)
+summary(model)
+```
+B0_hat = -3.20423
+
+B1_hat = 0.26277 The chance is increasing with X, the chance of having a tumor
+
+
+H0: B1 = 0, 9.616   <2e-16 *** small p-value
+HA: B1 != 0 
+
+
+__________
+
+Family	Default Link Function
+binomial	(link = "logit")
+gaussian	(link = "identity")
+Gamma	(link = "inverse")
+inverse.gaussian	(link = "1/mu^2")
+poisson	(link = "log")
+quasi	(link = "identity", variance = "constant")
+quasibinomial	(link = "logit")
+quasipoisson	(link = "log")
+
+
+______
+
+## Recap
+
+# Logistic Regression:
+
+P(Y = 1) = (e^(B0 + B1 X))/(1 + e^(B0 + B1 X))
+
+
+```{r}
+model <- glm(tumors ~ concentration, family = binomial(link = "logit"), data = tumors)
+summary(model)
+```
+
+Bhat: -3.20423
+
+B1hat: 0.26277
+
+                    z value Pr(>|z|) 
+
+Reject H0: B1 = 0; 9.616   <2e-16 ***
+
+concentration level is associated with tumor probability
+
+Pr(tumor) = (e^(-3.20423 + 0.26277(concentration)))/( 1 + (e^(-3.20423 + 0.26277(concentration))
+
+We're not using least squares, we're using maximum likelihood estimate for z value Pr(>|z|) 
+
+__________
+
+```{r}
+range(tumor$concentration)
+```
+
+```{r}
+seq(1, 9, by = 2)
+```
+
+```{r}
+xconc <- seq(0, 25, 0.01)
+yconc <- predict(model, list(concentration = xconc),type="response")
+plot(jitter(tumor$concentration, 0.5), jitter(tumor$tumors, 0.2), pch = 16, xlab = "concentration of substance", ylab = "tumor present")
+lines(xconc, yconc)
+```
+
+# list(concentration = xconc where am I predicting it?
+# type="response" give me the probabilities
+
+____
+
+```{r}
+tumors$tcatg <- ifelse(tumors$tumors == 1, "tumor", "no tumor")
+typeof(tumors$tcatg)
+```
+
+```{r}
+tumors$tfactor <- factor(tumors$tcatg)
+typeof(tumors$tfactor)
+```
+
+```{r}
+model2 <- glm(tfactor ~ concentration, family = binomial(link = "logit"), data = tumors)
+summary(model2)
+```
+
+```{r}
+contrasts(tumors$tfactor) # check to make sure we know how "success" is defined for a categorical variable)
+```
+
+___
+
+```{r}
+probabilities <- predict(model2, type = "response")
+head(probabilities)
+```
+
+probability of tumor for each data points
+
+```{r}
+tail(probabilities)
+```
+
+The data is structure in a way that results in the same probability for the first 6 and the last 6
+
+_________
+
+```{r}
+newdata <- data.frame(concentration = c(0, 4, 10))
+
+probabilities2 <- predict(model2, newdata, type = "response")
+probabilities2
+```
+
+0, 4, 10
+
+0.03900695 0.10403627 0.35972455 
+
+probabilities(of having tumor) at these data points
+____________
+
+
+## Multiple Logistic Regression
+
+same as multiple linear regression
+
+
+P(Y = 1) = (e^(B0 + B1 X + B2X2 + .. + BpXp))/(1 + e^(B0 + B1 X + B2X2 + .. + BpXp))
+
+
+```{r}
+library(readr)
+w <- read_excel("Boone May and June 2018 Weather.xlsx")
+```
+```{r}
+str(w)
+```
+
+
+```{r}
+w$precip <- ifelse(w$Rain > 0, 1, 0)
+```
+
+```{r}
+model3 <- glm(precip ~ . -Rain -Day, family = binomial(link = "logit"), data = w)
+
+summary(model3)
+
+```
+
+MonthMay: month is categorical, where june is the baseline
+
+```{r}
+chanceofrain <- predict(model3, type = "response")
+pctchanceofrain <- 100*chanceofrain
+pctchanceofrain
+```
+
+percent chance of rain on a particular day
+
+```{r}
+w[13,] # this day has 99% of rain
+```
+
+_______
+
+
+```{r}
+plot(pctchanceofrain)
+```
+
+```{r}
+new2 <- data.frame(Month = "May", AvgTemp = 55, HiTemp = 65, LowTemp = 50, AvgWindSpeed = 4, AvgHumidity = 50, Yestavg = 60, Yesthi = 68, Yestlo = 50, Yestrain = 0, Yestwind = 5, Yesthumid = 65, Day = 0, Rain = 0)
+
+probabilities3 <- predict(model3, new2, type = "response")
+probabilities3
+```
+
+__________
+
+
+Thresholds. How to make predictions. If success in the model is over 50%, tell me
+
+```{r}
+prediction <- rep("no tumor", 303)
+prediction[probabilities > .5] <- "tumor"
+tumors$tfactor
+```
+
+303 is the # of cases in the tumors data
+
+originally theres "no tumor", if that probability is > .5 that same vector that says "no tumor" it will overwrite that vector and put in tumor
+
+```{r}
+prediction
+```
+
+```{r}
+table(prediction, tumors$tfactor)
+```
+How well we did overall? on these predictions
+
+```{r}
+table(tumors$tfactor, prediction)
+```
+We are correct (179 + 82)/303 times or 86.13%. There are only about 100 of the 300 that had tumors. If we just guess no tumors, we'll be right 2/3 of the time. By default we are correct 65.7% of the time. 
+
+__________
+
+
+Now we will train and test datasets:
+
+We're used all sample cases to build the model. Nothing wrong but the model's job is to predict stuff in the future, if we evaluate the model. We risk overfitting
+
+For example: overfitting a liner model, fitting white noise. We're worried for the future dataset that our model doesn't fit those noises.
+
+* Take our sample and partition it somehow.
+  
+                                Have training data: used to build model
+                                
+                                      Test data: evaluate preidctive accuracy
+                                      
+                                      
+* Now if we test this against the test data, the overfitted model should perform worse than the linear model. A model that's good predicts data that it hasn't seen
+
+______
+
+
+How do i partition this?
+
+More than half my data for the training data
+
+an minimum 50/50 split
+
+```{r}
+set.seed(1)
+
+#made an index called train and I pick 90% of the data at random
+
+train <- sample(303, 273, replace = F)
+train
+```
+Take 273 numbers from 303
+
+
+```{r}
+traindata <- tumors[train, ]
+traindata
+```
+
+```{r}
+model3 <- glm(tfactor ~ concentration, family = binomial(link = "logit"), data = traindata)
+
+summary(model3)
+```
+
+Now we look into the test data. Observations that isn't used in training
+
+```{r}
+testdata <- tumors[-train, ]
+head(testdata)
+```
+```{r}
+probabilities4 <- predict(model3, testdata, type = "response")
+probabilities4
+```
+
+Now we use the model from training data to make predictions for the test data
+
+____
+
+```{r}
+prediction3 <- rep("no tumor", 30)
+prediction3[probabilities4 > .5] <- "tumor"
+
+table(prediction3, testdata$tfactor)
+```
+
+How accurate was this model for these datapoints
+
+
+This is right 25 out of 30 so about 83%
+
+
+____________
+
+
+
+Chapter 3 Quiz:
+
+Multiple regression model, summarize findings, diagnostic test. 30min
+
+# Project 
+
+____________
+
+
+# Discriminant Analysis
+
+* Classifies an observation
+
+* Uses the logic of Bayes Rule( Bayes theorem) to help guide the decision
+
+* Works relatively easily for outcome variables with > 2 categories
+
+
+      ex: Whats their favorite sport(more than 2 outcomes), (mild, moderate, severe)
+      
+  
+# Bayes Rule: helps us reverse the direction of a conditional probability.
+
+              Pr(B given A) <==> Pr(A given B)
+
+    ex: A condition(disease) is affecting 2% of the population.
+    
+        A test for the condition exist
+        
+        For people with the disease the test detects it, 97% of the time
+        
+        For people without the disease the test gives a negative reading of 95% of the time
+        
+        
+        * A person tests positive for the disease(corovirus), 
+        
+          what is the chance they have the disease?
+        
+          
+          True condition:  Either: Disease: .02  ---> Test: Positive: .97  ==> (.0194)
+          
+                                                          : Negative: .03 ==> (.006)
+          
+                                   No disease: .98 --> Test: Positive: .05 ==> (.049)
+          
+                                                           : Negative: .95 ==> ( .931)
+
+
+Disease( .02 ) * TestPostive ( .97 ) = .0194, the probability of having the disease
+
+                                   Disease: .02  ---> Test: Positive: .97  ==> (.0194)
+
+                                   No disease: .98 --> Test: Positive: .05 ==> (.049)
+                                   
+                                   This is the positive test, 2% of the population.
+                                   
+                                   Pr(disease given a postive test) = (.0194) / ((.0194) + (.049)) = 28% chance of having the disease(because the disease isn't that common)
+                                   
+                                   
+                                   
+How doe sthis fit with discriminant analysis?
+
+## Application to discriminant analysis
+
+Y = outcome variable
+    
+    * assume 2 groups (1,2)
+    
+X = predictor variable
+
+    * single
+    
+    * assume in group 1, X~N(mu1, sigma)
+    
+                group 2 , X~N(mu2, sigma)
+                
+                
+ex: Dogs of a particular breed are 55% female, 45% male. 
+
+              weights -> females N ~ (48 lbs, 5 lbs)
+              
+                         males N ~ (53 lbs, 5 lbs)
+                
+    A dog weights 51.5 pounds how should be classify it? 
+    
+    Mimic bayes rule: Female: .55 --> weights: pretend a normal curve, centered at 48
+    
+                      Male: .45 ----> weights: pretend a normal curve, centered at 53
+                      
+                      We multiple .55 * N(48, 5) distribution
+                      
+                      We multiple .45 * N(53, 5) distribution
+                
+                      We end up with 2 different distribution, a scaled female/weight distribution
+                      
+                                                               a scaled male/weight distribution 
+                                                               
+                                        Now pick which curve is higher at that point
+                                        
+                                        There is a dividing line that arises
+    
+Use training data:
+
+    * Outcomes Y are known
+    
+    
+
+___________
+
+
+Diving line between the two distribution. This is the "discriminant" function. Maybe make males more common or less likely, we can change the mean/sd of the groups. Ideally we keep sd as the same for both.
+
+Now how do we take this into multiple predictors?
+
+with 2 or more predictors our discriminant "line" becomes a set of discriminant functions.
+
+pretend a plot: x2 against x1: scattered linearly, seperated by colors. groups are seperated by discriminant function. A dividing line with a line orthogonal against it. This is further classifying the groups, a secondary discriminant function.
+
+**Assumptions: Predictors follow multi-variate normal distribution with a parameter for their correlation. **
+
+more than 2 category of your outcome variable
+
+```{r}
+library(MASS)
+library(readxl)
+Boone_May_and_June_2018_Weather <- read_excel("Boone May and June 2018 Weather.xlsx")
+w <- Boone_May_and_June_2018_Weather
+# To select training data, I'll select about 80% of the weather data.  I need to recall how many records are in that data set.
+w$precip <- ifelse(w$Rain > 0, 1,0)
+length(w$precip)
+```
+
+ida: linear discriminant analysis model
+
+
+```{r}
+set.seed(1)
+wtrainingindex <- sample(61, 49, replace = FALSE)
+wtrain <- w[wtrainingindex,]
+wtest <- w[-wtrainingindex,]
+lda.precip <- lda(precip ~ HiTemp + LowTemp, data = wtrain)
+lda.precip
+```
+
+
+Group means:
+    HiTemp  LowTemp
+0 78.11364 57.48636
+1 73.37407 60.47407
+
+When it rains the average high is higher and lower is higher
+```{r}
+plot(lda.precip)
+```
+
+```{r}
+predict.lda.precip <- predict(lda.precip, wtest)
+predict.lda.precip
+```
+
+For these 12 days it predicted no precip on first, yes on 2, 3, ..
+
+posterior: before/after the analysis is done
+
+LD1: linear discriminant, negative is associate with 0 while positive is 1. The probabilities are driving the classification. 
+
+```{r}
+names(predict.lda.precip)
+```
+
+linear discriminant: x
+
+
+```{r}
+table(predict.lda.precip$class, wtest$precip)
+```
+
+
+how is our classification against our test data.
+row totals mean that when I predicted 0, got right 4 times and wrong 2 times. When predicting 1, i got 0 2 times, 1 4x.
+
+Is that good? need to compare to something.
+
+summary: training data, test data,...
+
+Is a logistic just as well?
+
+```{r}
+# Compare to Logistic Regression
+logreg.precip <- glm(precip ~ HiTemp + LowTemp, family=binomial(link='logit'), data = wtrain)
+summary(logreg.precip)
+```
+
+statistically both are significant, that do tell us something. 
+
+```{r}
+predict.logreg.precip <- predict(logreg.precip, wtest, type = "response")
+predict.logreg.precip
+```
+
+Then I predict the logistic, instead of lda. use new model over the test data, type = "response" are the probabilities.
+lda ex: no rain, yes rain, yes rain, ...
+
+Here its logistic: no rain, yes rain, yes rain,...
+
+about the same but different probabilities. The probabilities still correspond fairly well.
+
+
+```{r}
+prediction4 <- rep(0, 12)
+prediction4[predict.logreg.precip > 0.5] <- 1
+
+table(prediction4, wtest$precip)  
+```
+
+prediciton4 is a placeholder for logistic regression model. Going to see how well I actually performed. Its the same, but not alway, sometimes we'll be on the border of 50%.
+
+_________
+
+Where an lda gets better is when theres more than two response category
+
+```{r}
+w$precip <- rep("none", 61)
+w$precip[w$Rain > 0 & w$Rain < 1] <- "some"
+w$precip[w$Rain >= 1]<- "heavy"
+w$precip
+```
+
+some rain, no rain, heavy rain. Wanted to make sure that all three actually showed up. Could've done a table as well. 
+
+```{r}
+# Need to re-create the training and test data frames again because we've changed the designation of w$precip above.
+wtrain <- w[wtrainingindex,]
+wtest <- w[-wtrainingindex,]
+
+lda.precip3 <- lda(precip ~ HiTemp, data = wtrain)
+lda.precip3
+```
+
+                                   
+Reseting the train/test data but I already have the index just have to recapture it again.
+Showing a simple case of precip against hitemp. 
+
+##      heavy       none       some 
+## 0.06122449 0.44897959 0.48979592 
+
+
+##         HiTemp
+## heavy 69.10000
+## none  78.11364
+## some  73.90833
+
+Fairly obvious there are differences that will create dividing lines for us.
+
+```{r}
+plot(lda.precip3)
+```
+
+y: frequency of measurement
+
+Maybe too much variation in our some group
+
+Now we predict:
+
+```{r}
+predict.lda.precip3 <- predict(lda.precip3, wtest)
+predict.lda.precip3
+```
+
+Now for those days, before it was no rain, yes rain, yes, ....
+
+Here we... never forcast heavy rain.
+
+##           heavy       none       some
+## 1  0.0094789397 0.54787431 0.44264675
+## 2  0.3100117079 0.05154613 0.63844216
+## 3  0.1795945284 0.10330776 0.71709771
+## 4  0.1211240846 0.15022790 0.72864802
+## 5  0.4091603622 0.03155232 0.55928732
+## 6  0.0082411436 0.56873740 0.42302146
+## 7  0.0155805164 0.47006533 0.51435415
+## 8  0.0053577939 0.62938979 0.36525242
+## 9  0.0002209073 0.89992516 0.09985393
+## 10 0.0002209073 0.89992516 0.09985393
+## 11 0.0021662973 0.73734462 0.26048908
+## 12 0.0294071237 0.36560598 0.60498690
+
+It will take the highest probability and forcast that as the most likely
+
+
+___
+
+Now look at what actually happen
+
+```{r}
+table(predict.lda.precip3$class, wtest$precip)
+```
+
+Not happy with this model since only 6/12 are right. So we'll add more predictors
+
+```{r}
+lda.precip4 <- lda(precip ~ HiTemp + LowTemp, data = wtrain)
+lda.precip4
+```
+
+## Group means:
+##         HiTemp  LowTemp
+## heavy 69.10000 63.50000
+## none  78.11364 57.48636
+## some  73.90833 60.09583
+
+There are seperations now base on that day. Need more discriminant functions.
+
+## Coefficients of linear discriminants:
+##                LD1         LD2
+## HiTemp   0.2736609 -0.09198442
+## LowTemp -0.1481152 -0.14259703
+
+dividing equation(line) on the data?
+
+
+```{r}
+plot(lda.precip4)
+```
+
+LD1 against LD2, we start to some seperation but not obvious
+
+____
+
+Now test this on the test data
+
+```{r}
+predict.lda.precip4 <- predict(lda.precip4, wtest)
+predict.lda.precip4
+```
+
+## $class
+##  [1] none  some  some  some  heavy some  none  none  none  none  none  some 
+## Levels: heavy none some
+
+There is one day that is heavy rain
+
+ex: day 5: ## 5  6.888126e-01 0.001842159 0.30934521, 68% of heavy happening
+
+using the posterior probabilities
+
+
+Now how did we actually do?
+
+```{r}
+table(predict.lda.precip4$class, wtest$precip)
+```
+
+heavy never ran in the test data. so we dont see it, suppose t be 3x3
+
+```{r}
+lda.data <- cbind(wtrain, predict(lda.precip4)$x)
+lda.data
+```
+
+just bounded them together and put the training data with predictions. 
+
+```{r}
+ggplot(lda.data, aes(LD1, LD2)) +
+  geom_point(aes(color = precip))
+```
+
+
+_______
+
+```{r}
+# Here we use all the available predictors in the LDA model.  The number of discriminant functions in these models are determined by min(k-1, p) where k is the number of groups in the response, and p is the number of potential predictors.
+lda.precip5 <- lda(precip ~ ., data = wtrain)
+lda.precip5
+```
+
+```{r}
+plot(lda.precip5)
+```
+
+```{r}
+predict.lda.precip5 <- predict(lda.precip5, wtest)
+predict.lda.precip5
+```
+
+```{r}
+table(predict.lda.precip5$class, wtest$precip)
+```
+
+
+
+
+
+
+

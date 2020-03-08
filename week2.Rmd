@@ -1,0 +1,210 @@
+---
+title: "week2"
+author: "Jefferson Ong"
+date: "1/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Chapter 2
+
+modeling( supervised learning)
+
+y = response, target variable. Want to predict this. most commonly quantitative but can be categorical
+
+ex: symptoms like col , allergies, etc. these are categorical.
+
+x~ -> vector of predcitor(s) could be one, could be many. Commonly quantitative, but we can incorporate categorical predictors as well. 
+
+Model structure(generally): y = f(x~) + epsilon. Where the f(x~) quantifies the systematic relationship between x~ and y and epsilon is random variation.
+
+In stochastic(probabilistic) modelling, for example gpa isnt constant there random variation since not all the gpa is the same.
+
+f(x) can take on many forms. one such form is the linear model: [y = B0 + b1X1 + b2X2 + ...] f(x1,....,xp) + epsilon
+
+ex: college gpa = B0 + B1(HS GPA) + B2 (ACT) + epsilon
+
+f(HS GPA, ACT)
+
+epsilon ~ N(0, sigma)
+
+--------------------------------------
+
+All models f(x) are just models. The real world is always a bit more complex but a good model is still good for decision making.
+
+f(x~) is typically unknown and describes the entire population.
+
+We see a sample of the data and we estimate the f(x~) from the sample. 
+
+This estimate is fhat(x~). This model gives predicted y given x, yhat = fhat(x~).
+
+----------------
+
+
+
+Considerations in modeling
+
+- prediction accuracy(black box, more complex) vs model interpretability(explaination, simplier)
+
+ex: linear model is a clear interpretation. 
+
+In terms of prediction accuracy, we're going to look at MSE, mean squared error. Which is (1/n)*sum(y - fhat(x~))^2 
+
+where y is the actual outcome and fhat(x~) is the predicted outcome
+
+
+
+- Overfitting vs underfitting: minimizing the MSE over the sample is not always best.
+
+This can lead to overfitting, the goal is a good predictive model that will minimize MSE over future observations not used in the model building.
+
+For example: two different groups of data: training data vs test data
+
+Where training data is data used to find or build fhat(x~)
+
+Test data on the other hand is a seperate data that is used to evaluate that model, f(x~). The MSE test tells us how well fhat predicts 
+
+
+# Friday
+
+varience-bias tradeoff
+
+x~ -> inputs, predictors
+
+y -> response
+
+y=f(x~) + epsilon
+
+f(x~) real systematic relationship between x~ and y
+
+fhat(x~) -> estimate of f(x~) based on sample data
+
+-----
+
+Now..think about prediction error, y - yhat. Where y is actual outcome and yhat is the predicted outcome.
+
+E[(y - yhat)^2] expected value or an average. Its a population level mean squared error.
+
+can be deconstructed into Var(episilon) + [(f(x~) -fhat(x~))^2] (not reducible). Where var is variance and the other one is the difference between f(x~) and fhat(x~)
+
++ var(fhat(x~)) reducible
+
+----
+
+focusing on the two reducible pieces
+
+[(f(x~) - fhat(x~))^2] is reducible if f is closer to the true f. Often the true f is a bit complex so making fhat more complex may reduce this.
+
+This equation is called a bias
+
+
+Var(fhat(x~)) on the other hand, measures how much fhat would vary in a different sample. So this tends to be higher for complex models.
+
+
+There is often a balance point between these two pieces, where fhat is suitably but not overly complex.
+
+-----------------------------------
+
+
+# Chapter 3: Linear regression
+
+x~ and y are quantitative 
+
+population level: y = b0x0 + b1x1 + ... + bpxp + eps
+
+p= # of predictors
+
+
+eps ~ N(0, sigma) random error
+
+
+
+
+## simple linear regression:
+
+p = 1 (simple)
+
+y = b0 + b1x + eps
+
+
+We want to estimate population parameters, given sample data. We estimate b0 and b1, using the method of least squared. 
+
+yhat = b0hat + b1hatx where the b0hat is the intercept of the line and b1hat is the slope. chosen to minimize the total squared vertical distances from the points of the line.
+
+We minimize the residual sum of squares = RSS = sum(y - b0hat - b1hatx)^2. u can see this as sum(y -yhat)^2
+
+Whatever b0hat and b1hat minimizes is what's considered best for the sample.
+
+--------------------------------
+
+Statistical Inference for b1
+
+b1 is a very important parameter sicne it quantifies how y changes with x. If b1 is zero then it doesn't predict x at all. 
+
+
+Standard Error(SE) ->  standard deviation of a statistic in repeated(different) samples.
+
+If small, a different sample's result will be similar. If large the opposite
+
+
+SE(b1hat) = sigma/(sqrt(sum(x-xbar)^2))
+
+Its directly proportional to sigma, small if sigma is small.
+
+Its going to be large if the sum(x-xbar)^2 small
+
+Its going to be small if the sum(x-xbar)^2 large
+
+--------
+
+Confidence intervals
+
+95% for the true b1: b1 +- 2 SE(b1hat)
+
+where b1hat is the estimate and the rest is the margin of error.
+
+For 95% of samples, this captures the true b1
+
+-------
+
+Hypothesis Test for b1:
+
+H0: b1 = 0
+
+Ha: b1 != 0
+
+
+test statistic = t_obs = b1hat/(SE(b1hat)) => how many standard error is b1hat from 0?
+
+
+If the abs(t_obs) is "large" we willl decide for Ha
+
+We will calculate a p value, which is 2*probability{tvalue >= abs(t_obs)}
+
+Under H0 b1hat/(SE(b1hat)) follows t distribution
+
+Usually p-values below 0.05 cause us to rejct H0 and there is a real relationship in the population. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,181 @@
+---
+title: "Inference Proficiency Problem"
+subtitle: "Considering the Randomness of the Vietnam Draft"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tidyverse)
+library(readr)
+draft <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv")
+```
+
+#### The Problem
+
+In December 1969, the U.S. Selective Service System conducted a lottery to a determine draft order for eligible young men in the upcoming year. The 366 days of the year (including February 29) were written on pieces of paper and placed in a plastic capsules. These capsules were hand-mixed in shoeboxs and dumped in a glass jar. On live TV, capsules were pulled out one at a time. The first number chosen was 258 (September 14). Anyone born on that day in 1944 through 1950 was assigned lottery number 1, and would be the first men called up to go to Vietnam. The first 195 birthdates drawn were later called to serve in the order they were taken from the jar. Some people claimed that the draft numbers were not randomly distributed through the year, saying that men with later birthdays were more likely to be called up. As a result, the process was changed for the following year to try to improve the randomness. The draft number assignments for several years can be found in [vietnamdraft.csv](https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv).
+
+
+#### The Analysis
+
+Filter the data for the 1970 draft year and summarize the proportion of draft numbers that are less than or equal to 195 (numbers that were called up to serve in Vietnam) for each half of the year.
+
+```{r}
+str(draft)
+summary(draft)
+
+
+```
+
+
+
+
+```{r}
+#
+
+draft1970 <- draft %>%
+  filter(draftyear == 1970) %>%
+  group_by(halfyear) %>%
+  summarize(prop = mean(draftnumber <= 195))
+
+draft1970
+
+```
+
+Conduct a permutation resampling test to determine whether the proportion in the second half of the year was greater than the proportion in the first half of the year. 
+
+
+```{r}
+#
+draftF <- draft %>%
+  filter(draftyear == 1970)
+
+draftnumberG <- draftF %>% pull(draftnumber)
+
+n_all <- length(draftnumberG)
+
+draftnumber_F <- draftF %>% filter(halfyear == "first") %>% pull(draftnumber) #makes bucket
+
+draftnumber_S <- draftF %>% filter(halfyear == "second") %>% pull(draftnumber) #makes other bucket
+
+observed_diff <- mean(draftnumber_S) - mean(draftnumber_F)
+
+n_S <- length(draftnumber_S)
+  
+n_F <- length(draftnumber_F)
+
+N <- 10^4 - 1  
+
+random_diffs <- numeric(N) 
+
+for (i in 1:N)
+{
+  index <- sample(n_all, size = n_F, replace = FALSE) 
+  random_diffs[i] <- mean(draftnumberG[index]) - mean(draftnumberG[-index])
+}
+
+ggplot() + 
+  geom_histogram(aes(random_diffs), fill = "light blue") + 
+  geom_vline(xintercept = observed_diff, colour = "red") +
+ xlab("xbar1-xbar2")
+
+p_value_lower <- (sum(random_diffs <= -abs(observed_diff)) + 1) / (N + 1)
+p_value_upper <- (sum(random_diffs >= abs(observed_diff)) + 1) / (N + 1)
+p_value_2side <- p_value_lower + p_value_upper
+
+sprintf("The observed difference in sample means between first and second is %0.4f.", observed_diff)
+```
+
+Filter the data for the 1971 draft year and summarize the proportion of draft numbers that are less than or equal to 125 (which was the highest number called in that year) for each half of the year.
+
+
+```{r}
+
+draft %>%
+  filter(draftyear == 1971) %>%
+  group_by(halfyear) %>%
+  mutate(draftnumber = replace_na(draftnumber, 0)) %>%
+  summarise(proportion = mean(draftnumber <= 125))
+```
+
+Conduct a permutation resampling test to determine whether the proportions for the two halves of the year were different. 
+
+```{r}
+draft1971 <- draft %>%
+  filter(draftyear == 1971) %>%
+  mutate(draftnumber = replace_na(draftnumber, 0))
+
+draftnumberG <- draft1971 %>% pull(draftnumber)
+
+n_all <- length(draftnumberG)
+
+draftnumber_F <- draft1971 %>% filter(halfyear == "first") %>% pull(draftnumber) #makes bucket
+
+draftnumber_S <- draft1971 %>% filter(halfyear == "second") %>% pull(draftnumber) #makes other bucket
+
+observed_diff <- mean(draftnumber_S) - mean(draftnumber_F)
+
+n_S <- length(draftnumber_S)
+  
+n_F <- length(draftnumber_F)
+
+N <- 10^4 - 1  
+
+random_diffs <- numeric(N) 
+
+for (i in 1:N)
+{
+  index <- sample(n_all, size = n_F, replace = FALSE) 
+  random_diffs[i] <- mean(draftnumberG[index]) - mean(draftnumberG[-index])
+}
+
+ggplot() + 
+  geom_histogram(aes(random_diffs), fill = "light blue") + 
+  geom_vline(xintercept = observed_diff, colour = "red") +
+ xlab("xbar1-xbar2")
+
+p_value_lower <- (sum(random_diffs <= -abs(observed_diff)) + 1) / (N + 1)
+p_value_upper <- (sum(random_diffs >= abs(observed_diff)) + 1) / (N + 1)
+p_value_2side <- p_value_lower + p_value_upper
+
+sprintf("The observed difference in sample means between first and second is %0.4f.", observed_diff)
+
+(sum(random_diffs >= abs(observed_diff)) + 1) / (N + 1)
+
+```
+
+
+```{r}
+draft1970 <- draft %>%
+  filter(draftyear == 1970)
+
+draft1971 <- draft %>%
+  filter(draftyear == 1971)
+
+t.test(draftnumber ~ halfyear, data = draft1970)
+t.test(draftnumber ~ halfyear, data = draft1971)
+```
+
+
+Is there some statistical evidence of unfairness (non-randomness) for the 1970 draft? What about for 1971? Explain using your exploratory and inferential analyses.
+
+**ANSWER:**  A: Yes, There is unfairness for the draft in 1970 but not for 1971. The resampling distribution shows whether or not it was due to randomness. Also conducted a t-test for both years to see the difference. 
+
+
+
+
+
+***
+```{r}
+sessionInfo()
+```

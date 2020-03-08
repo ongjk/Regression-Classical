@@ -1,0 +1,128 @@
+---
+title: "arnholtRMSE"
+author: "Jefferson Ong"
+date: "3/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+R^2 not that great, we want to move away from talking about R^2. 
+
+Develop a model base on the variables, whether those particular variables were increasing or decreasing the chances of cancer. Entries?
+
+
+# Most important thing
+
+predictive models: is somebody going to develop cervical cancer? You won't have cervical cancer if, this, this, ...
+
+
+
+Predictions vs actuals 2x2
+
+      C+                     C^c
+     
+C+     true positive    |  
+     
+     
+     
+C^c                     |  true negatives     
+     
+
+up-sample, bump up the positives. carrot package. Typical strategy in survey. 
+
+Accuracy?
+
+
+-Area under the curve, AUC. closer to 1, better the model. If guessing, around .5 how well our model is predicting. For binary response
+
+
+- If we have a quantitative response, we will look at RMSE
+
+standard deviation of regression, by default, but R gives it from training data. It is overly optimistic.
+
+
+# RMSE
+
+RMSE = sqrt((1/n)* sum(yi - yhat)^2)
+
+its way too small(data thing)
+
+So heres what we do. Pretend rectangle -> training data, test data. maybe 70/30
+
+
+model in training data, then use the model against the test and get a new yhat
+
+
+
+train => mod
+
+test => yhat
+
+How our model will perform against data we haven't seen. 
+
+________
+
+
+
+validation test set( test set)
+
+how do you decide whats training and whats test dataset. Lets split the dataset into folds
+
+1
+2
+3
+4
+5
+
+2-5 will be training and fit a model
+
+use 1 as test set and get a RMSE. 
+
+Then do 1,3-5 as training, etc. 
+
+then take the 5 answers and do an average
+
+5 folds
+
+
+* simulation studies show 5 or 10 folds will give a good representation
+
+repeated 5, 5 fold validation. The numbers become permuted, 5 take the average, then do this 5x. (variance baise tradeoff)
+
+Trying to develop a model with small RMSE, how good your model can be.
+
+*repeated cross validation*
+
+Then use all data to fit the model. 
+
+______
+
+
+complexity increase, bias goes down but variability goes up
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

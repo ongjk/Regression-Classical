@@ -1,0 +1,82 @@
+---
+title: "Untitled"
+author: "Jefferson Ong"
+date: "2/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+variance inflation factor(VIF)
+______
+
+* ln multiple regression models, some predictors can be correlated with each other...
+  they contain redundant information.
+  
+* collinearity: a predictor is correlated with another
+
+* multicollinearity: a predictor is correlated with multiple others, together.
+
+* causes issues in estimating effects and/or significance of individual predictors
+
+VIF helps us detects this
+
+ex: response Y
+
+    predictors: x1, x2, x3, x4
+    
+    are these predictors correlated? measure the variance inflation factor
+    
+    * model x1 as the response, x2, x3, x4 as the predictors
+    
+      * calculated the R^2 from that regression model, R^2 =  x1. the VIF(X1) = 1/(1-R^2_x1)
+      
+    *  model x2 as the response, x1, x3, x4 as the predictors
+    
+      * calculated the R^2 from that regression model, R^2 =  x2. the VIF(X2) = 1/(1-R^2_x2)
+      
+    * similarly for x3, x4, ..., xn
+    
+    
+    what does the VIF tell us? 
+    
+    * 0 <= R^2 <= 1
+    
+    * if R^2 = 0, then each predictors is truly unique, VIF = 1/(1-R^2) = 1, no correlation problems
+    
+    * R^2 close to zero leads to VIF closer to 1, this predictor is not heavily correlated with the other
+    
+    * If R^2 = 1, VIF will be large. This suggest that this predictor is heavily correlated with the others
+    
+    * VIF considered large when it exceeds 5 or 10
+    
+In general, large VIF call for model reduction or principle component(?)
+
+
+_________
+
+
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

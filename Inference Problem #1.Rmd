@@ -1,0 +1,143 @@
+---
+title: "Inference Proficiency Problem"
+subtitle: "Comparison of Smallpox Vaccine Pre-Treatments"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tidyverse)
+library(readr)
+
+smallpox <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/smallpox.csv")
+```
+
+#### The Problem
+
+In the late 1700s, smallpox killed about one in four children born in London. Scientists knew that inoculations (i.e., vaccines) were effective in reducing mortality, but no one was sure how they worked. Doctors often prescribed tonics to prepare patients before vaccination. Dr. William Watson became the physician for a large London orphanage 1762. Administrators were concerned about rapid spread of disease in crowded conditions and ordered vaccinations for all of the children who lived there. Watson used this chance to investigate the effectiveness of vaccine pre-treatments. This is considered to be one of the first historical examples of the kind of research we now call a clinical trial. 
+
+In his first experiment, Watson divided thirty-one children into three groups. 
+
+* pre-vaccination treatment of mercury and jalap (a strong laxative)
+* pre-vaccination treatment of senna and syrup of roses (a mild laxative)
+* no pre-vaccination treatment (control group)
+
+Watson observed and counted the number of smallpox lesions that appeared on each child. In general, more pocks is a sign of a more severe infection and greater chance of mortality. The data from Watson's experiment can be found in the file [smallpox.csv](https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/smallpox.csv). (Note: It was perfectly acceptable to conduct experiments like this throughout much of human history, but in the present day this generally would be considered unethical, especially with children as subjects.)
+
+
+#### The Analysis
+
+Extract the data belonging to the control and senna/syrup of roses groups in Watson's first experiment. Then `summarize` n, mean, and standard deviation for number of pocks in each group. Also create a boxplot to compare the groups. 
+
+
+
+
+```{r}
+smallpoxTest <- smallpox %>%
+   filter(pretreatment != "mercuryandjalap", pretreatment != "mercury")
+
+#
+
+smallpox_sums <- smallpox %>% 
+  group_by(pretreatment) %>%
+  filter(pretreatment != "mercuryandjalap", pretreatment != "mercury") %>% 
+  summarize(n     = n(),
+            xbar  = mean(pocks, na.rm = TRUE),
+            stdev = sd(pocks, na.rm = TRUE)
+            )
+str(smallpox_sums)
+ggplot(smallpoxTest, aes(x = (pretreatment), y = pocks)) +
+  geom_boxplot()
+```
+
+
+
+Conduct a permutation resampling test to determine whether the two group means are different. Do not use `infer` or any other pre-packaged resampling packages/functions. Write your own sampling loop. 
+
+```{r}
+#
+pocksG <- smallpox %>% pull(pocks) # Pulls out with no group info from the buckets. 
+
+n_all <- length(pocksG)
+
+smallpox_none <- smallpox %>% filter(pretreatment == "none") %>% pull(pocks) #makes bucket
+
+smallpox_sennaandrose <- smallpox %>% filter(pretreatment == "sennaandrose") %>% pull(pocks) 
+#makes other bucket
+observed_diff <- mean(smallpox_none) - mean(smallpox_sennaandrose)
+
+n_F <- length(smallpox_none)
+  
+n_NF <- length(smallpox_sennaandrose)
+
+N <- 10^4 - 1  
+
+random_diffs <- numeric(N) 
+
+for (i in 1:N)
+{
+  index <- sample(n_all, size = n_F, replace = FALSE) 
+  random_diffs[i] <- mean(pocksG[index]) - mean(pocksG[-index])
+}
+
+ggplot() + 
+  geom_histogram(aes(random_diffs), fill = "light blue") + 
+  geom_vline(xintercept = observed_diff, colour = "red") +
+ xlab("xbar1-xbar2")
+
+
+
+
+```
+
+Compute a 95% bootstrap percentile interval to estimate the difference in the two group means.
+
+```{r}
+#
+quantile(random_diffs,c(0.025,0.975))
+```
+
+Conduct a classical two-sample t-test for the same hypotheses using the `t.test` function. (Be sure to set the appropriate H~a~.)
+
+```{r}
+
+smallpoxTest <- smallpox %>%
+   filter(pretreatment != "mercuryandjalap", pretreatment != "mercury")
+#
+t.test(pocks ~ pretreatment, data = smallpoxTest)
+```
+
+Using the results of the permutation resampling test, can we conclude at the &alpha; = 0.05 level of significance that the two groups had different mean numbers of pocks? If so, which group had more pocks, on average, and how large is the difference, based on the bootstrap percentile interval?
+
+```{r}
+#
+(sum(random_diffs >= abs(observed_diff)) + 1) / (N + 1)
+
+
+mean(random_diffs) - observed_diff
+```
+
+Given the assumptions of the classical two-sample t-test, is the p-value from the classical two-sample t-test reliable? Use evidence from your descriptive analysis.
+
+```{r}
+#
+t.test(pocks ~ pretreatment, data = smallpoxTest)
+```
+
+A: No, the difference in the means of the different groups are too unequal to conclude a reliability in two sample t-test.
+
+
+***
+```{r}
+sessionInfo()
+```

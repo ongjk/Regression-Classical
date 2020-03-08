@@ -1,0 +1,74 @@
+---
+title: "Normal Proficiency Problem"
+subtitle: "Properties of the Theoretical Normal Model"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+	
+Can you show mean = median using theoretical calcs rather than simulation? Consider: how much area is above and below the median in any distribution? For your plot, you simulated uniform data (runif), not normal data.
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+
+In a perfectly symmetric distribution, the median and mean are equal. Verify this for the standard normal distribution. 
+
+```{r}
+#
+# rand_dat <- tibble(unif_sample = runif(10000, 0, 1))
+# 
+# rand_stat <- rand_dat %>%
+#   summarize(randmean = mean(unif_sample), randsd = sd(unif_sample), randmedian = median(unif_sample))
+# 
+# rand_stat
+
+n <- 10^4
+min <- 0
+max <- 1
+X <- runif(n, min, max)
+
+
+mean(X)
+
+
+median(X)
+
+
+```
+
+
+Sample 10,000 values from a standard normal distribution and create a density plot that includes a theoretical reference curve.
+
+```{r}
+#
+rand_dat <- tibble(rnorm_sample = rnorm(10000, 0, 1))
+
+rand_stat <- rand_dat %>%
+  summarize(randmean = mean(rnorm_sample), randsd = sd(rnorm_sample), randmedian = median(rnorm_sample))
+
+ggplot(rand_dat , aes(x = rnorm_sample)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(rand_stat$randmean, rand_stat$randsd),   
+                color = "red")
+```
+
+***
+```{r}
+sessionInfo()
+```

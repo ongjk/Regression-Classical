@@ -1,0 +1,118 @@
+---
+title: "lahman"
+author: "Jefferson Ong"
+date: "8/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+library(Lahman)
+library(tidyverse)
+library(ggplot2)
+
+library(moderndive)
+```
+
+```{r}
+str(LahmanData)
+summary(LahmanData)
+list(LahmanData)
+```
+
+```{r}
+# list(Teams$yearID)
+```
+
+
+```{r}
+#  
+# "New York Yankees"
+# "Pittsburgh Pirates" 
+
+# str(Teams)
+# list(Teams$name)
+LegacyTeams <- Teams %>%
+  filter(yearID > 1949) %>%
+  filter(teamID == 'NYA' | teamID == 'PIT')
+
+
+list(LegacyTeams)
+```
+
+
+
+```{r}
+
+ggplot(LegacyTeams, aes(x = yearID, y = W, col = teamID)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE) +
+  ggtitle(expression("Wins over time between NYA and PIT")) +
+  ylab("Number of wins") +
+  xlab("Year")
+
+
+
+```
+```{r}
+# LegacyTeamsLM <- lm(yearID ~ W, data = LegacyTeams)
+# get_regression_table(LegacyTeamsLM) 
+# ggplot(get_regression_points(LegacyTeamsLM), aes(x = residual)) +
+#   geom_histogram() #Create a histogram and QQ plot to assess the normality of the residuals
+# 
+# ggplot(get_regression_points(LegacyTeamsLM), aes(sample = residual)) + 
+#   geom_qq() +
+#   geom_qq_line(color = "red")
+```
+
+
+```{r}
+ggplot(LegacyTeams, aes(x = yearID, y = HR, col = teamID)) +
+  geom_line() +
+  geom_smooth(method = "loess", se = FALSE, show.legend = F) +
+  ggtitle(expression("Wins over time between NYA and PIT")) +
+  ylab("Number of homeruns") +
+  xlab("Year")
+```
+
+```{r}
+ggplot(LegacyTeams, aes(x = yearID, y = attendance, col = teamID)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, show.legend = F) +
+  ggtitle(expression("attendance over time between NYA and PIT")) +
+  ylab("Number of attendance") +
+  xlab("Year")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

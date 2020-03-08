@@ -1,0 +1,126 @@
+---
+title: "Normal Proficiency Problem"
+subtitle: "Assessing the Normality of Anthropometric Data"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+You need to use more than density curves to assess normality. You are also missing the final answer.
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tibble)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+anthro <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/anthropometric.csv")
+```
+
+
+```{r}
+str(anthro)
+summary(anthro)
+names(anthro)
+```
+
+#### The Problem
+
+In 1844, Adolphe Quetelet (1796 – 1874) published some of his anthropometric research showing that the distributions of many physical characteristics like height, armspan, and chest circumference were bell-shaped and symmetric around their means. His analyses involved measurements taken from a broad variety of people. You will further investigate this idea using Dr. Thomley's [anthropometric](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/anthropometric.html) dataset. Use appropriate plots and summary measures to support your decision for each analysis.
+
+#### The Analysis
+
+Is the distribution of `height` for male students approximately normal? If not, what shape does it have? 
+
+A: Looks fairly normal, maybe binodial but doesn't look like it, just a slight bump.
+
+```{r}
+anthroMale <- anthro %>%
+  filter(gender == "male") %>%
+  summarize(xbarM = mean(height), sdM = sd(gender))
+
+anthroMale
+```
+
+
+```{r}
+#
+anthroMale1 <- anthro %>%
+  filter(gender == "male")
+
+anthroMale <- anthro %>%
+  filter(gender == "male") %>%
+  summarize(xbarM = mean(height), sdM = sd(height))
+
+ggplot(anthroMale1, aes(x = height)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(anthroMale$xbarM, anthroMale$sdM),   
+                color = "red")
+
+```
+
+ANSWER:
+
+Is the distribution of `height` for female students approximately normal? If not, what shape does it have?
+
+```{r}
+#
+
+anthrofeMale1 <- anthro %>%
+  filter(gender == "female")
+
+anthrofeMale <- anthro %>%
+  filter(!is.na(height)) %>%
+  filter(gender == "female") %>%
+  summarize(xbarMF = mean(height), sdMF = sd(height), na.rm = FALSE)
+
+ggplot(anthrofeMale1, aes(x = height)) + 
+  geom_density(na.rm = FALSE) +
+  stat_function(fun = dnorm, 
+                args = list(anthrofeMale$xbarMF, anthrofeMale$sdMF),   
+                color = "red")
+anthrofeMale
+
+
+```
+
+ANSWER: Yep, looks normal
+
+Is the overall distribution of `height` (regardless of gender) approximately normal? How do your separate analyses of male and female students above help explain the shape you observe here?
+
+```{r}
+#
+anthroNorm <- anthro %>%
+  filter(!is.na(height)) %>%
+  summarize(xbarN = mean(height), sdN = sd(height))
+
+ggplot(anthro, aes(x = height)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(anthroNorm$xbarN, anthroNorm$sdN),   
+                color = "red")
+
+anthroNorm
+```
+
+ANSWER: Men pulls it towards the right while women pulls it towards the left. Since women are shorter its creating that bump around 65 while men are around 73? Its fairly normal. 
+
+Measurements in this dataset were collected across several semesters from students in Dr. Thomley's statistics classes, using tape measures and yardsticks. In later semesters, they were told to round to the nearest quarter inch, but there were no instructions about rounding the first couple of semesters. Students helped measure one another, but the data were ultimately reported to the instructor by the students themselves. Furthermore, psychological research had found that Americans seem to associate height with power; for example, one study suggests that someone who is six feet tall earns about $166,000 more (on average) across a 30-year career than someone who is 5'5", even when differences in gender, age and weight are accounted for ([source](https://www.apa.org/monitor/julaug04/standing)). How might these factors have contributed to any non-normality you observed? 
+
+ANSWER:
+
+***
+```{r}
+sessionInfo()
+```

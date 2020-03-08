@@ -1,0 +1,220 @@
+---
+title: "Real Analysis Proof Portfolio"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: pdf_document
+---
+```{r setup, include=FALSE}
+
+
+library(knitr)
+#library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir= normalizePath('..'))
+knitr::opts_chunk$set(error = FALSE)
+```
+
+# Proof 1: Goal 1B
+
+Prove that if $x \in (\alpha, \beta)$ and $y \in  (\alpha, \beta)$. Then 	$|x-y|< \beta - \alpha$.
+
+
+### Proof: 
+
+It is given that $\alpha \le x \le \beta$ and $\alpha \le y \le \beta$. 
+
+Then 
+$\alpha \le y \le \beta$ can be written as $-\beta \le -y \le -\alpha$, 
+
+it follows that  $\alpha + \alpha \le x + y \le \beta + \beta$ can be reformed as
+
+$\alpha + (-\beta) \le x + (-y) \le \beta + (-\alpha)$ which is 
+
+
+$|x-y|< \beta - \alpha$. 
+
+$QED$
+
+
+### Reason for choice: 
+
+It's a particularly simple proof to do but it also took me several attempts at different goal 1 problems to even attain the very first mastery. It's cool that simple algebraic maniputation solves it, just using what we know of the inequalities.
+
+
+
+# Proof 2: Goal 4D
+
+Given that the sequence $a_n = 1/n$ converges, prove that the sequence $b_n = 1/ n^p$ converges for any $p \in N$ 
+
+
+### Proof:
+
+We can see that $1/ n^{p} = 1/ n^p * 1/(n^{p-1})$ since $p \in N$ meaning $p = 1, 2, 3, ...$
+
+$1/ n * 1/(n^{p-1}) \le 1/ n * 1$ 
+
+Therefore $0 \le 1/n^{p} \le 1/n$. It is given that $1/n$ converges, which is zero. Then by the squeeze theorem $1/n^p$ converges. 
+
+$QED$
+
+### Reason for choice: 
+
+Its during these goals that we start to use theorems to prove questions and I found this one to be a particularly good transition point. We still use simple algebraic manipulation to reformat the statements but now we use a theorem to tie it all together.
+
+# Proof 3: Goal 7A
+
+Show that, if $A, B, c \in R$ then $f(x) = Ax + B$ is continuous at $x =c$ using the definition of continuity.
+
+### Proof:
+
+Using cases where $A = 0, A \neq 0$ then for $A = 0$. 
+
+Let $\epsilon > 0$ be given. Let $\delta = \epsilon$ such that if $A, B, c \in R$ whenever $|x-c| < \delta$ then $|B-B| =0 < \epsilon$
+
+In the case of $A \neq 0$. Let $\epsilon > 0$ be given. Let $\delta = \epsilon/{|A|}$ such that if $A, B, c \in R$ whenever $|x-c| < \delta$ then
+
+$|(Ax + B) - (Ac + B)| = |A|*|x-c| < |A| * \epsilon/{|A|} = \epsilon$
+
+Hence f is continuous at $x=c$
+
+
+### Reason for choice: 
+
+This one and goal 6 were quiet similar in how the proof is solve. Something I found odd and maybe I had done it incorrectly. However they weren't just because of what sort of question you asked by coincidence. I think it also has to do with the fact of the definition of what a limit is and what continuous meant were similar. 
+
+
+# Proof 4: Goal 9B
+
+Show that if $f$ and $g$ are uniformly continous functions. then $f + g$ is also uniformly continous.
+
+
+### Proof:
+
+Let $\epsilon > 0$ be given. SInce $F$ is uniformly continous then there exist $\delta_{1} >0$ such that $|f(x) -f(y)| < \epsilon/2$ whenever $|x-y| < \delta_{1}$
+
+similarly since $g$ is uniformly continous then there exist $\delta_{2} >0$ such that $|g(x) -g(y)| < \epsilon/2$ whenever $|x-y| < \delta_{2}$
+
+
+Now choose $\delta = min(\delta_{1}, \delta_{2})$ so that 
+
+$|(f(x) + g(x)) - (f(y)+g(y))| = |(f(x) -f(y) + g(x)+g(y))|$
+
+$\le |f(x)-f(y)| + |g(x)+g(y)| < \epsilon/2 + \epsilon/2 = \epsilon$
+
+whenever $|x-y| < \delta$. 
+
+Therefore $f+g$ is also uniformly continous. 
+
+$QED$
+
+### Reason for choice: 
+
+Its a little wierd since looking at this, it isn't too bad but I still struggle with uniform continouity in the test. It has to do with this idea of choosing a minimum of two different values. I'm not completely sure why, but I just trying to stay away from using a minimum or maximum compare to a particular number, it's something I'm realizing more now at the end. 
+
+
+# Proof 5: Goal 12B
+
+Show that $|cos(x) -cos(y)| \le |x-y|$ for all $x \in R$.
+
+### Proof:
+
+
+It is the case that $cos(x)$ is contious and differentiable for all $x \in R$ on $[x,y]$.
+
+Then there exist $c \in (x,y)$ such that $f'(c) = (cos(x) -cos(y))/(x-y)$
+
+$= |-sin(c)| = (cos(x) -cos(y))/(x-y) \le 1$
+
+$=|cos(x) -cos(y)| \le |x-y|$ for all $x \in R$.
+
+$QED$
+
+### Reason for choice:
+
+It's shortness made it appealing for typing up and when I was trying to solve it, there wasn't any intuitive sense of why I would use the mean value theorem here, but just having it and using a bit of algebra solved it. I still don't know how to feel about that where we solve things using theorems that seems like it isn't meant for it. 
+
+
+# Proof 6: Goal 16
+
+
+If $f$ is continous on $[a,b]$ then there exist $c$ in $(a,b)$ for which 
+
+$\int_{a}^{b} f = f(c)*(b-a)$
+
+### Proof:
+
+Case 1: If $f$ is $c$ on $[a,b]$ then mean value theorem is valid since $c$ is in $[a,b]$
+
+Case 2: If $f$ is not some constant, then by extreme value theorem, we will choose $f(m)$ and $f(M)$ as the minimum and maximum values of $f$ on $[a,b]$, respectively.
+
+It follows that $f(m) \le f(x) \le f(M)$ for all $x \in [a,b]$
+
+Then $\int_{a}^{b} f(m)dx \le \int_{a}^{b} f(x)dx \le \int_{a}^{b} f(M)dx$
+
+
+$f(m)*(b-a) \le \int_{a}^{b} f(x)dx \le f(M)*(b-a)$
+
+$f(m) \le (1/(b-a))*\int_{a}^{b} f(x)dx \le f(M)$
+
+Then by the intermediate value theorem, there exist some $c$ in $[a,b]$ such that 
+
+$\int_{a}^{b} f(c) = (1/(b-a))*\int_{a}^{b} f(x)dx$
+$= f(c)*(b-a) = \int_{a}^{b} f(x)dx$
+
+$QED$
+
+### Reason for choice:
+
+This being one of the final goals, I thought it would be fitting, in this case it show cases just how many theorems we've had to use and all the different techniques we've had to learn to solve more complex questions. The algebraic manipulation doesn't seem to change, either. which is nice is some sense. 
+
+
+
+# Reflection
+
+
+### How have you grown as a proof writer this semester?
+
+From the beginning of the semester, I wasn't particularly great at doing proofs coming out of techniques. I had a lot of issues just trying to set up problems and doing things by definition in the beginning. Often finding myself at a lost of how to even start. 
+
+Eventually I've found that setting up the problems properly is half the battle, often a problem will require the use of a definition, for example uniform continuity can't really be said anyway its episolon delta definition so looking for that magical delta is done. The other way is stringing along different theorems such as limits, convergent, cauchy, etc. something I started to much better in later on in the course. 
+
+I would say by the end, I was getting the handle of rigorous definitions of things such as what is continuity, derivative, integral, etc. since there introduction often had structures are so similar that it can be hard to differentiate between them. I certainly have a more comfortable grasp of what to do with proof writting given a definition. Examples of its application and intuitive sense of how it works greatly help in that endeavor. Something that naturally happened as the course went on.
+
+
+### Why are proofs important in mathematics?
+
+Growing up, we're told how to calculate things and "this is how it works". While its nice to trust that, its much better to understand and convince ourselves why it works the way it does. Often in math, if we break a small aspect of it, say 2 + 2 = 5, it cascades quickly. Analysis looks into that, why things hold and where it can break.
+
+Proofs are the foundations of math. The rigorous definitions is why we're able to trust in the calculations we had done in previous classes. It isn't arbitrary, I found it to be one of the more difficult classes I've taken, I often don't think of these definitions this way, "through words" often I clearly understand it with the picture, diagram, graphs, etc. and while that gave me intuition of what I clearly know is true, its often hard to make that transition from "Of course its that! can't you see it'll tend to infinity" to actually proving them. I would say its one of the most important things to get familiarize with, if one wants to delve deeper into math, barring applications.
+
+### What skills were most important in writing a mastery-level proof?
+
+A good foundation with algebra would help, while that's often required, as in just being decent with algebraic manipulations will solve a great deal of problems. However I would say, a mental elasticity is required and often what seperates one from a good proof writer to a bad one. By this, I mean that one needs to have a greater deal of abstraction to look for the things one needs to solve problems, often what I struggle with is, what am I looking for and how do I set myself up to get to that. I think being able to ask questions that isn't being implicitely asked and solving those are the small steps to attaining mastery and making sure we aren't making logical leaps or using theorems incorrectly. 
+
+In a more general proof writing, assuming that our notion of the reals don't particular apply, we would need to have definitions to be able to stand on any platform. Eventually expanding those definitions and working out properties between them. How do they tie together? How are they different? What more can one say about them? Getting comfortable, with being a fish out of water. 
+
+### Which of your proofs included in your portfolio is your favorite? Why?
+
+Proof 3 with the continuity, I often go to your office for help and often my proofs feel sketchy because the problem is solved in such a way that I feel like I didn't do anything. Its completely different compare to when I attain apprentice, where I would work through a problem exhaustively and not reach a complete proof. So its jarring to get the correct answers with even less effort. I find this a lot with the class, often the masterys are a paragraph at most. The test are particularly difficult for me since I often hit a wall along the proof, I am often able to set it up and know the direction of where I'm suppose to go and what to look for, but setting things up properly or even finding particular deltas, those I get stuck on. But when you go over it in class, its like the most simple things, and its not that I don't understand, if anything it makes sense but it feels like there should be more leg work? but eh, it feels like a class of application of clever tricks. 
+
+### What advice would you give to a friend getting ready to take MATH 3220 about writing quality proofs?
+
+Familiarize with proof techniques, and their structures such as contradiction, induction, cases, etc. The other is just building up an intuitive understanding of episolon deltas, things getting really big or small, trying to show something is equal, review on value theorems, integrals, etc. A quick overview of calculus 1 and understanding the big ideas, not the calculations will help going into the class. 
+
+There's also no one way a proof has to be done, often however there's a way thats more intuitive and natural. Learning proof writing from one professor will be different to another professor, much more so than in a class where one is just calculating. Proof requires the student to think in specific manners that aren't obvious and professors often get there in a myriad of ways. Best I can give, it isn't that bad but also its not a pushover or something one can mindlessly get through.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

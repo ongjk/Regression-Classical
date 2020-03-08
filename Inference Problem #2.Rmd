@@ -1,0 +1,129 @@
+---
+title: "Inference Proficiency Problem"
+subtitle: "Yankees Salary $$$ vs. Everyone Else in 2002"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tidyverse)
+library(readr)
+
+mlb2002 <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/mlb2002.csv")
+```
+
+#### The Problem
+
+In 2002, the New York Yankees had the highest average team salary among all Major League Baseball (MLB) teams. However, was it statistically larger than the average salary of the rest of the teams in the league combined? Use the data in the file [mlb2002.csv](https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/mlb2002.csv) to test this hypothesis. (*Technically*, this data could be a population, but we can also consider it a sample from the possible salary structures for that season and thus prone to some sampling variability.)
+
+
+#### The Analysis
+
+Add a new variable to the dataset that identifies players according to whether they played for the New York Yankees (NYY) or one of the other teams (OTH). Then `summarize` n, mean, and standard deviation for salary in each group (NYY versus OTH). Also create a boxplot to compare the NYY and OTH groups. 
+```{r}
+str(mlb2002)
+list(mlb2002)
+```
+```{r}
+mlb2002 <- mlb2002 %>%
+  mutate(teams = ifelse(team == "New York Yankees", "NYY", "OTH"))
+
+mlb2002 %>%
+  group_by(teams) %>%
+  summarize(n     = n(),
+            xbar  = mean(salary, na.rm = TRUE),
+            stdev = sd(salary, na.rm = TRUE)
+            )
+
+
+ggplot(mlb2002, aes(x = teams, y = salary)) +
+  geom_boxplot()
+```
+
+
+Conduct a permutation resampling test to determine whether the Yankees' mean was statistically larger than the mean of the rest of the league combined. 
+
+```{r}
+#
+salaryG <- mlb2002 %>% pull(salary) # Pulls out with no group info from the buckets. 
+
+n_all <- length(salaryG)
+
+salary_NYY <- mlb2002 %>% filter(teams == "NYY") %>% pull(salary) #makes bucket
+
+salary_OTH <- mlb2002 %>% filter(teams == "OTH") %>% pull(salary) 
+#makes other bucket
+observed_diff <- mean(salary_NYY) - mean(salary_OTH)
+
+n_NYY <- length(salary_NYY)
+  
+n_OTH <- length(salary_OTH)
+
+N <- 10^4 - 1  
+
+random_diffs <- numeric(N) 
+
+for (i in 1:N)
+{
+  index <- sample(n_all, size = n_NYY, replace = FALSE) 
+  random_diffs[i] <- mean(salaryG[index]) - mean(salaryG[-index])
+}
+
+ggplot() + 
+  geom_histogram(aes(random_diffs), fill = "light blue") + 
+  geom_vline(xintercept = observed_diff, colour = "red") +
+ xlab("xbar1-xbar2")
+
+(sum(random_diffs >= abs(observed_diff)) + 1) / (N + 1)
+```
+
+Compute a 95% bootstrap percentile interval to estimate the difference in the two group means.
+
+```{r}
+#
+quantile(random_diffs,c(0.025,0.975))
+```
+
+Conduct a classical two-sample t-test for the same hypotheses using the `t.test` function. (Be sure to set the appropriate H~a~.)
+
+```{r}
+#
+t.test(salary ~ teams, data = mlb2002)
+```
+
+Using the results of the permutation resampling test, can we conclude at the &alpha; = 0.05 level of significance that the Yankee's mean salary was statistically larger than mean salary of the rest of the teams combined? If so, how large is the difference, based on the bootstrap percentile interval? Is the difference large enough to have practical significance, in context?
+
+**ANSWER:** 
+
+```{r}
+p_value_lower <- (sum(random_diffs <= -abs(observed_diff)) + 1) / (N + 1)
+p_value_upper <- (sum(random_diffs >= abs(observed_diff)) + 1) / (N + 1)
+p_value_2side <- p_value_lower + p_value_upper
+
+sprintf("The observed difference in sample means between NYY and OTH is %0.4f.", observed_diff)
+```
+
+A: Yes, it is about double of what the average player in OTH would make compare to NYY players. 
+
+
+Given the assumptions of the classical two-sample t-test, why might the p-value from the classical two-sample t-test be unreliable? Use evidence from your descriptive analysis.
+
+**ANSWER:**
+
+A: The difference in means of each group due to random occurance is unlikely due to the p-value provided by the permutation resampling test. 
+
+
+***
+```{r}
+sessionInfo()
+```

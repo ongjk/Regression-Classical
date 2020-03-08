@@ -1,0 +1,125 @@
+---
+title: "quiz1"
+author: "Jefferson Ong"
+date: "2/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(readr)
+```
+# 1: 
+
+```{r}
+weather <- read_csv("weather.csv")
+```
+# 2
+
+```{r}
+str(weather)
+```
+
+```{r}
+ggplot(weather, aes(x = month, y = hitemp)) +
+  geom_boxplot()
+
+boxplot(hitemp ~ month, weather)
+```
+
+* This plot tells me that the hitemp is higher for June compare to May but May itself has more variability on how the temperature is.
+
+
+# 3 
+
+```{r}
+str(weather)
+```
+
+```{r}
+pairs(hitemp ~ day + yestavg + yesthi, weather)
+
+pairs(hitemp ~ yestlo + yestrain + yestwind + yesthumid,weather)
+```
+
+```{r}
+library("PerformanceAnalytics")
+chart.Correlation(weather[c(3, 2:9)], histogram=TRUE, pch=19)
+```
+Explain the scatterplots: We can see here that yestavg and yesthi are good predictors for hitemp looking at the scatterplot and eventually using the correlation plot.
+
+# 4:
+
+```{r}
+sapply(weather[,2:9], function(x) (c(mean(x), median(x), range(x))))
+```
+
+
+This shows that the mean on the first row, median on the second, and the lower and upper(range) with the respective 3rd and 4th row
+
+# 5:
+
+```{r}
+names(weather)
+```
+
+
+```{r}
+model1 <- lm(hitemp ~ yesthi, weather)
+summary(model1)
+```
+
+This shows that the model is statisticall significant with the t statistic having a small P value and looking at the R squared this model explains about 39% of the variability
+
+
+y =   28.7939 + 0.6211(yesthi)
+
+# 6:
+
+```{r}
+model2 <- lm(hitemp ~ yesthi + yestlo, weather)
+summary(model2)
+```
+
+This shows that the model is statistically significant with the t statistic having a small P value for yesthi but *not* yestlo with a p value of .37. This means that its not a good estimator for hitemp, and looking at the R squared this model explains about 40% of the variability. Looking at the F statistic its not too high but still having a small p value, it means the the model is statistically significant. 
+
+The prediction equation : 30.79716 + 0.64926 (yesthi) + -0.07046 (yestlo) + epsilon
+
+
+# 7:
+
+Using model 1 we want to predict the hitemp 
+
+
+y =   28.7939 + 0.6211(yesthi)
+
+yesthi = 75
+
+so the answer is  75.3764
+
+
+```{r}
+28.7939 + 0.6211*(75)
+```
+
+We chose this model over the multiple one since yestlo was not a significant individual predictor. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

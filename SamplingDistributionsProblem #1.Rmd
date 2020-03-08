@@ -1,0 +1,119 @@
+---
+title: "Sampling Proficiency Problem"
+subtitle: "Sampling Distribution of Mean Number of Pocks"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(tidyverse)
+library(readr)
+library(moments)
+
+smallpox <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/smallpox.csv")
+```
+
+#### The Problem
+
+In the late 1700s, smallpox killed about one in four children born in London. Scientists knew that inoculations (i.e., vaccines) were effective in reducing mortality, but no one was sure how they worked. Doctors often prescribed tonics to prepare patients before vaccination. Dr. William Watson became the physician for a large London orphanage 1762. Administrators were concerned about rapid spread of disease in crowded conditions and ordered vaccinations for all of the children who lived there. Watson used this chance to investigate the effectiveness of vaccine pre-treatments. This is considered to be one of the first historical examples of the kind of research we now call a clinical trial. Watson conducted three studies. In two he compared different pre-treatments to a control group, and in a third he used no pre-treatments, but varied the type of inoculum he used. 
+
+Watson observed and counted the number of smallpox lesions that appeared on each child. Statistical analysis conducted much later on Watson's results showed that the source seem to make no singificant difference with regard to the number of pocks. The data from Watson's experiment can be found in the file [smallpox.csv](https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/smallpox.csv). (Note: It was perfectly acceptable to conduct experiments like this throughout much of human history, but in the present day this generally would be considered unethical, especially with children as subjects.)
+
+
+#### The Analysis
+
+Extract the data belonging to the control groups from all three experiments, then `summarize` the overall n, mean, and standard for number of pocks in control subjects. Also create a histogram to examine the shape of the distribution. 
+
+```{r}
+str(smallpox)
+```
+
+
+```{r}
+#
+smallpox_control <- smallpox %>% 
+  filter(pretreatment == "none")
+
+smallpox_sum <- smallpox %>% 
+  filter(pretreatment == "none") %>% 
+  summarize(n     = n(),
+            xbar  = mean(pocks, na.rm = TRUE),
+            stdev = sd(pocks, na.rm = TRUE)
+            )
+
+ggplot(smallpox_control, aes(x = pocks)) +
+  geom_histogram()
+
+# smallpox_sum
+```
+
+Compute the theoretical mean and standard error for the sampling distribution of the mean number of pocks for subjects that received no pretreatment before innoculation.
+
+```{r}
+#
+smallpox_control %>% 
+  summarize(mu = mean(pocks), sigma = sd(pocks))
+```
+
+
+Construct a bootstrap sampling distribution for the mean number of pocks for subjects that received no pretreatment. Make a normal quantile-quantile plot and compute skewness and kurtosis for the results. Do not use `infer` or any other pre-packaged resampling packages/functions. Write your own sampling loop. 
+
+```{r}
+#
+N <- 10^4
+bootmean1 <- numeric(N)
+Apocks <- smallpox_control %>% pull(pocks)
+n <- length(Apocks)
+
+for (i in 1:N) {
+  bootmean1[i] <- mean(sample(Apocks, n, replace = TRUE))
+}
+ ggplot(NULL, aes(x = bootmean1)) + geom_density()
+
+ggplot(NULL, aes(sample = bootmean1)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+
+ quantile(bootmean1, c(0.025, 0.975))
+
+skewness(bootmean1)
+kurtosis(bootmean1)
+```
+
+
+
+Compute the mean and standard error of your bootstrap distribution, as well as the bootstrap estimate of bias expressed as a fraction of the SE.
+
+```{r}
+#
+bias <- mean(bootmean1) - mean(Apocks)
+pocmean <- mean(bootmean1)
+se   <- sd(bootmean1)
+frac <- abs(bias / se)
+round(bias, 4)
+
+pocmean
+se
+```
+
+The central limit theorem (CLT) states that the sampling distribution of $\bar{x}$ for a reasonably large number of i.i.d. random variables X~1~, X~2~, ..., X~n~ (with finite mean $\mu$ and variance $\sigma^2$), will be approximately normal, regardless of the population shape. A common rule of thumb is that "sufficiently large" is n ≥ 30. However, there are many scenarios in which this is not true. Does the CLT apply in this situation? Support your answer with evidence from your EDA and your simulation.
+
+**ANSWER:**
+
+A: The sampling distribution does not fall under the CLT since its still quiet right skewed with an N of 10^4. The QQ-plot shows a plot of a right skewed distribution as well as a density graph. Looking at the skewness implies a symmetry graph but going further with the kurtosis, its higher than it should be. 
+
+
+***
+```{r}
+sessionInfo()
+```

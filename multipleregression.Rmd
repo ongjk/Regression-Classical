@@ -1,0 +1,1090 @@
+---
+title: "multipleregression"
+author: "Jefferson Ong"
+date: "1/31/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(readxl)
+library(tidyverse)
+data <- read_excel("CFB2018completeISLR.xlsx")
+```
+
+EX: College football data
+
+Y = Zsagarin
+
+X1 = z_lysagarin
+
+X2 = Jravg
+
+
+Evaluating multiple regression model:
+
+(1) Are any of the predictors statistically significnat?
+
+H0: Are any of the B1 = B2 = B3 --- Bp = 0
+HA: at least one is nonzero
+
+(2) Assuming we reject H0 of the previous test, which predictors are significant?
+
+    This is more complicated than it appears
+    
+    We will use t-test here
+
+
+
+
+```{r}
+mlr1 <- lm(Zsagarin ~ z_lysagarin + Jravg, data)
+summary(mlr1)
+```
+
+ 0.52998/  0.02870  = 18.467
+
+
+The F-statistic tests H0: B_z_lysagarin = B_jravg = 0
+  
+                      HA: at least one is not zero
+                      
+                  Test Statistic F = 397.5
+                  
+                  P-value: <2.2*10^-16 <<<< 0.05
+                  
+                  So we reject H0
+                  
+                  
+Zsagarin_hat = -1.607 + 0.53(z_lysagarin) + 0.54(Jravg)
+                  
+                  
+Conclude our model is *useful* overall statistically significant.
+
+_________
+   
+         T statistics  p values
+          
+z_sagarin 18.467      less than 2*10^-16   -> tests H0 = B_z_lysagarin
+                                                    HA != B_z_lysagarin   small p-value, we reject H0
+
+Jravg     8.383       " " ""               -> similarly we reject. H0: B_Jravg = 0 due to small p-value
+
+
+______________
+
+
+* The effect of increasing that predictor(z_lysagarin) by 1 limit, while holding all else constant
+
+* For two teams with the same Jravg, if one has a 1 point higher z_lysagarin, we predict an increase of 0.53 points in *this* year
+  Zsagarin score
+  
+* An easier interpretation of Jravg(intercept) of increasing Jravg by 1 while holding all else constant.
+  For two teams of the same performance last year, if one has 1 point higher on their Jravg. We predict an 
+  increase of 0.54 points in the Zsagarin score.
+  
+  
+* Multiple R-squared: 0.4821 means that our model explains 48.21% of the variability in Y(Zsagarin)
+
+
+
+
+```{r}
+anova(mlr1)
+```
+
+
+## Second Model
+
+
+```{r}
+mlr2 <- lm(Zsagarin ~ Jravg + Jr5star, data)
+summary(mlr2)
+```
+
+* Useful? F-statistic: 162.8 on 2 and 854 DF,  p-value: < 2.2e-16
+
+          Yes, larger F-statistic. p-value: < 2.2e-16What is the chance you'll get a larger number?
+          So we reject H0: B_jravg = B_jr5star = 0
+          As least one is none zero because of the small p-value
+          
+          
+               Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -3.33626    0.24282 -13.740   <2e-16 ***
+Jravg        1.11438    0.08465  13.165   <2e-16 ***    We reject H0: B_jravg = 0
+Jr5star      0.03575    0.03810   0.938    0.348        We *fail* to reject H0: B_Jr5star = 0
+
+
+* We don't necessarily **need** Jr5star *once* Jravg is taken into account.
+
+* Multiple R-squared:  0.2761,	Adjusted R-squared:  0.2744, This model isn't quiet as good. 
+  
+  Our model accounts for 27.61% of variability in Y
+  
+  If I've already told you Jravg, then having Jr5star isn't as important
+
+* As we add more predictors to the model, the R^2 can only get better, never worst.
+____________
+
+
+```{r}
+anova(mlr2)
+```
+
+_____________
+
+
+```{r}
+summary(lm(Zsagarin~Jr5star, data))
+```
+
+* As we can see that Jr5star on its own is still significant but not in tandum with Jravg.
+
+```{r}
+ggplot(data, aes(x = Jr5star, y = Zsagarin)) +
+  geom_point(shape = 5) +
+  geom_smooth(method = lm)
+
+
+ggplot(data, aes(x = Jr5star, y = Jravg)) +
+  geom_point(shape = 5) +
+  geom_smooth(method = lm)
+```
+
+The reason they both aren't necessary is because they correspond with similar information. The regression model attempts to account for this. 
+
+
+____________
+
+
+
+Mult Reg: Recap
+
+* Y = B0 + B1x1 + ... + Bpxp + epsilon
+
+F test -> overall model significance
+
+H0: B1 = B2 = ... = Bp = 0 Ha: at least one nonzero
+
+T test - > individual  predictor significance
+
+ex: H0: B4 = 0      Ha: Ha != 0
+
+*Note: This test assumes all other predictors already in model*
+
+
+____________
+
+
+
+## Using Multiple Regression for Categorical Predictors
+
+```{r}
+head(data$conference)
+```
+
+
+```{r}
+ggplot(data, aes(x = conference, y = Zsagarin)) +
+  geom_boxplot(color = "black", fill = "red")
+```
+
+### How to incorporate a categorical predictor{-}
+
+
+(1) 2 Levels: ex: student status: Undergrad, Grad
+
+Let Y be the # of hrs worked off campus. Is it different for UG vs GR?
+
+How do I feed this into a regression?
+
+*Create a dummy variable*
+
+Let X = 1 if student is UG
+
+    X = 0 if student is GR
+    
+dummy means that the number doesn't mean anything
+
+
+* Our model then Y = B0 + B1x + epsilon
+
+If you're an UG then Y = B0 + B1*(1) + epsilon
+            
+                    Y = B0 + B1 + epsilon
+                    
+If GR then Y = B0 + B1(0) + epsilon
+
+           Y = B0 + epsilon
+           
+(2) This means that B1: is the effect of being an "UG" in the model
+
+*  If B1 != then UG tends to work more, if negative they work less than GR, positive UG works more than GR. If B1 = 0 then theres no difference
+           
+______
+
+
+### Three or more predictors
+
+3 levels of a single predictor
+
+ex: Dominant hand: Left handed(L), Right Handed(R), Ambidextrous(A)
+
+
+Let Y = speed of fastball. 
+
+    Let X1 = 1 if they are (L)
+           = 0 if otherwise
+           
+    Let X2 = 1 if they are (R)
+           = 0  if otherwise
+           
+*Two dummy variable for 3 category*
+
+
+* The model is then Y = B0 + B1x1 + B2x2 + epsilon
+
+Then if they are ambi(A) 
+
+        Y = B0 + B1(0) + b2(0) + epsilon
+        Y = B0 + epsilon
+        
+     If they are (L)
+     
+        Y = B0 + B1(1) + b2(0) + epsilon
+        Y = B0 + B1 + epsilon
+     
+     If they are (R)
+     
+        Y = B0 + B1(0) + b2(1) + epsilon
+        Y = B0 + b2 + epsilon
+
+
+If 4 levels, then 3 dummy variable since one is the "baseline"
+
+____________
+
+
+
+### How do I code the categorical variabke? (R does it behind the scene)
+
+
+```{r}
+ggplot(data, aes(x = conference, y = Zsagarin)) +
+  geom_boxplot(color = "black", fill = "red")
+```
+
+
+```{r}
+conferencemodel <- lm(Zsagarin ~ conference, data)
+summary(conferencemodel)
+```
+
+F-statistic: 16.12 on 6 and 850 DF,  p-value: < 2.2e-16
+
+Somehow the conferences makes a **difference** in performance, somehow
+
+Multiple R-squared:  0.1022, This explains only about 10% of the variations in the responds
+
+
+* ACC is the baseline group(average), that was chosen. It makes some differences.
+
+There is a negative effect, conferenceBigeast are worst on average. 
+
+
+
+_______________
+
+
+# Wednesday 2/5
+
+How to incorporate "interaction model?"
+
+Categorical and quantitative predictors in a model.
+
+
+## interaction model in multiple regression
+
+* Suppose we have two quantitative predictors: X1, X2 
+
+so far, our model is Y = B0 + B1X1 + B2X2 + epsilon
+
+(additive model): The effect of increasing X2 is B2, regradless of the limit of X1 
+
+                  The effect of increasing X1 is B1 ,. ...                      X2
+                  
+                  
+                  
+* In some cases, we want to allow the effect of X2 to vary base upon X1 and vice versa *
+
+EX: Y = exam grade
+
+    X1 = study time
+      
+    X2 = IQ
+    
+    people with higher IQ mayb benefit faster or more effectively from study time
+    
+    
+So, grade = B0 + B1(studytime) + B2(IQ) + epsilon
+
+            may not be the best model
+            
+        
+______________
+
+
+
+### Interaction model part 2
+
+A I.M.:
+
+  Y = B0 + B1X1 +B2X2 + B3X1X2 + epsilon
+  
+                        This B3 is a new predictor. When multiplied together it is called an interaction term.
+                        
+                        
+  Now.... in our IQ study time example:
+  
+          Grade = B0 + B1(IQ) + B2 (studytime) + B3 (IQ * studytime) + error
+          
+          
+          Grade = B0 + B1(IQ) + ((B2 + B3*IQ)(Studytime)) + error
+          
+          
+                                **This means that the effect of increasing study tiem can depend on IQ**
+
+
+                                If B3 > 0 then higher IQ then higher benefit of study.
+                                
+                                Equivalently:
+                                
+                                Grade = B0 + B2(studytime) + (B1 + B3(studytime))IQ + error 
+
+
+_____________
+
+
+
+```{r}
+additive.model <- lm(Zsagarin ~ z_lysagarin + retoff, data)
+summary(additive.model)
+```
+
+* Is our model useful?
+
+F-statistic: 356.9 on 2 and 854 DF,  p-value: < 2.2e-16
+
+
+* Do we need both predictors? redundancy? 
+
+z_lysagarin  0.65998    0.02503  26.371  < 2e-16 ***
+retoff       0.07336    0.01476   4.971 8.07e-07 ***
+              
+      positive coefficients
+
+Both predictors are important
+
+
+
+Thinking about interaction:
+
+If we're bring back good offensive starters, would that benefit us? bad ones?
+
+* Now build an interaction model
+
+
+```{r}
+int.model <- lm(Zsagarin ~ z_lysagarin + retoff + z_lysagarin:retoff, data) # gives interaction z_lysagarin:retoff, interaction term
+summary(int.model)
+```
+
+Y = B0 + B1X1 + B2X2 + B3(X1X2)
+
+* Significant?
+
+F-statistic: 237.6 on 3 and 853 DF,  p-value: < 2.2e-16
+
+
+z_lysagarin:retoff  0.0006371  0.0153114   0.042    0.967 
+                    
+                    small coefficient, small T statistic, large P value
+                    
+                    Interaction term not significant(Revert to additive model)
+
+
+__________
+
+
+## How to incorporate both categorical and quantitative in the same model
+
+
+* The simple case: 
+
+                Y = response
+                
+                predictor1 = categorical(2 levels): A, B
+                
+                predictor2 = quantitative: (X2)
+
+        Dosage of the drug, sex of the patient, etc.
+        
+        
+        Lets define X1 = 1 if A
+                         0 if B
+                         
+                         
+        dummy variable
+        
+* Additive model: Let Y = B0 + B1X1 + B2X2 + epsilon
+
+                  For category A: this becomes:
+                  
+                         Y = B0 + B1(1) + B2X2 + epsilon
+                          
+                         Y = B0 + B1 + B2X2 + epsilon
+                          
+                  For category B: 
+                  
+                         Y =  B0 + B1X1 + B2(0) + epsilon
+                          
+                         Y =  B0 + B1X1 + epsilon
+ 
+ 
+ 
+ The two lines are parallel. You can have an effect but it has to be constant(because it is additive)
+ 
+ If the slopes are different, then it would be an interaction
+ 
+ 
+ ____________
+ 
+ * Interaction model: Let Y = B0 + B1X1 + B2X2 + B3(X1X2) + epsilon
+ 
+                  For category A:
+                  
+                         Y = B0 + B1(1) + B2X2 + B3((1)X2) + epsilon
+                          
+                         Y = B0 + B1 + (B2 + B3)X2 + epsilon
+                         
+                  For category B: 
+ 
+                         Y =  B0 + B1X1 + B2(0) + B3(X1(0)) + epsilon
+                          
+                         Y =  B0 + B1X1 + epsilon
+ 
+
+In a model like this one. I get a situation where I can have, group B have a different slope compare to group A
+
+
+
+_____________
+
+
+### Coding this:
+
+Categorical predictor with an interaction. If he's a new coach we give him a 1, otherwise a 0. 
+
+Zsagarin = B0 + b1(last year) + b2(new coach) + b3(last year * new coach) + epsilon
+
+      If we have a new coach then our model is:
+      
+      * B0 + b1(last year) + b2(1) + b3(last year * 1) + epsilon
+      
+      * (B0 + b2) + (b1 + b3)(last year) + epsilon
+      
+      If not
+      
+      * B0 + b1(last year) + epsilon
+      
+      
+
+```{r}
+attach(data)
+newcoach <- ifelse(coachexp_school == 0, 1, 0) # condition ==, if 0 put a 1, else 0
+mlrboth <- lm(Zsagarin ~ z_lysagarin + newcoach + z_lysagarin:newcoach, data)
+summary(mlrboth)
+```
+
+How to justify this set up?
+
+F-statistic: 231.7 on 3 and 853 DF,  p-value: < 2.2e-16
+
+Whats the effect of the new coach, maybe it doesn't matter if you were already good last year.
+
+* interaction type statements
+
+z_lysagarin           0.67081    0.02790  24.046  < 2e-16 ***
+newcoach             -0.25662    0.07228  -3.550 0.000406 ***
+z_lysagarin:newcoach -0.17863    0.07062  -2.530 0.011596 *  
+
+
+The interaction itself isn't as significant as the other two but still significant.
+
+newcoach             -0.25662    0.07228  -3.550 0.000406 ***
+
+            There appears to be a negative effect of new coach
+            
+            
+### Visualizing this
+
+
+```{r}
+newcoach <- as.factor(newcoach)
+ggplot(data, aes(x = z_lysagarin, y = Zsagarin, color = newcoach)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm", se = F)
+```
+
+The effect of how good you were last year is a bit steeper compare to when you have a new coach vs old coach.
+
+If a new coach takes over a good team, it might is lower
+
+If you're team was bad then a new coach has a good chance of improving 
+
+___________________
+
+# Week 5
+
+quiz 1 Friday:
+
+* ch2 and a little regression from ch3
+
+* will not take whole class period
+
+* make sure you can import data from external sources
+
+* output should be in html. you can send to me
+
+* you can use your course notes.
+
+
+# multi reg. 
+
+Y = b0 + b1x1 + ...+ bpxp + epsilon
+
+
+* can handle : 
+
+        * categorical predictors (dummy variables) # conference
+        
+        * interactions (multiplying predictors together to create new x's)
+        
+        * nonlinearity(polynomial predictors) 
+        
+        * combinations of the above, as needed:
+        
+https://faculty.chicagobooth.edu/richard.hahn/teaching/formulanotation.pdf
+      
+# Combinations of categorical and quantitative predictors
+
+conference*z_lysagarin = conference + z_lysagarin + conference:z_lysagarin
+
+: interaction effect between conference and z_lysagarin
+
+Symbol Example         Meaning
++       +X             include this variable
+-       -X             delete this variable
+:       X:Z            include the interaction between these variables
+∗       X∗Y            include these variables and the interactions between them
+|       X | Z          conditioning: include x given z
+^       (X + Z + W)^3  include these variables and all interactions up to three way
+I       I(X∗Z)         as is: include a new variable consisting of these variables multiplied
+1       X - 1          intercept: delete the intercept (regress through the origin)
+
+
+```{r}
+mlr.combinations <- lm(Zsagarin ~ z_lysagarin + conference + conference*z_lysagarin) 
+summary(mlr.combinations)
+```
+
+F-statistic: 101.7 on 7 and 849 DF,  p-value: < 2.2e-16
+
+Statistically significant model
+
+____
+
+conferenceBigeast   -0.25389    0.08999  -2.821  0.00489 **
+
+conferenceSEC        0.19446    0.08349   2.329  0.02008 * 
+
+
+No team is the same within the same conference. It doesn't make sense to make the same predictions
+
+How would I predict here? 
+
+If we have a SEC Team:
+
+              Prediction: -0.03103 + 0.61775(Z_sagarin) + 0.19446
+
+If we have ACC team:
+
+              Prediction: -0.03103 + 0.61775(Z_sagarin) since ACC is baseline
+              
+# Model Selection:
+
+How do you decide which predictor are in the model? How do I realy compare the models besides just significance of T-statistic.
+
+## Classical model selection methods:
+
+### Heuristic Method: Appeals to common sense but less so to theory. Less rigid on mathematical theory. THe appeal is because you can explain them to somebody
+
+heuristic types: consider p potential predictors where p is large. $2^p$ potential models, since each predictors is in or out. No interaction or if interaction it will be part of p. Tree with each predictors for a tree diagram, if p is large its a bigger tree. Fitting all $2^p$ models is computationally intensive( not so much anymore). 
+
+* Forward selection: start with *no* predictors and then find the best *single* predictors of the response. From a set of linear predictors, 
+                      
+                     then search for the best *second* predictor to add
+                     
+                     Etc. until no significant predictors can be added
+                     
+                     
+
+* Backward selection: start with *all* predictors in the model. then see whats important.
+
+                      If at least *one* is not significant, remove the least important predictor
+                      
+                      reevaluate then remove the least important predictors
+                      
+                      continue until all remaining predictors are significant
+                      
+                      
+* Stepwise selection: alternates between the forward and backward at each step. 
+                      
+____________
+
+
+Assumptions in regression models:
+
+y = b0 + b1x1 + ... + bpxp + epsilon
+
+epsilon ~ N(0,1)
+
+L: linear(Y is linearly related to the x's)
+
+I: Independent errors, probability does not effect each other. 
+
+                       An error is epsilon at the population level
+                       
+                       e = y - yhat = error at the sample level
+                       
+                       error of one observation does not affect any others
+                       
+N: Normally distributed errors: assume that variation follows the bell shape
+
+E: Equal variation in the errors. 
+                      
+                      Since sigma is S.D. of population errors.
+                      
+                      Not a function of the x's
+
+
+What makes these assumptions not met?
+
+*potential probblems*
+
+* Y might be non linearly related to some x's(could be curved like logrithmic, parabolic, etc. )
+
+                          To find this: Use pairwise scatterplot
+                          
+                          Solution: include x^2, x^3 etc. as predictors
+                                    
+                                    transform x to a new scale(ex: ln(x))
+
+* time series data violates independent errors. 
+
+                          If x = time, y = response
+                          
+                             *runs above/below the trend line tend to cluster*
+                             
+                             correlated errors
+                             
+                             Solution: time series models
+                             
+* Conclusions from model may be slightly off(p values and CI's)
+
+                             **Make histogram of the residuals or QQplot**
+                             
+                             Solution: transformation of Y
+                             
+                                          Use sqrt(Y) as the response
+                                          
+                             
+* Predictions are more accurate in some areas than others.  
+
+                             plotting the residuals = e = y - yhat
+                             
+                             Solution: Transformation again Y
+                             
+                             
+* Other concerns: 
+
+        + correlation among your predictors(collinearity)(ex: act/sat redundant predictors)
+        
+        + outliers and high leverage points
+
+_________________
+
+
+
+```{r}
+experience.model <- lm(Zsagarin ~ coachexp_school) 
+summary(experience.model)
+```
+
+
+
+```{r}
+ggplot(data, aes(x = coachexp_school, y = Zsagarin)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "loess")
+```
+
+* Nonlinearity
+
+```{r}
+plot(experience.model)
+```
+
+
+* plotting the lm model gives this. 
+
+* The first graph: *y - yhat* (sample error) where this is the *residual* vs the *yhat*, which is the *fitted*
+  
+                                      * Detects nonlinearity(primary), non-constant variation of errors
+                                      
+                                      * Curviture in the residuals is a sign of nonlinearity
+
+                                      * Where the *ideal* pattern is no pattern at all. We don't want a pattern in our residuals(sample mistake)
+                                      
+                                      * Making predictable mistakes, we want to fix it. 
+                                      
+                                      * negative residuals clustered together
+                                      
+* The second graph is the a normal probability plot
+
+                                      * can detect non-normality. If points follow a straight line and close to it, residuals are reasonably normal
+
+                                      * QQ plot of residual, checks for normality
+                                      
+                                      * What should have theoretically happen compare to what actually fell. A straight line agrees with normality
+                                      
+                                      * If there is curvature or massive outliers then theres a problem(normality).
+                                      
+* The third plot is good for identifying the Equal variance. 
+
+                                      * Helps up detect non-constant error variation
+                                      
+                                      * Increasing or decreasing relationship in this red line indicates a problem of variation
+
+                                      * X is still the yhat, fitted values. 
+                                      
+                                      * Y on the other hand is the $sqrt(abs(residual/RSE))$. 
+                                      
+                                      * This measures the magnitude of errors(all on positive scale) standardize
+                                      
+                                      * *magnitude of the y axis* 
+                                      
+                                      * Are the values growing/shrinking? if there is an obvious trend there is a problem.
+                                      
+                                      * Ideally we want no trend and the variance is equal where the spread is consistent.
+                                      
+                                    
+* The last plot looks at leverage. Where leverage is the influence on the regression line.
+
+                                      * For example the points 243, 309, 45 are influencial
+                                      
+                                      * Leverage is the amount of impact/influence of a point(potentially) on the fitted regression line'
+                                      
+                                      * influence is using that leverage
+                                      
+                                      * Y outliers aren't as influential
+                                      
+                                      * X (unusual values) has leverage, not influential
+                                      
+                                      * If a point has leverage and influence. This will impact the analysis
+                                      
+                                      * points far from the rest of the predictors(collectively) have leverage
+                                      
+                                      * leverage: points with unusual predictors, collectively
+
+
+
+Fixing this model
+
+
+I is a function that refits it somehow?
+
+```{r}
+experience.quadratic.model <- lm(Zsagarin ~ coachexp_school + I(coachexp_school^2), data) 
+summary(experience.quadratic.model)
+```
+```{r}
+# library(broom)
+# soup <- augment(experience.quadratic.model)
+#  ggplot(soup, aes(y = Zsagarin, x = .fitted)) +
+#    geom_point()
+# 
+```
+
+```{r}
+plot(experience.quadratic.model)
+```
+
+
+
+_____
+
+Week 6
+
+evalutating regression models
+
+Assumptions:
+
+* Linear: response Y is a linear combinations of all predictors
+
+* indepedent errors: 
+
+* normally distributed errors
+
+* Equal variance of errors
+
+        Y = B0 + B1x1 + b2x2 + ... + bpxp + epsilon
+        
+        E ~ N(0, sigma)
+
+How do we check these? Whether the assumptions are reasonable or not.
+
+These adjustments: Try from "menu" does it make things better or worst
+
+____________
+
+Wednesday 2/19
+
+Problems: Nonlinearity(*Look at residuals vs fitted value plot*)
+
+Remedy: Adding polynomial terms as predictors(e.g. x^2, x^3, ..., etc.)
+
+        Transforming x to a new scale(ex: x* as ln(x), x* as sqrt(x))
+        
+        Can model y as b0 + b1x* + epsilon that is more linear
+        
+        
+Problem: Dependent errors(rplots, residuals as a function of the order of the measurements(row in the spreadsheet))
+
+Remedy: Try a more appropriate model. (ex: time series model)
+
+
+Problem: Nonnormal residuals/errors(*qqplot of residuals*) or unequal error variation at different x levels(*scale location of plot of abs(sqrt(standardize residuals) vs the fitted values(yhats)*)
+
+
+Remedy: transforming Y (ex: y* = ln(y), sqrt(y), etc.)
+
+___________
+
+# Transformation approach
+
+```{r}
+pow <- .5
+
+data$exp.power <- (data$coachexp_school + 0.01)^pow
+ggplot(data, aes(x = exp.power, y = Zsagarin)) +
+  geom_point(shape = 1) +
+  geom_smooth(method = "lm")
+```
+
+```{r}
+plot(data$Fr5star, data$Zsagarin)
+```
+
+non constant variation
+
+```{r}
+x <- lm(data$Zsagarin ~ data$Fr5star)
+par(mfrow = c(2,2)) #shows then in a matrix
+plot(x)
+```
+
+__________
+
+power transformation on Zsagarin where it only goes from -3 to 3, we will add a number to just more it up in the y axis
+
+```{r}
+summary(data$Zsagarin)
+```
+
+This shows the minimum value so I want to add around 3 to it to make it all positive
+
+
+```{r}
+pow <- 1/5
+data$Zsagarint <- (3.06 + data$Zsagarin)^pow
+plot(data$Fr5star, data$Zsagarin, main = "original")
+plot(data$Fr5star, data$Zsagarint, main = "Transformed")
+x2 <- lm(data$Zsagarint ~ data$Fr5star)
+par(mfrow = c(2, 2))
+```
+
+power transformation: pushes the bigger number down. math
+
+```{r}
+par(mfrow = c(2,2))
+plot(x2)
+```
+
+________
+
+```{r}
+x3 <- lm(data$Zsagarint ~ data$Fr5star + I(data$Fr5star^2))
+par(mfrow = c(2,2))
+plot(x3)
+```
+
+
+variance inflation factor(VIF)
+______
+
+* ln multiple regression models, some predictors can be correlated with each other...
+  they contain redundant information.
+  
+* collinearity: a predictor is correlated with another
+
+* multicollinearity: a predictor is correlated with multiple others, together.
+
+* causes issues in estimating effects and/or significance of individual predictors
+
+VIF helps us detects this
+
+ex: response Y
+
+    predictors: x1, x2, x3, x4
+    
+    are these predictors correlated? measure the variance inflation factor
+    
+    * model x1 as the response, x2, x3, x4 as the predictors
+    
+      * calculated the R^2 from that regression model, R^2 =  x1. the VIF(X1) = 1/(1-R^2_x1)
+      
+    *  model x2 as the response, x1, x3, x4 as the predictors
+    
+      * calculated the R^2 from that regression model, R^2 =  x2. the VIF(X2) = 1/(1-R^2_x2)
+      
+    * similarly for x3, x4, ..., xn
+    
+    
+    what does the VIF tell us? 
+    
+    * 0 <= R^2 <= 1
+    
+    * if R^2 = 0, then each predictors is truly unique, VIF = 1/(1-R^2) = 1, no correlation problems
+    
+    * R^2 close to zero leads to VIF closer to 1, this predictor is not heavily correlated with the other
+    
+    * If R^2 = 1, VIF will be large. This suggest that this predictor is heavily correlated with the others
+    
+    * VIF considered large when it exceeds 5 or 10
+    
+In general, large VIF call for model reduction or principle component(?)
+
+
+_________
+
+```{r}
+a <- lm(Zsagarin ~ Fravg + Soavg + Jravg +  Sravg + Rssravg, data)
+summary(a)
+```
+
+```{r}
+pairs(~Fravg + Soavg + Jravg +  Sravg + Rssravg, data)
+```
+
+```{r}
+library(car)
+vif(a)
+```
+
+Sravg already has high p value, no significant and already has high VIF
+
+```{r}
+a <- lm(Zsagarin ~ Fravg + Soavg + Jravg + Rssravg, data)
+summary(a)
+vif(a)
+```
+```{r}
+a <- lm(Zsagarin ~ Fravg + Jravg + Soavg , data)
+summary(a)
+vif(a)
+```
+
+Since they're all fairly the same in VIF, we value the t-statistic more compare to if we had only a handful of similarity in VIF(pairs)
+    
+    
+__________
+
+
+
+```{r}
+par(mfrow = c(2,2))
+plot(a)
+```
+
+when predicting small values, somethign is causing it to be too positive. Its only about 4 of them, so theres more error when predicting when the team is bad.
+
+point 586 has high residual
+
+```{r}
+data[586,1:10]
+data[586,11:20]
+```
+
+Assessing the sensivity, what would happen if navy was taken out of the data to the model?
+
+```{r}
+data2 <- data[-586, ]
+
+a <- lm(Zsagarin ~ Fravg + Jravg + Soavg , data2)
+summary(a)
+vif(a)
+```
+
+Previous model with 586
+
+Call:
+lm(formula = Zsagarin ~ Fravg + Jravg + Soavg, data = data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2.38042 -0.54787 -0.00697  0.54966  2.28247 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  -4.0896     0.1987 -20.581  < 2e-16 ***
+Fravg         0.8004     0.1220   6.560 9.32e-11 ***
+Jravg         0.2971     0.1220   2.435   0.0151 *  
+Soavg         0.2659     0.1329   2.001   0.0457 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.8019 on 853 degrees of freedom
+Multiple R-squared:  0.3384,	Adjusted R-squared:  0.3361 
+F-statistic: 145.5 on 3 and 853 DF,  p-value: < 2.2e-16
+
+   Fravg    Jravg    Soavg 
+3.862660 3.889211 4.651556 
+
+
+Doesn't particularly change the model. Doesn't matter if you keep it or not
+
+____________
+
+
+
+
+
+
+
+

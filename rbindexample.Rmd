@@ -1,0 +1,32 @@
+---
+title: "testing"
+author: "Jefferson Ong"
+date: "12/10/2019"
+output: html_document
+---
+
+
+```{r}
+c <- c(1, 2 ,3,4)
+d <- c(5,6,7,8)
+
+cbind(c, d)
+
+rbind(c,d)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

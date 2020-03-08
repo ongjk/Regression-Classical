@@ -1,0 +1,43 @@
+---
+title: "Untitled"
+author: "Jefferson Ong"
+date: "2/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+mod <- f = 100 + 5sales + 6adv
+
+predict(mod, newdata = data.frame(sales = 20, adv = 15))
+
+_________
+
+
+
+
+
+https://stat-ata-asu.github.io/R_DS_BD2020/starting-with-data.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

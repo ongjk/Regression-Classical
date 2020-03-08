@@ -1,0 +1,853 @@
+---
+title: "Data Visualization with ggplot2 (Part 2)"
+author: "Jefferson Ong"
+date: "3/14/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(lattice)
+```
+
+# Statistics
+
+Two categories of functions
+● Called from within a geom
+● Called independently 
+
+```{r}
+ p <- ggplot(iris, aes(x = Sepal.Width))
+ p + geom_histogram()
+ p + geom_bar()
+ p + stat_bin()
+```
+```{r}
+ ggplot(mtcars, aes(x = mpg)) +
+ geom_histogram(fill = "skyblue") +
+ geom_freqpoly(col = "red") 
+```
+
+```{r}
+ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, col = Species)) +
+ geom_point() +
+ geom_smooth(method = "lm", fullrange = TRUE)
+```
+
+## Calculating Statistics
+
+```{r}
+set.seed(123)
+ xx <- rnorm(100)
+ mean(xx)
+
+ mean(xx) + (sd(xx) * c(-1, 1))
+ library(Hmisc)
+ smean.sdl(xx, mult = 1)
+```
+
+```{r}
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
+ stat_summary(fun.y = mean, geom = "point") +
+ stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+ geom = "errorbar", width = 0.1)
+
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
+ stat_summary(fun.y = mean, geom = "bar", fill = "skyblue") +
+ stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1),
+ geom = "errorbar", width = 0.1)
+```
+
+## Normal distribution
+
+```{r}
+library(MASS)
+ mam.new <- data.frame(body = log10(mammals$body))
+ ggplot(mam.new, aes(x = body)) +
+ geom_histogram(aes( y = ..density..)) +
+ geom_rug() +
+ stat_function(fun = dnorm, colour = "red",
+ arg = list(mean = mean(mam.new$body),
+ sd = sd(mam.new$body)))
+```
+
+## QQ plot
+
+```{r}
+mam.new$slope <- diff(quantile(mam.new$body, c(0.25, 0.75))) /
+ diff(qnorm(c(0.25, 0.75)))
+mam.new$int <- quantile(mam.new$body, 0.25) -
+ mam.new$slope * qnorm(0.25)
+ggplot(mam.new, aes(sample = body)) +
+ stat_qq() +
+ geom_abline(aes(slope = slope, intercept = int), col = "red")
+```
+
+## Practice 1
+
+```{r}
+# Plot 1: Jittered scatter plot, add a linear model (lm) smooth
+#ggplot(Vocab, aes(x = education, y = vocabulary)) +
+#  geom_jitter(alpha = 0.2) +
+#  stat_smooth(method = "lm", se = FALSE) # smooth
+#
+## Plot 2: points, colored by year
+#ggplot(Vocab, aes(x = education, y = vocabulary, col = year)) +
+#  geom_jitter(alpha = 0.2)
+#  
+## Plot 3: lm, colored by year
+#ggplot(Vocab, aes(x = education, y = vocabulary, col = factor(year))) +
+#  stat_smooth(method = "lm", se = FALSE) # smooth
+#
+## Plot 4: Set a color brewer palette
+#ggplot(Vocab, aes(x = education, y = vocabulary, col = factor(year))) +
+#  stat_smooth(method = "lm", se = FALSE) +  # smooth
+#  scale_color_brewer()  # colors
+#
+## Plot 5: Add the group aes, specify alpha and size
+#ggplot(Vocab, aes(x = education, y = vocabulary, col = year, group = factor(year))) +
+#  stat_smooth(method = "lm", se = FALSE, alpha = 0.6, size = 2) +
+#  scale_color_gradientn(colors = brewer.pal(9, "YlOrRd"))
+```
+
+```{r}
+## Plot 1: Jittering only
+#p <- ggplot(Vocab, aes(x = education, y = vocabulary)) +
+#  geom_jitter(alpha = 0.2)
+#
+## Plot 2: Add stat_sum
+#p +
+#  stat_sum() # sum statistic
+#
+## Plot 3: Set size range
+#p +
+#  stat_sum() + # sum statistic
+#  scale_size(range = c(1, 10)) # set size scale
+```
+
+```{r}
+# Display structure of mtcars
+str(mtcars)
+
+# Convert cyl and am to factors
+mtcars$cyl <- as.factor(mtcars$cyl)
+mtcars$am <- as.factor(mtcars$am)
+
+# Define positions
+posn.d <- position_dodge(0.1)
+posn.jd <- position_jitterdodge(jitter.width = 0.1, dodge.width = 0.2)
+posn.j <- position_jitter(0.2)
+
+# Base layers
+wt.cyl.am <- ggplot(mtcars, aes(x = cyl,
+                                y = wt,
+                                col = am,
+                                fill = am,
+                                group = am))
+```
+
+## Custom Functions
+
+```{r}
+# Play vector xx is available
+
+# Function to save range for use in ggplot
+gg_range <- function(x) {
+  # Change x below to return the instructed values
+  data.frame(ymin = min(x), # Min
+             ymax = max(x)) # Max
+}
+
+gg_range(xx)
+# Required output
+#   ymin ymax
+# 1    1  100
+
+# Function to Custom function:
+med_IQR <- function(x) {
+  # Change x below to return the instructed values
+  data.frame(y =  median(x), # Median
+             ymin = quantile(x)[2], # 1st quartile
+             ymax = quantile(x)[4])  # 3rd quartile
+}
+
+med_IQR(xx)
+# Required output
+#        y  ymin  ymax
+# 25% 50.5 25.75 75.25
+```
+
+```{r}
+# The base ggplot command; you don't have to change this
+#wt.cyl.am <- ggplot(mtcars, aes(x = cyl,y = wt, col = am, fill = am, group = am))
+#
+## Add three stat_summary calls to wt.cyl.am
+#wt.cyl.am +
+#  stat_summary(geom = "linerange", fun.data = med_IQR,
+#               position = posn.d, size = 3) +
+#  stat_summary(geom = "linerange", fun.data = gg_range,
+#               position = posn.d, size = 3,
+#               alpha = 0.4) +
+#  stat_summary(geom = "point", fun.y = median,
+#               position = posn.d, size = 3,
+#               col = "black", shape = "X")
+```
+
+
+
+
+# Coordinates and Facets
+
+## Zooming in
+
+
+scale_x_continuous(limits = ...)
+● xlim()
+● coord_cartesian(xlim = ...)
+
+
+
+```{r}
+ iris.smooth <- ggplot(iris, aes(x = Sepal.Length,
+ y = Sepal.Width,
+ col = Species)) +
+ geom_point(alpha = 0.7) + geom_smooth()
+ iris.smooth
+```
+
+```{r}
+ iris.smooth + scale_x_continuous(limits = c(4.5, 5.5))
+
+```
+
+
+```{r}
+ iris.smooth + xlim(c(4.5, 5.5))
+```
+
+```{r}
+ iris.smooth + coord_cartesian(xlim = c(4.5, 5.5))
+```
+
+
+## Aspect Ratio
+
+● Height-to-width ratio
+● Deception!
+● Standardization a!empts
+● Typically 1:1
+
+```{r}
+ library(reshape2); library(zoo)
+ sunspots.m <- data.frame(year = index(sunspot.month),
+ value = melt(sunspot.month)$value)
+ ggplot(sunspots.m, aes(x = year, y = value)) +
+ geom_line() +
+ coord_equal() # a 1:1 aspect ratio
+```
+
+
+```{r}
+ggplot(sunspots.m, aes(x = year, y = value)) +
+ geom_line() +
+ coord_fixed(0.055)
+```
+
+## Facets
+
+● Straight-forward yet useful
+● Concept of Small Multiples
+● Edward Tu!e
+● Visualization of Quantitative Information, 1983
+
+
+## iris.tidy
+
+```{r}
+#ggplot(iris.tidy, aes(x = Measure, y = Value, col = Part)) +
+# geom_jitter() +
+# facet_grid(. ~ Species)
+```
+
+
+## Basic facet
+
+```{r}
+# Basic scatter plot
+p <- ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point()
+
+# 1 - Separate rows according to transmission type, am
+p +
+  facet_grid(am ~ .)
+
+# 2 - Separate columns according to cylinders, cyl
+p +
+  facet_grid(. ~ cyl)
+
+# 3 - Separate by both columns and rows 
+p +
+  facet_grid(am ~ cyl)
+```
+
+
+```{r}
+## Code to create the cyl_am col and myCol vector
+#mtcars$cyl_am <- paste(mtcars$cyl, mtcars$am, sep = "_")
+#myCol <- rbind(brewer.pal(9, "Blues")[c(3,6,8)],
+#               brewer.pal(9, "Reds")[c(3,6,8)])
+#
+## Map cyl_am onto col
+#ggplot(mtcars, aes(x = wt, y = mpg, col = cyl_am)) +
+#  geom_point() +
+#  # Add a manual colour scale
+#  scale_color_manual(values = myCol)
+#  
+## Grid facet on gear vs. vs
+#ggplot(mtcars, aes(x = wt, y = mpg, col = cyl_am)) +
+#  geom_point() +
+#  scale_color_manual(values = myCol) +
+#  facet_grid(gear ~ vs)
+#
+## Also map disp to size
+#ggplot(mtcars, aes(x = wt, y = mpg, col = cyl_am, size = disp)) +
+#  geom_point() +
+#  scale_color_manual(values = myCol) +
+#  facet_grid(gear ~ vs)
+```
+
+
+```{r}
+## Basic scatter plot
+#p <- ggplot(mamsleep, aes(x = time, y = name, col = sleep)) +
+#  geom_point()
+#  
+## Execute to display plot
+#p
+#
+## Facet rows accoding to vore
+#p +
+#  facet_grid(vore ~ .)
+#
+## Specify scale and space arguments to free up rows
+#p +
+#  facet_grid(vore ~ ., scale = "free_y", space = "free_y")
+```
+
+
+
+
+```{r}
+# Basic ggplot() command, coded for you
+p <- ggplot(mtcars, aes(x = wt, y = hp, col = am)) + geom_point() + geom_smooth()
+
+# Add scale_x_continuous()
+p + 
+  scale_x_continuous(limits = c(3, 6), expand = c(0, 0))
+
+# Add coord_cartesian(): the proper way to zoom in
+p +
+  coord_cartesian(xlim = c(3, 6))
+```
+
+```{r}
+## Extend z with theme() function and 3 args
+#z + 
+#  theme(panel.grid = element_blank(),
+#        axis.line = element_line(color = "red"),
+#        axis.ticks = element_line(color = "red"))
+```
+
+```{r}
+## Original plot, color provided
+#z
+#myRed
+#
+## Extend z with theme() function and 3 args
+#z +
+#  theme(strip.text = element_text(size = 16, color = myRed),
+#        axis.title = element_text(color = myRed, hjust = 0, face = "italic"),
+#        axis.text = element_text(color = "black"))
+```
+
+```{r}
+## Move legend by position
+#z +
+#  theme(legend.position = c(0.85, 0.85))
+#
+## Change direction
+#z +
+#  theme(legend.direction = "horizontal")
+#
+## Change location by name
+#z +
+#  theme(legend.position = "bottom")
+#
+## Remove legend entirely
+#z +
+#  theme(legend.position = "none")
+#
+## Increase spacing between facets
+#library(grid)
+#z + theme(panel.spacing.x = unit(2, "cm"))
+#
+## Adjust the plot margin
+#z + theme(panel.spacing.x = unit(2, "cm"),
+#          plot.margin = unit(c(1,2,1,1), "cm"))
+```
+
+
+# Themes
+
+## Themes Layer
+
+● All the non-data ink
+● Visual elements not part of data
+● Three types
+● text
+● line
+● rectangle
+element_text()
+element_line()
+element_rect()
+
+```{r}
+## Starting point
+#z
+#
+## Plot 1: Change the plot background fill to myPink
+#z + 
+#  theme(plot.background = element_rect(fill = myPink))
+#
+## Plot 2: Adjust the border to be a black line of size 3
+#z + 
+#  theme(plot.background = element_rect(fill = myPink, color = "black", size = 3)) # expanded from plot 1
+#
+## Theme to remove all rectangles
+#no_panels <- theme(rect = element_blank())
+#
+## Plot 3: Combine custom themes
+#z +
+#  no_panels +
+#  theme(plot.background = element_rect(fill = myPink, color = "black", size = 3))  # from plot 2
+```
+
+
+
+
+## Recycling Themes
+
+Many plots
+● Consistency in style
+● Apply specific theme everywhere
+
+```{r}
+z <- ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, col = Species)) +
+ geom_jitter(alpha = 0.7) +
+ scale_color_brewer("Species",
+ palette = "Dark2",
+ labels = c("Setosa",
+ "Versicolor",
+"Virginica")) +
+ scale_y_continuous("Width (cm)", limits = c(2, 4.5), expand = c(0, 0)) +
+ scale_x_continuous("Length (cm)", limits = c(4, 8), expand = c(0, 0)) +
+ ggtitle("Sepals") +
+ coord_fixed(1)
+```
+
+```{r}
+# z + theme(panel.background = element_blank(),
+# legend.background = element_blank(),
+# legend.key = element_blank(),
+# panel.grid = element_blank(),
+# axis.text = element_text(colour = "black"),
+# axis.line = element_line(colour = "black"))
+#
+# z + theme_iris
+```
+
+```{r}
+# m <- ggplot(iris.wide, aes(x = Length, y = Width, col = Part)) +
+# geom_point() +
+# facet_grid(. ~ Species)
+
+# m + theme_iris
+# 
+# theme_iris <- theme_iris +
+# theme(strip.background = element_blank()) 
+
+#  m + theme_iris
+
+```
+
+## Discrete x-axis
+
+```{r}
+#p <- ggplot(iris.tidy, aes(x = Measure, y = Value, col = Part)) +
+# geom_point(position = position_jitter(0.1), alpha = 0.6,
+# width = 0.4) +
+# scale_y_continuous("Value (cm)", limits = c(0, 8),
+# expand = c(0, 0)) +
+# facet_grid(. ~ Species)
+# p
+```
+
+
+```{r}
+# # Original plot
+# z2
+# 
+# # Load ggthemes
+# library(ggthemes)
+# 
+# # Apply theme_tufte, plot additional modifications
+# custom_theme <- theme_tufte() +
+#   theme(legend.position = c(0.9, 0.9),
+#         legend.title = element_text(face = "italic", size = 12),
+#         axis.title = element_text(face = "bold", size = 14))
+# 
+# # Draw the customized plot
+# z2 + custom_theme
+#  
+# # Use theme set to set custom theme as default
+# theme_set(custom_theme)
+# 
+# # Plot z2 again
+# z2
+```
+
+
+
+
+# Best Practices
+
+## Bar Plots
+
+● Two types
+● Absolute values
+● Distribution
+
+
+```{r}
+# d <- ggplot(sleep, aes(vore, total)) +
+# scale_y_continuous("Total sleep time (h)",
+# limits = c(0, 24),
+# breaks = seq(0, 24, 3),
+# expand = c(0, 0)) +
+# scale_x_discrete("Eating habits") +
+# theme_classic()
+# d +
+# stat_summary(fun.y = mean, geom = "bar",
+# fill = "grey50") +
+# stat_summary(fun.data = mean_sdl, mult = 1,
+# geom = "errorbar", width = 0.2)
+```
+
+```{r}
+# Base layers
+#m <- ggplot(mtcars.cyl, aes(x = cyl, y = wt.avg))
+#
+## Plot 1: Draw bar plot with geom_bar
+#m + geom_bar(stat = "identity", fill = "skyblue")
+#
+## Plot 2: Draw bar plot with geom_col
+#m + geom_col(fill = "skyblue")
+#
+## Plot 3: geom_col with variable widths.
+#m + geom_col(fill = "skyblue", width = mtcars.cyl$prop)
+#
+## Plot 4: Add error bars
+#m +
+#  geom_col(fill = "skyblue", width = mtcars.cyl$prop) +
+#  geom_errorbar(aes(ymin = wt.avg - sd, ymax = wt.avg + sd), width = 0.1)
+```
+
+
+## Heat Maps
+
+```{r}
+# # Create color palette
+# myColors <- brewer.pal(9, "Reds")
+# 
+# # Build the heat map from scratch
+# ggplot(barley, aes(x = year, y = variety, fill = yield)) +
+#   geom_tile() + # Geom layer
+#   facet_wrap( ~ site, ncol = 1) + # Facet layer
+#  scale_fill_gradientn(colors = myColors) # Adjust colors
+```
+
+```{r}
+# The heat map we want to replace
+# Don't remove, it's here to help you!
+# myColors <- brewer.pal(9, "Reds")
+# ggplot(barley, aes(x = year, y = variety, fill = yield)) +
+#   geom_tile() +
+#   facet_wrap( ~ site, ncol = 1) +
+#   scale_fill_gradientn(colors = myColors)
+# 
+# # Line plot; set the aes, geom and facet
+# ggplot(barley, aes(x = year, y = yield, color = variety, group = variety)) + 
+#   geom_line() +
+#  facet_wrap( ~ site, nrow = 1)
+```
+
+```{r}
+# Create overlapping ribbon plot from scratch
+ggplot(barley, aes(x = year, y = yield, col = site, group = site, fill = site)) +
+  stat_summary(fun.y = mean, geom = "line") +
+  stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1), geom = "ribbon", alpha = 0.1, col = NA)
+```
+
+
+# Case Study
+
+## California Health Information Survey
+Descriptive Statistics
+
+```{r}
+#ggplot(adult, aes(x = SRAGE_P)) +
+# geom_histogram()
+# diff(range(adult$SRAGE_P)) / 30
+```
+```{r}
+#ggplot(adult, aes(x = SRAGE_P, y = BMI_P, col = factor(RBMI))) +
+# geom_point(alpha = 0.4, position = position_jitter(width = 0.5))
+```
+
+
+```{r}
+# Keep adults younger than or equal to 84
+#adult <- adult[adult$SRAGE_P <= 84, ]
+#
+## Keep adults with BMI at least 16 and less than 52
+#adult <- adult[adult$BMI_P >= 16 & adult$BMI_P < 52, ]
+#
+## Relabel the race variable
+#adult$RACEHPR2 <- factor(adult$RACEHPR2, labels = c("Latino",
+#                                                    "Asian",
+#                                                    "African American",
+#                                                    "White"))
+#
+## Relabel the BMI categories variable
+#adult$RBMI <- factor(adult$RBMI, labels = c("Under-weight",
+#                                            "Normal-weight",
+#                                            "Over-weight",
+#                                            "Obese"))
+```
+
+
+```{r}
+# The color scale used in the plot
+#BMI_fill <- scale_fill_brewer("BMI Category", palette = "Reds")
+#
+## Theme to fix category display in faceted plot
+#fix_strips <- theme(strip.text.y = element_text(angle = 0, hjust = 0, vjust = 0.1, size = #14),
+#                    strip.background = element_blank(),
+#                    legend.position = "none")
+#
+## Histogram, add BMI_fill and customizations
+#ggplot(adult, aes (x = SRAGE_P, fill= RBMI)) +
+#  geom_histogram(binwidth = 1) +
+#  fix_strips +
+#  BMI_fill +
+#  facet_grid(RBMI ~ .) +
+#  theme_classic()
+```
+
+
+```{r}
+# The initial contingency table
+#DF <- as.data.frame.matrix(table(adult$SRAGE_P, adult$RBMI))
+#
+## Create groupSum, xmax and xmin columns
+#DF$groupSum <- rowSums(DF)
+#DF$xmax <- cumsum(DF$groupSum)
+#DF$xmin <- DF$xmax - DF$groupSum
+## The groupSum column needs to be removed; don't remove this line
+#DF$groupSum <- NULL
+#
+## Copy row names to variable X
+#DF$X <- row.names(DF)
+#
+## Melt the dataset
+#library(reshape2)
+#DF_melted <- melt(DF, id.vars = c("X", "xmin", "xmax"), variable.name = "FILL")
+#
+## dplyr call to calculate ymin and ymax - don't change
+#library(dplyr)
+#DF_melted <- DF_melted %>%
+#  group_by(X) %>%
+#  mutate(ymax = cumsum(value/sum(value)),
+#         ymin = ymax - value/sum(value))
+#
+## Plot rectangles - don't change
+#library(ggthemes)
+#ggplot(DF_melted, aes(ymin = ymin,
+#                 ymax = ymax,
+#                 xmin = xmin,
+#                 xmax = xmax,
+#                 fill = FILL)) +
+#  geom_rect(colour = "white") +
+#  scale_x_continuous(expand = c(0,0)) +
+#  scale_y_continuous(expand = c(0,0)) +
+#  BMI_fill +
+#  theme_tufte()
+```
+
+
+
+```{r}
+# Perform chi.sq test (RBMI and SRAGE_P)
+#results <- chisq.test(table(adult$RBMI, adult$SRAGE_P))
+#
+## Melt results$residuals and store as resid
+#resid <- melt(results$residuals)
+#
+## Change names of resid
+#names(resid) <- c("FILL", "X", "residual")
+#
+## merge the two datasets:
+#DF_all <- merge(DF_melted, resid)
+
+# Update plot command
+#library(ggthemes)
+#ggplot(DF_all, aes(ymin = ymin,
+#                   ymax = ymax,
+#                   xmin = xmin,
+#                   xmax = xmax,
+#                   fill = residual)) +
+#  geom_rect() +
+#  scale_fill_gradient2() +
+#  scale_x_continuous(expand = c(0,0)) +
+#  scale_y_continuous(expand = c(0,0)) +
+#  theme_tufte()
+```
+
+
+
+```{r}
+# Load all packages
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+library(ggthemes)
+
+## Script generalized into a function
+#mosaicGG
+#
+## BMI described by age
+#mosaicGG(adult, X = "SRAGE_P", FILL = "RBMI")
+#
+## Poverty described by age
+#mosaicGG(adult, X = "SRAGE_P", FILL = "POVLL")
+#
+## mtcars: am described by cyl
+#mosaicGG(mtcars, X = "cyl", FILL = "am")
+#
+## Vocab: vocabulary described by education
+#library(carData)
+#mosaicGG(Vocab, X = "education", FILL = "vocabulary")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

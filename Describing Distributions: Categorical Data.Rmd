@@ -1,0 +1,166 @@
+---
+title: "Describing Distributions: Categorical Data"
+author: "Jefferson Ong"
+date: "1/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+berkdata <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/berkeley.csv")
+```
+
+
+```{r}
+summary(berkdata)
+
+table(berkdata$sex)
+
+# table(datasetname$variablename)
+
+prop.table(table(berkdata$sex))
+
+
+```
+
+```{r}
+statusTab <- table(berkdata$status)
+prop.table(statusTab)
+
+```
+
+```{r}
+round(prop.table(statusTab), 4)
+statuesofTable <- as.data.frame(statusTab)
+```
+
+```{r}
+sexbystatusTab <- table(berkdata$sex, berkdata$status)
+print(sexbystatusTab)
+
+addmargins(sexbystatusTab)
+```
+
+```{r}
+prop.table(sexbystatusTab, 1)
+
+rowSums(prop.table(sexbystatusTab, 1))
+```
+
+```{r}
+prop.table(sexbystatusTab, 2)
+
+colSums(prop.table(sexbystatusTab, 2))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+library(ggplot2)
+ggplot(berkdata, aes(x = sex)) + 
+  geom_bar(aes(y=..count../sum(..count..))) + labs(y = "proportion")
+```
+
+
+```{r}
+ggplot(berkdata, aes(x = sex)) + 
+  geom_bar(fill = "lightblue", color = "gray") +
+  labs(title = "Berkeley Grad Applicants F73", x = "applicant sex")
+```
+
+```{r}
+ggplot(berkdata, aes(x = sex, fill = status)) + 
+  geom_bar()
+```
+```{r}
+ggplot(berkdata, aes(x = sex, fill = status)) + 
+  geom_bar(position = "dodge")
+```
+```{r}
+ggplot(berkdata, aes(x = sex, fill = status)) + 
+  geom_bar(position = "fill") + labs(y = "proportion")
+```
+
+
+```{r}
+dept_tab <- berkdata %>% count(department)
+ggplot(dept_tab, aes(x = department, y = n)) + 
+  geom_bar(stat = "identity") + labs(y = "count")
+```
+
+```{r}
+dept_tab <- berkdata %>% count(department)
+dept_tab
+```
+
+```{r}
+ggplot(berkdata, aes(x = department)) + 
+  geom_bar()
+```
+
+```{r}
+classyear <- factor(c("FR", "SO", "JR", "SR"),
+                    levels = c("FR", "SO", "JR", "SR"))
+students  <- c(254, 223, 219, 185)
+ggplot(NULL, aes(x = classyear, y = students)) + 
+  geom_bar(stat = "identity")
+```
+
+```{r}
+ggplot(berkdata, aes(x = sex, fill = status)) +
+  geom_bar(color = "darkgray") +
+  facet_grid(. ~ department) + #creates multiple "panes"
+  scale_fill_manual(values = c("green", "red")) +
+  labs(title = "Berkeley Grad Applicants, Fall 1973",
+       subtitle = "Data from Six Largest Department Applicant Pools",
+       caption = "source dataset = berkeley.csv",
+       x = "sex of applicant",
+       y = "number of applicants")
+```
+
+```{r}
+ggplot(berkdata, aes(x = sex, fill = status)) +
+  geom_bar(color = "darkgray") +
+  facet_wrap(. ~ department) + #creates multiple "panes"
+  scale_fill_manual(values = c("green", "red")) +
+  labs(title = "Berkeley Grad Applicants, Fall 1973",
+       subtitle = "Data from Six Largest Department Applicant Pools",
+       caption = "source dataset = berkeley.csv",
+       x = "sex of applicant",
+       y = "number of applicants")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

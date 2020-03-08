@@ -1,0 +1,410 @@
+---
+title: "Describing Distributions: Quantitative Data"
+author: "Jefferson Ong"
+date: "2/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# EDA
+-exploratory data analysis. An attitude and flexibility on some graph paper. ~ John Turkey, 1980
+
+Categorical Variables * frequency/ relative frequency (how many times categories occur)
+
+
+# Quantitative Variables * Shape * * Center * * Spread* *Outliers* 
+
+-The pattern of numerical observations. Outliers are deviations from the pattern.
+
+- The bell curve
+
+- Uniformed (rectangle)
+
+- Exponential (45 degree line)
+
+How to find something that deviates from a pattern? unusual..So We need ways to quantify or describe "this"..ALright ok.. so for thinking about shape. Vocabulary in Statistic is information. JArgon, jargon, jargon
+
+Sometimes a word in one subject isn't the same as another, like "normal"
+
+## Shape
+
+Modes
+
+Local maximas in the curves, often times a judgment call
+
+* Unimodal: One, has a single local bump
+
+* bimodal: 2 bumps! maybe not same heights
+
+* multimodal: More than 2, eh dont care anymore
+
+"uniformed" is either infi or none since its flat line
+
+Symmetric or Skeweed
+
+If I draw line on Y axis, doesn't need to be perfect but fairly similar like the bell curve or uniformed but not exponential. THat would be skewed.
+
+exponential: skewed left, unimodal. The tails are here the parts leave fof the peak. Mode -> tail. Skew is the direction of the long tail. Can be confused.
+
+* right skewed
+
+positive skew
+
+* left skewed
+
+Called negative skew since it goes to the negative line
+
+Skewness(quantification of asymmetry)
+
+Kurtosis (conformation of peaks and tails): latin base word, means what do the peaks of the tail in relation to the bell curve, fat, thin, etc.
+
+WE rely on plots to figure out shapes. A lot of things are bell shape, often a bunch of stuff converge to a bell shape asymtoticly. 
+
+*Often if there is more than one mode it means you have two population or groups mixed.*
+
+## Plots for assessing shapes
+
+Variable on the X axis
+
+* Histogram: geom_histogram()
+
+* Density plot: geom_density()
+
+* empirical cumulatie distribution plot: stat_ecdf()
+
+* boxplot: geom_boxplot(): conceptiouslly different 
+
+
+
+```{r, warning=FALSE} 
+library(dplyr)
+library(ggplot2)
+mileage <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/gasmileage.csv")
+geyser <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/oldfaithful.csv")
+glimpse(mileage)
+```
+```{r}
+glimpse(geyser)
+
+```
+erupt_time: How long the eruption last
+
+wait_time: is how long until next eruption
+
+
+```{r}
+library(ggplot2)
+ggplot(mileage, aes(x = mpg)) + geom_histogram(stat =  "bin", bins = sqrt(272))
+```
+Chop the X axises up into equally sized category because in numeric dataset. No gaps and cover the full range of the data. Look in each section and count up how many data in each section. 
+
+Looks almost like a barplot, specify X, but its doing the counting and if dont tell anything, the default bins is 30. The message picka better binwidth happens. 
+
+It has maybe an outlier but still unimodal and fairly symmetric. Barebones basic histogram..............
+
+
+```{r}
+ggplot(geyser, aes(x = wait_time)) + geom_histogram(stat =  "bin", bins = sqrt(272))
+```
+
+THis is wait time data, how many modes? likely 2 if u imagine 2 smooth out bumps. Aroudn 65 and 80. It becomes harder to judge symmetry. FOr bimodal data symmetry is hard to describe. But neither side has a particularly long tail, each one is symmetry if u think about it as 2 pieces.
+
+SO what does it tell us about the time to wait in eruption. Sometimes it short and sometimes its long without much in between. So how many bins do we want? it means the division it those numberlines, "bins". SO its a bunch of rules of thumb and everyone has their own ideas, often say 5-15 bins or 5-20 but bigger dataset, maybe square root of dataset, or sturgs rule.....sample sizes man
+
+Sturge’s rule, number of bins around 1 + 3.322 × log(n)
+
+Freedman-Diaconis rule, about 2 × IQR × n^(−1/3) bins
+
+RUles 2(IQR), etc. Cube root of  N often use * number of bins near the square root of the sample size n*
+
+```{r}
+ggplot(geyser, aes(x = wait_time)) + 
+  geom_histogram(stat =  "bin", position = "stack", binwidth = NULL, bins = NULL, na.rm = FALSE, show.legend = NA, inherit.aes = TRUE)
+```
+
+
+```{r}
+ggplot(mileage, aes(x = mpg)) + 
+  geom_density(stat =  "bin", bins = sqrt(272))
+```
+
+More unimodal than histogram. Don't specific Y since thats a density, X is variable
+
+```{r}
+ggplot(geyser, aes(x = wait_time)) + 
+  geom_density()
+```
+Same idea in geyser. got 2 curves tails are only at the ends. If 2 curves iwhen it is 2 hitting togeter and gets a local minima
+
+
+Layering!
+
+```{r}
+ggplot(mileage, aes(x = mpg)) + 
+  geom_histogram(aes(y=..density..), bins = 10) +  # rescales the hist. to have density = 1
+  geom_density() 
+```
+
+But need to think about the Y axis, in Histogram it is a count. So the total area is the sum of these counts (100), the total area is a 100. 
+Density plots are always scaled so the total area under the curve is 1, because it is a pribability density. SO if tried to do as is density will flatten. SO tells the histogram to scale by Y axis and be equal to this density thing. the double .. is the Y function to rescale it to have a common Y axises. It becomes clear that these couple ones will average into this thing.
+
+
+But notice it is stilll minimal code. Think in layers!! 
+
+```{r}
+ggplot(geyser, aes(x = wait_time)) + 
+  geom_histogram(aes(y=..density..)) + 
+  geom_density()
+```
+
+
+Same thing.
+
+
+OoooOo new stuff
+```{r}
+ggplot(mileage, aes(x = mpg)) + stat_ecdf()
+```
+
+A probability type concept. A histogram is how many values at this point because of curve. But cumulative distribution is less than or equal to concept. How much area is in the point. How many data values are <_ this point?
+
+Y axises could be from zero to 100 percent. at 355 we got about 20% of the data, at 40, we got 87% of the data, why important? this shape is the big F of X???
+
+cumulative distribution is the integral of the density. Notice the same symtax and aes, we're jsut changing what gets graphed. 
+
+```{r}
+ggplot(mileage, aes(x = mpg)) + 
+  geom_density() + 
+  stat_ecdf()
+```
+
+Density and cumulative. f(x) on the bottom. F(x) on top. tangent lines and hitting inflection points? got the common axises of density. 
+
+## Skewness and Kurtosis
+
+SO skewness, look into glossary!!!!!!!! so go to asulearn and statistic glossary and look up skewness. It is symmetry. if symmetry it will be zero.
+
+No skew = 0
+
+if somethign is elft or negatively skewed it will be negative 
+vice verse positive depending
+
+GOt some rules of thumb, if unimodal, real life data is never perfect, never zero skewness. Rough rule of thumb if between 0-.5 good, if .5-1 its eh, after 1 its skwed. GUidelines yo.
+
+```{r}
+library(moments)
+skewness(mileage$mpg) # pull that variable out bro. We're at the .5 gas mileage, thats moderate skew
+```
+
+
+```{r}
+kurtosis(mileage$mpg)
+```
+
+
+
+
+```{r}
+kurtosis(mileage$mpg) - 3 # its a bit taller than a bell
+```
+
+
+Now look up kurtosis. How peaked the distribution is and how thiCC the tails are. Like a water balloon. Often the proability curve is area of 1 so where is that water going to. 
+
+The normal distribution is usually 3, use wikipedia. if higher than 3 taller than bell curve and fatter tails, lepto.. if uniform its plato like flat?
+
+nice pcitures on wikipedia. THeres also exess kurtosis. 
+3 is not intuitive, Excess kurtosis is -3, it gives the bell curve zero kurotosis.
+
+double exponentials are peaked and it has fatter tails it has large excess kurtosis.
+
+Depends on the program it might give excess kurtosis or the real thing. In R we got to do excess ourselves. 
+
+
+Math related tis related to mean/sd. Geyser data is binomal so this stuff doesn't mean much.
+
+WIll pick back up thursday. Glance thur before then. Labels command work, grouping like hsito. Thanks =) look for assignment tomorrow and see you thursday,
+
+
+-------
+
+mu = pop. mean  \mu
+
+x-bar = sample mean \x_bar
+
+sigma squared = pop. variance \sigma^2
+
+sigma = pop. standard dev. 
+
+
+S^2 and S are sample var. SD.
+
+Theta as general symbol for a paramet
+
+theta_hat as general symbol for a sample stat or estimator
+
+-----
+
+## Center
+
+* Mean -expected value(arithmetic mean) but there are also geometric mean, weighted mean, trimmed mean
+
+* median
+
+* Mode(often refered to a shape)
+
+## Spread
+
+* Variance - population - sample == often used in calculations/theory but funky digits
+
+*Standard deviation = sqrt(variance) == often sued as descriptive
+
+* mean absolute deviation(mad) == not going to talk about much but aware it exist
+
+* median absolute deviation == same
+
+* interquartile range(IQR)
+
+* range
+
+All measures spread from a center point except IQR and range do not. 
+
+---
+
+## Measures Based on Moments
+
+* the mean \mu is the value that makes  \Sigma(X - \mu)^1 = 0 true
+
+
+* mean is the center of mass or balance point of a distribution variance (second moment)
+
+this is population variance, the second moment. Don't need to worry about direction, squaring em takes away the sign. 
+
+* STandard deviantion can be thought of as the avg distance from the mean, close enough math wise. 
+
+M_2 = \frac{\Sigma(X - \mu)^2}{n} = \sigma^2
+
+\text{standard deviation} = \sigma
+
+
+if we take every distance from the middle then it should equal to zero. that would be the mean. X is distance for \mu
+
+FOr skewed datas, sometimes theres more on one side than the other, thats going to pull the mean towards the long tail to make it balance.
+
+
+* Sample variance = M_2 = \frac{\Sigma(X - \mu)^2}{n - 1} better estimator. Unbaised estimator of sigma^2( not sustematically too big or too small)
+
+var() in R computes sample var. 
+
+* skewness (third moment)
+
+M_3 = \frac{\Sigma(X - \mu)^3}{n}
+
+Third power balances the points on perfect data. left skewed we will get more negatives, skewness would be negative is left skewed. if positive skewed it will be to the right. 
+
+skewness = \frac{\Sigma(X - \mu)^3}{\sigma^3}
+
+standard deviation is the avg distance from the mean, so cubing it?
+
+We will see later with z-scores
+
+Should end up with a unit-less measure
+ 
+*  kurtosis (fourth moment)
+
+M_4 = \frac{\Sigma(X - \mu)^4}{n}
+
+kurtosis = \frac{\Sigma(X - \mu)^4}{\sigma^4}
+
+
+Never negative, fat tails get bigger since ^4, why uniformed has small tails
+
+
+
+Both are standarized to scale for the avg distance of points form the mean
+---
+
+## Moment-Based Summaries in R
+
+
+* var()
+
+
+* sd()
+
+both are the sample var and sd (n-1)
+
+mad()
+
+takes absolute value
+
+* mean() == adds up all values and divide it up on # of values, at minimum need a vector.
+
+trim will take off from each side 0 - .5
+
+na.rm = FALSE is default, na.rm = TRUE will ignore missing data
+
+---
+
+## Measures Based on Ordered Counts
+
+* five-number-summary, minimum, first quartile (Q1), median, third quartile (Q3), maximum
+
+median wil cut the dataset is halfway point.
+
+* interquartile range (IQR)
+
+* range
+
+* percentiles / quantiles
+
+
+fivenum()
+min()
+median()
+max()
+IQR()
+range()
+quantile()
+
+range gives lowest and highest
+
+quantile requires x, quantile(x, .10) 10%
+
+if more than one use vector notation, quantile(x, c
+(.1, .2, .3))
+
+---
+
+```{r}
+# mileage %>% summarize(n     = n(),
+#                      xbar  = mean(mpg, na.rm = TRUE),
+#                     Q1    = fivenum(mpg)[2],
+  #                    med   = fivenum(mpg)[3],                  
+    #                  Q3    = fivenum(mpg)[4],
+  #                    max   = fivenum(mpg)[5],
+    #                  skew  = skewness(mpg, na.rm = TRUE),
+ #                     kurt  = kurtosis(mpg, na.rm = TRUE))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

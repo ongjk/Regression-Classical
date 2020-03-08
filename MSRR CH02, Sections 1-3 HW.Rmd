@@ -1,0 +1,200 @@
+---
+title: "MSRR CH02, Sections 1-3 HW"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+***
+
+**Instructions**
+
+Complete the following problems from _Mathematical Statistics with Resampling and R_. You can access the textbook datasets on our [Class Data Files](https://stat-jet-asu.github.io/Datasets/DatasetList.html) page or from the `R` package `resampledata`. The textbook examples use base `R`code for plotting, but you `ggplot2` for visualizations. You may use `table()` to make tables, but you should use `dplyr` for other summaries. Refer to the case studies in Chapter 1 to add informative titles and axis labels to your plots and to provide context for your answers.
+
+Load the packages and datasets you need here.
+
+```{r}
+library(readr)
+
+library(resampledata)
+
+library(ggplot2)
+library(dplyr)
+```
+
+
+
+***
+#### Problem 2.1
+
+Note: Test for equality using code, not just visual inspection.
+
+```{r}
+x_bar <- c(3, 5, 8, 15, 20, 21)
+
+mean(x_bar)
+median(x_bar)
+
+mean(log(x_bar))
+
+median(log(x_bar))
+
+log(mean(x_bar)) == mean(log(x_bar))
+
+log(median(x_bar)) == median(log(x_bar))
+```
+
+
+***
+#### Problem 2.2
+
+Note: Test for equality using code, not just visual inspection.
+
+```{r}
+x_bar2 <- c(1, 2, 4, 5, 6, 8, 11, 15)
+
+mean(x_bar2)
+median(x_bar2)
+
+sqrt(x_bar2)
+
+mean(sqrt(x_bar2))
+median(sqrt(x_bar2))
+
+mean(sqrt(x_bar2)) == sqrt(mean(x_bar2))
+
+median(sqrt(x_bar2)) == sqrt(median(x_bar2))
+```
+
+
+***
+#### Problem 2.5
+
+Note: In (c), create the table of proportions you need to answer (d) as well as a table of counts.
+
+Part (a)
+
+```{r}
+str(GSS2002)
+
+names(GSS2002)
+```
+
+```{r}
+table(GSS2002$DeathPenalty)
+
+GSS2002 %>%
+  ggplot( aes(x = DeathPenalty)) +
+  geom_bar()
+```
+
+
+
+
+
+
+Part (b)
+
+```{r}
+table(GSS2002$OwnGun)
+summary(GSS2002$OwnGun)
+```
+
+ANSWER: The summary shows the NA values while the table does not.
+
+Part (c)
+
+```{r}
+table(GSS2002$OwnGun, GSS2002$DeathPenalty)
+
+243 / (243 + 59)
+
+199 / (375 + 199)
+```
+
+Part (d)
+
+ANSWER: 80%, yes those who do not own guns don't favor the death penalty, reduced to only ~35%
+
+
+***
+#### Problem 2.6
+
+Note: In (b), create a table of proportions as well as a table of counts to answer the question. In (c), also compute the upper fence for each group to show the upper cutoff for outliers.
+
+Part (a)
+
+```{r}
+names( Recidivism)
+summary(Recidivism)
+
+str(Recidivism)
+```
+
+```{r}
+table(Recidivism$Recid)
+
+Recidivism %>%
+  ggplot( aes(x = Recid)) +
+  geom_bar()
+```
+
+
+Part (b)
+
+```{r}
+table(Recidivism$Recid, Recidivism$Age25)
+
+1123 / (1123 + 1954)
+
+4263 / (4263 + 9679)
+```
+
+~36 were sent back to prison of those that were under 25. THose voer 25 only ~ 31% were sent back. 
+
+Part (c)
+
+```{r}
+ggplot(Recidivism, aes(x = Offense, y = Days)) +
+  geom_boxplot()
+```
+
+Comparison 1: The felony has a longer whiskers meaning that it has a bit more outliers.
+
+Comparison 2: The median of felony is lower than misdemeanor.
+
+Comparison 3: The Q1 and Q3 of Misdemeanor is much bigger so the data is more spread out. 
+
+Part (d)
+
+```{r}
+quantile(Recidivism$Days, na.rm = TRUE)
+```
+
+Part (e)
+
+```{r}
+x <- rnorm(Recidivism$Age)
+plot.ecdf(x)
+plot.ecdf(table(Recidivism$Days, Recidivism$Age25)) 
+Underage <- Recidivism %>%
+  filter(Age == "Under 25")
+
+```
+
+ANSWER: I don't know how to break up Age and how it works with ecdf. Not completely sure what rnorm is doing to it. I remember it just has to do with distributions. I'm guessing the 0, 2, 4 are the different factors in Age which is why theres none in -2 or -4. so at 0 would be everyone under 25 so its at about .4 so 40%, the rest is 60%. Unsure how to look into the 400 days. 
+
+
+***
+
+```{r}
+sessionInfo()
+```
+

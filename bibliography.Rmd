@@ -1,0 +1,55 @@
+---
+title: "bibliographyAssignment"
+author: "Jefferson Ong"
+date: "3/30/2019"
+output: html_document
+bibliography: bibliography example.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Citations go inside square brackets and are separated by semicolons. Each citation must have a key, composed of ‘@’ + the citation identifier from the database, and may optionally have a prefix, a locator, and a suffix. Here are some examples
+
+
+[@12820409320180501, pp. 33-35, 38-39]
+
+
+
+
+The negative before @ will remove the author's name [-@10107018420150301]
+
+
+
+Removing the brackets will show the author and year. @PHL237024920180301
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

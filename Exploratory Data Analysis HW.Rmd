@@ -1,0 +1,133 @@
+---
+title: "Exploratory Data Analysis HW"
+author: "Jefferson Ong"
+date: "2/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(openintro)
+```
+```{r}
+
+# Compute summary statistics
+email %>%
+  group_by(spam) %>%
+  summarize(median(num_char),
+            IQR(num_char))
+
+# Create plot
+email %>%
+  mutate(log_num_char = log(num_char)) %>%
+  ggplot(aes(x = spam, y = log_num_char)) +
+  geom_boxplot() + 
+  labs(title = "Median of the spam dataset",
+       y = "Logrithmic scale of the number of characters",
+       x = "Spam",
+       caption = "Source: openintro, email") 
+# Suppose to be 2 graphs but couldn't get the other one to show up, suppose to have 2 boxplots with one being spam and the other being not spam.
+```
+
+
+```{r}
+# Compute center and spread for exclaim_mess by spam
+email %>%
+  group_by(spam) %>%
+  summarize(median(exclaim_mess), IQR(exclaim_mess))
+
+
+
+# Create plot for spam and exclaim_mess
+email %>%
+  mutate(log_exclaim_mess = log(exclaim_mess + 0.1)) %>%
+  ggplot(aes(x = log_exclaim_mess)) +
+  geom_histogram() +
+  facet_wrap(~ spam) + 
+  labs(title = "Not spam on left, spam on right",
+       y = "The Count",
+       x = "Logrithmic scale of exclamation points",
+       caption = "Source: openintro, email") 
+```
+
+
+
+## Check-in 1
+
+Boxplots show association in dataset. Spam messages are shorter than none spam message, but stil got overlap. Both are right skewed. Not spam will often have exclamation marks. Zero inflation, 2 groups that wil have zero or not zero. turn into categorical varibale, use mutate, summarize. Find that spam will often not have exclamation. Using Facet. or stacked bar chart to see the difference. DIfferent ways to see this. 
+
+
+```{r}
+# Create plot of proportion of spam by image
+email %>%
+  mutate(has_image = image > 0) %>%
+  ggplot(aes(x = has_image, fill = spam)) +
+  geom_bar(position = "fill") + 
+  labs(title = "Proportion fo spam by image",
+       y = "The Count",
+       x = "No image left, Image on right",
+       caption = "Source: openintro, email") #Suppose to be colored but I'm not sure why the code doesn't work when fill = spam should do it. 
+```
+
+
+```{r}
+# Test if images count as attachments
+
+sum(email$image > email$attach)
+```
+
+
+```{r}
+# Question 1
+email %>%
+  filter(dollar > 0) %>%
+  group_by(spam) %>%
+  summarize(median(dollar))
+
+# Question 2
+email %>%
+  filter(dollar > 10) %>%
+  ggplot(aes(x = spam)) +
+  geom_bar() + 
+  labs(title = "Email containing the word, dollar",
+       y = "The Count",
+       x = "Not spam on left, spam on right",
+       caption = "Source: openintro, email")
+```
+
+
+## Check-In 2
+
+Spam and images
+
+Bar chart shows spam if has no image or not. Most spam has no image. None spam has more image but also stil less than 5%. Bad spam filter is using image. Flipping the bars by using mutate, then factor it. 
+
+```{r}
+# Reorder levels
+email$number <- factor(email$number, levels = c("none", "small", "big"))
+
+# Construct plot of number
+ggplot(email, aes(x = number)) +
+  geom_bar() +
+  facet_wrap(~ spam) + 
+  labs(title = "Proportion of emails containing these factor numbers",
+       y = "The Count",
+       x = "Not spam on left, spam on right",
+       caption = "Source: openintro, email")
+```
+
+
+```{r}
+str(email)
+summary(email)
+```
+
+
+
+
+

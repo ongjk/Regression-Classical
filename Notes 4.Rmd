@@ -1,0 +1,149 @@
+---
+title: "Notes 4"
+author: "Jefferson Ong"
+date: "2/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+
+flt_del <- read_csv('https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/FlightDelays.csv')
+
+library(ggplot2)
+library(dplyr)
+
+library(resampledata)
+```
+
+
+Columns(varibles)
+
+select - we can choose reorder, reorder, and rename columns w/ select
+
+mutate - makes new columns as fybctuibs if ikd cikumns
+
+rename - =)
+
+newcolname = colname
+
+
+Rows(observations)
+
+filter - 
+
+arrange - reorder by variables
+
+group_by - clusters of rows together
+
+----
+
+Fences for boxplots
+
+Lowerfence = Q_1 - 1.5 * IQR
+
+Upperfence = Q_3 + 1.5 * IQR
+
+
+![box](https://stat-jet-asu.github.io/Moodlepics/boxplot.png)
+
+
+```{r}
+#lowerFence <- fivenum(mileage$mpg)[2] - 1.5 * IQR(mileage$mpg)
+#print(lowerFence)
+
+#upperFence <- fivenum(mileage$mpg)[4] + 1.5 * IQR(mileage$mpg)
+#print(upperFence)
+
+#boxplot.stats(sort(mileage$mpg))[4]
+```
+
+
+
+```{r}
+#mileage %>% 
+#  summarize(lower_fence = fivenum(mpg)[2] - 1.5 * IQR(mpg),
+           # upper_fence = fivenum(mpg)[4] + 1.5 * IQR(mpg))
+```
+
+```{r}
+glimpse(flt_del)
+```
+
+
+```{r}
+ggplot(flt_del, aes(x = Carrier, y = FlightLength)) + geom_boxplot()
+```
+```{r}
+flt_del %>% 
+  group_by(Carrier) %>% 
+  summarize(LF = fivenum(FlightLength)[2] - 1.5 * IQR(FlightLength),
+            UF = fivenum(FlightLength)[4] + 1.5 * IQR(FlightLength))
+```
+
+
+
+```{r}
+flt_del$Month <- factor(flt_del$Month, levels = c("May", "June"))
+
+# or flt_del %>% mutate(ftlmonth = factor())
+
+ggplot(flt_del, aes(x = Carrier, y = FlightLength, fill = Carrier)) + 
+  geom_boxplot() +
+  facet_wrap(~ Month) +
+  scale_x_discrete(labels = c("American", "United")) +
+  scale_fill_manual(values = c("lightgreen", "lightblue")) +
+  theme(legend.position = "none") +
+  labs(title = "Length of AA and UA Flights from LGA in 2013",
+       y = "Length of Flight (minutes)",
+       caption = "Source: Chihara & Hesterberg, FlightDelays")
+```
+```{r}
+ggplot(flt_del, aes(x = FlightLength)) +
+  geom_density() +
+  facet_grid(Carrier ~ Month)
+```
+
+
+
+# Data Science
+
+load(url(""))
+
+for datacamp stuff c:
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

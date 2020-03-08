@@ -1,0 +1,70 @@
+---
+title: 'Challenge # 1'
+author: "Jefferson Ong"
+date: "1/31/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(nycflights13)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+str(flights)
+str(airlines)
+```
+```{r}
+originate <- flights$origin
+carriers <- flights $carrier
+
+ggplot(flights, aes(x = originate, fill = origin)) +
+  geom_bar() +
+  labs(title = "airports from which flights originated", x = "origin", caption = "source: nycflights13") +
+  theme(
+    text = element_text(family = "Bookman", color = "gray25"),
+    plot.subtitle = element_text(size = 12),
+    plot.caption = element_text(color = "gray30"),
+    plot.background = element_rect(fill = "gray95"),
+    plot.margin = unit(c(5, 10, 5, 10), units = "mm")
+  ) +
+   coord_flip()
+
+```
+
+```{r}
+ggplot(flights, aes(x = carriers, color = carrier)) +
+  geom_bar() + 
+  labs(title = "the airlines associated with the flights", x = "carrier", caption = "source: nycflights13") +
+  theme(
+    text = element_text(family = "Bookman", color = "gray25"),
+    plot.subtitle = element_text(size = 12),
+    plot.caption = element_text(color = "gray30"),
+    plot.background = element_rect(fill = "gray95"),
+    plot.margin = unit(c(5, 10, 5, 10), units = "mm")
+  ) +
+   coord_flip()
+```
+```{r}
+joined_flight <- left_join(flights, airlines)
+str(joined_flight)
+```
+```{r}
+ggplot(joined_flight, aes(x = name)) +
+  geom_bar(fill = 'orange') + 
+  labs(title = "the airlines associated with the flights", x = "carrier", caption = "source: nycflights13") +
+  theme(
+    text = element_text(family = "Bookman", color = "gray25"),
+    plot.subtitle = element_text(size = 12),
+    plot.caption = element_text(color = "gray30"),
+    plot.background = element_rect(fill = "gray95"),
+    plot.margin = unit(c(5, 10, 5, 10), units = "mm")
+  ) +
+   coord_flip()
+```
+

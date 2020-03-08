@@ -1,0 +1,239 @@
+---
+title: "Maps"
+author: "Jefferson Ong"
+date: "3/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(maps)
+```
+
+```{r}
+usa <- map_data("usa")
+head(usa, 10)
+
+```
+
+```{r}
+str(usa)
+
+table(usa$group)
+```
+
+```{r}
+ggplot(usa) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray")
+```
+
+
+```{r}
+ggplot(usa) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map(projection = "mollweide")
+```
+
+```{r}
+state <- map_data("state")
+head(state, 10)
+```
+
+
+```{r}
+ggplot(state) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map()
+```
+
+```{r}
+county <- map_data("county")
+head(county, 10)
+
+ggplot(county) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map()
+```
+
+```{r}
+ggplot(filter(state, region == "north carolina")) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map()
+
+
+ggplot(filter(county, region == "north carolina")) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map()
+
+# Can filter using the %in%
+# filter(region %in% c("north carolina", "south carolina", "virginia"))
+```
+
+```{r}
+world <- map_data("world")
+str(world)
+
+world_usa <- subset(map_data("world"), region == "USA")
+
+
+ggplot(world_usa) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map()
+```
+```{r}
+ggplot(world_usa) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray")+
+  coord_map(orientation = c(90, 180, 0))
+```
+```{r}
+world_usa <- world_usa %>% 
+  mutate(long_adj = ifelse(long > 0, long - 360, long))
+ggplot(world_usa) + 
+  geom_polygon(aes(x = long_adj, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map()
+```
+```{r}
+# unique(world$region)
+
+#Look for stuff yo
+```
+
+```{r}
+ggplot(world_usa) + 
+  geom_polygon(aes(x = long_adj, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map(projection = "mollweide")
+```
+
+
+```{r}
+ggplot(world_usa) + 
+  geom_polygon(aes(x = long_adj, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map(projection = "ortho")
+```
+
+
+```{r}
+str(world_usa)
+
+tail(world_usa %>%  count(subregion), 12)
+```
+
+```{r}
+ggplot(filter(world_usa, subregion == "Hawaii")) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map()
+```
+
+```{r}
+# Theme Credit: http://eriqande.github.io/rep-res-web/lectures/
+# making-maps-with-R.html (w/ the addition of panel.background)
+# See also: https://ggplot2.tidyverse.org/reference/theme.html
+
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank(),
+  panel.background = element_blank())
+
+
+ggplot(filter(county, region == "north carolina")) + 
+  geom_polygon(aes(x = long, y = lat, group = group), 
+               color = "darkgray", fill = "lightgray") +
+  coord_map() +
+  ditch_the_axes
+```
+
+```{r}
+no_axes_alt <- 
+  theme(panel.grid.major = element_line(colour = 'transparent'),
+  axis.title.x = element_blank(), 
+  axis.text.x = element_blank(),
+  axis.ticks.x = element_blank(),
+  axis.title.y = element_blank(), 
+  axis.text.y = element_blank(),
+  axis.ticks.y = element_blank(),
+  panel.background = element_blank(),
+  panel.border = element_blank(),
+  panel.grid.minor = element_blank(),
+  plot.background = element_blank())
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

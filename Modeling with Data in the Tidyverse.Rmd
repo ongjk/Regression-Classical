@@ -1,0 +1,221 @@
+---
+title: 'Modeling with Data in the Tidyverse Assignment'
+author: 'SOLUTIONS / Jill E. Thomley'
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+**Course Link:** [Modeling with Data in the Tidyverse](https://www.datacamp.com/courses/modeling-with-data-in-the-tidyverse)
+
+***
+
+**Instructions**
+
+Work through all of the activities in the DataCamp course _Modeling with Data in the Tidyverse_ and then practice your new skills by completing the following exercises using instructor datasets [`monopolygame`](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/monopoly.html) and [`galtonheightdata`](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/galtonheightdata.html). Use `%>%` whenever possible and try to make your code concise. You are welcome to include additional text or comments. 
+
+***
+
+### Load Packages
+
+Load the packages and datasets you need here.
+
+```{r}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(moderndive)
+
+monopolygame <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/monopolygame.csv")
+
+galtonheightdata <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/galtonheightdata.csv")
+
+galtonparentheights <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/galtonparentheights.csv")
+```
+
+```{r}
+# str(monopolygame)
+# names(monopolygame)
+# summary(monopolygame)
+```
+
+```{r}
+str(galtonheightdata)
+str(galtonparentheights)
+```
+
+
+### Monopoly Analysis
+
+#### Overall Scatterplot
+
+Plot the property costs (y) versus spaces from Go (x), including a best-fitting regression line to show the overall trend.
+
+```{r}
+ggplot(monopolygame, aes(x = spaces, y = cost)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+  
+```
+
+
+#### Overall Linear Model
+
+Fit a linear model for property costs (y) versus spaces from Go (x) and save it as `model_all`. Use `summary()` on the model object. Also compute (i.e., summarize) R^2^, MSE, and RMSE in a single `tibble`. 
+
+```{r} 
+model_all <- lm(cost ~ spaces, data = monopolygame)
+
+summary(model_all)
+
+model_all_table <- get_regression_points((model_all))
+
+get_regression_table(model_all)
+
+model_all_table %>%
+  summarise(R_squared = 1 - var(residual) / var(cost), MSE = mean(residual ^ 2), RMSE = sqrt(MSE))
+
+```
+
+
+#### Scatterplot by Property Type
+
+Plot the property costs (y) versus spaces from Go (x), including a best-fit line for each type of property.
+
+```{r}
+ggplot(monopolygame, aes(x = spaces, y = cost, color = type)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+
+#### Street Linear Model
+
+Fit a linear model for property costs (y) versus spaces from Go (x) for only the streets and save it as `model_street`. Use `summary()` on the model object. Also compute (i.e., summarize) R^2^, MSE, and RMSE in a single `tibble`.  
+
+```{r}
+monopolyStreetDat <- monopolygame %>%
+  filter(type == "street")
+
+model_street <- lm(cost ~ spaces, data = monopolyStreetDat)
+
+summary(model_street)
+
+model_street_table <- get_regression_points((model_street))
+
+model_street_table  %>%
+  summarise(R_squared = 1 - var(residual) / var(cost), MSE = mean(residual ^ 2), RMSE = sqrt(MSE))
+```
+
+
+#### Questions
+
+1) Compare the fit of your two models. How did removing the railroads and utilities affect the equation of the best-fit line, as well as statistics such as R^2^, MSE, and RMSE?  
+
+ANSWER: Drastically decreased the intercept from 67 to 39. The b_1(slope) which is spaces here, didn't vary too much from 6.7 to 8.4, still significant though. R^2 went from 77% to 98% so it became more accurate. I'm not completely sure I calculated MSE correctly since I got 1578, which is so huge compare to 92 in the second dataset. I guess it makes more sense since its squaring the mean so it helps make that difference obvious. RMSE aso had a drastic jump from 39 to 9, which makes sense since its closely tied to MSE.
+
+2) If our goal is to create a model that explains property price as a function of spaces from Go, why does it make logical sense to remove the railroads and utilities?
+
+ANSWER: THe second model fits the line better with a 92% relationship(not sure if I can call it corrolation). Also just by looking at the scatterplot both railroad and utilities have a flat cost so it skews the LM. 
+
+3) Interpret the slope and intercept of `model_street`.
+
+ANSWER: It has an intercept of 39.8 with slope of 8.4 and an error of 4.5. So looking back at algebra its just y=mx+b, the intercept is the b and bumps it up to 39.8 then whatever you put for x, it would be multiplied by 8.4 which is the slope. The error term is there so show how far away points can be, so if you plug in an x into that equation and get a y_hat then it can vary by that much + or -. 
+
+
+### Galton Analysis
+
+#### Scatterplot by Gender
+
+Plot the height of children (y) versus father height (x), including a best-fit line for each gender.
+
+```{r}
+str(galtonheightdata)
+summary(galtonheightdata )
+names(galtonheightdata )
+```
+
+
+```{r}
+ggplot(galtonheightdata, aes(x = Father, y = Kids, color = Gender)) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE)
+```
+
+
+#### Paralell Slopes Model
+
+Fit a parallel slopes model to predict the height of children using father height and child gender. Save it as `model_parallel`. Print out the regression table as shown in the DataCamp course.
+
+```{r}
+model_parallel <- lm(Kids ~ Father + Gender, data = galtonheightdata)
+
+get_regression_table(model_parallel)
+```
+
+
+#### Make Predictions
+
+Make predictions using the "automating predictions" method from the Datacamp course and the `pred_data` dataset below.
+
+```{r}
+# dataset of new observations
+pred_data <- tibble(Father  = c(63, 63, 69, 69, 74, 74),
+                    Gender = c("M", "F", "M", "F", "M", "F"))
+```
+
+```{r}
+get_regression_points(model_parallel, newdata = pred_data)
+```
+
+
+#### Examine Residuals
+
+Make residual plots like those found in MD Section 6.1.4.
+```{r}
+model_parallel_points <- get_regression_points(model_parallel)
+
+model_parallel_points
+```
+
+
+```{r}
+model_parallel_points <- get_regression_points(model_parallel)
+
+
+
+
+ggplot(model_parallel_points, aes(x = Father, y = residual, color = Gender)) +
+  geom_point() +
+  labs(x = "Father", y = "Residual") +
+  geom_hline(yintercept = 0, col = "blue", size = 1)
+```
+
+
+#### Questions
+
+1) Based on what you see in your scatterplot, why is a a parallel slopes model appropriate?
+
+ANSWER: The girls are taller but scatterplot shows that linear model isn't best here. I haven't tried any transformation but eh. The parallel lines for each is drastic enough, with girls being steeper but I don't think the model is appropriate at all. Unless I did it wrong. 
+
+
+2) What is the difference in predicted height for male and female children with the same  father height?
+
+ANSWER: Girls are taller. 
+
+
+3) Does there appear to be a systematic pattern in the residuals? How can you tell from the plots?
+
+ANSWER: No, which is what we want. Looks fairly placed on it evenly, most fall within 5 inch from the middle. 
+
+
+***
+
+```{r}
+sessionInfo()
+```

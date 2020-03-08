@@ -1,0 +1,226 @@
+---
+title: "MD CH02 HW"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(comment = "")
+```
+
+***
+
+Read [Chapter 2](https://moderndive.com/2-getting-started.html) of _Modern Dive_. Work through the activities below and complete this accompanying Markdown document. Knit to HTML and submit your work as instructed. 
+
+### 2.1 What are R and RStudio?
+
+You will be using AsU's [RStudio server](https://mathr.math.appstate.edu) in this course, though you are welcome (and encouraged) to install R and RStudio to your own computer to use offline, as per the directions in 2.1.1 Installing R and RStudio. After reading and watching the videos below, which come from the DataCamp module [Working with the R Studio IDE (Part 1)](https://www.datacamp.com/courses/working-with-the-rstudio-ide-part-1), answer the questions. You might want to at least skim through the entire DataCamp module for additional practice.
+
+* [Introduction](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=1)
+* [RStudio's Panes](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=5) 
+* [The Source Pane](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=9)
+* [The View() Function](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=12) 
+* [The Environment Pane](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=15)
+* [The Files Pane](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=20)
+* [The Help Pane](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=27)
+
+1) Explain in your own words the difference between R and RStudio and how they work together. Include brief descriptions of the purpose and function of the `Source`, `Environment`, `Files`, and `Help` panes. 
+
+ANSWER: The way it was explained in modern dive is that R is the engine and R studios is the dashboard. RStudio is an integrated development environment which is way it has things like source, environment, files, and help. You could type in code directly into R but RStudio will make that coding process much better and more streamline. The source pane, as far as I can tell is where you'll write all the code, not the console, its where you would bring up markdown, script, etc. The environment pane will show all the assigned values you've created. Files will hold all the documents you've created and where you can pull them out. Help pane will show what a command will do and how its used by typing it in or doing a ? before the command.
+
+
+2) How do you turn on R style diagnostics?
+
+ANSWER: Tools -> Global Options -> Code -> Diagnostics -> Check box for "Provide R style diagnostics"
+
+
+3) What is the PC keyboard shortcut to do each of the following?
+
+a) clear the console?
+
+ANSWER: Ctrl L
+
+b) comment or uncomment lines of code?
+
+ANSWER: # before comment, remove the #
+
+c) reflow comments?
+
+ANSWER: Ctrl Shift /
+
+d) find a line of code?
+
+ANSWER: Ctrl F
+
+e) source with echo?
+
+ANSWER: Ctrl shift enter
+
+f) restart R session?
+
+ANSWER: Ctrl Shift f10
+
+g) insert an assignment operator (`<-`)?
+
+ANSWER: Alt + - 
+
+h) insert a pipe operator (`%>%`)?
+
+ANSWER: Ctrl Shift M 
+
+i) insert a code chunk?
+
+ANSWER: Ctrl Alt i 
+
+j) Keyboard Shortcut Quick Reference?
+
+ANSWER: Alt Shift K 
+
+
+### 2.4 Explore your first dataset
+
+Load all the packages you need.
+
+```{r}
+# replace this comment with code
+library(nycflights13)
+library(dplyr)
+```
+
+
+### 2.4.1 nycflights13 package
+
+The `nycflights13` package contains five datasets saved as data frames, with information about all domestic flights departing from from Newark Liberty International (EWR), John F. Kennedy International (JFK), or LaGuardia (LGA) airports in 2013.
+
+* `flights`: information on all 336,776 flights
+* `airlines`: translation between two letter IATA carrier codes and names (16 in total)
+* `planes`: construction information about each of 3,322 planes used
+* `weather`: hourly meteorological data (about 8705 observations) for each of the three NYC airports
+* `airports`: airport names and locations
+
+
+### 2.4.2 flights data frame
+
+Enter `flights` in the code chunk below to get your first look at the data frame, then answer the questions.
+
+```{r}
+# replace this comment with code
+flights
+str(flights)
+summary(flights)
+```
+
+How many observations are there in the data frame? 
+
+ANSWER: 336776
+
+How many variables are there in the data frame? 
+
+ANSWER: 19
+
+
+### 2.4.3 Exploring data frames
+
+1. `View()`
+
+Run `View(flights)` in the RStudio Console and explore the `flights` data frame in the pop-up viewer that appears in the Source pane. What does any ONE row in this flights dataset refer to? 
+
+ANSWER: An observation
+
+
+2. `glimpse()`
+
+Use `glimpse()` in the R code chunk below to explore the `flights` data frame, then answer the questions.
+
+```{r}
+# replace this comment with code
+glimpse(flights)
+```
+
+What are some examples in this dataset of categorical variables? What makes them different than quantitative variables? 
+
+ANSWER: quatitative variable is often pure numerical which can be interval or ratio. Categorical on the other hand is nominal or ordinal, can be characters. 
+
+What does int, dbl, and chr mean in the output above? 
+
+ANSWER: int is integer, chr is character, dbl means double. I'm iffy on dbl, I understand its numeric but its also something else that has to do with how R sees it. Maybe just because its a real number. 
+
+
+3. `kable()
+
+Enter `airlines` in the code chunk below to get your first look at the data frame, then use `kable()` further explore `airlines`.
+
+```{r}
+# replace this comment with code
+airlines
+library(knitr)
+kable(airlines)
+```
+
+
+4. `$` operator
+
+Display `airlines` and then use the `$` operator to extract only the `name` variable and return it as a vector.
+
+```{r}
+# replace this comment with code
+airlines
+airlines$name
+```
+
+
+### 2.4.4 Help files
+
+Use `?flights` to access the Help file for the `flights` data frame. According to the Help file, what does each column (variable) in the data frame represent?
+
+* `year`: Date of departure
+
+* `month`: Date of departure
+
+* `day`:Date of departure
+
+* `dep_time`: Actual departure and arrival times (format HHMM or HMM), local tz.
+
+* `arr_time`: Actual departure and arrival times (format HHMM or HMM), local tz.
+
+* `sched_dep_time`: Scheduled departure and arrival times (format HHMM or HMM), local tz.
+
+* `sched_arr_time`: Scheduled departure and arrival times (format HHMM or HMM), local tz.
+
+* `dep_delay`: Departure and arrival delays, in minutes. Negative times represent early departures/arrivals.
+
+* `arr_delay`: Departure and arrival delays, in minutes. Negative times represent early departures/arrivals.
+
+* `hour`: Time of scheduled departure broken into hour and minutes.
+
+carrier
+
+* `minute`: Time of scheduled departure broken into hour and minutes.
+
+carrier
+
+* `carrier`: Two letter carrier abbreviation. See airlines() to get name
+
+* `tailnum`: Plane tail number
+
+* `flight`: Flight number
+
+* `origin`: Origin and destination. See airports() for additional metadata.
+
+* `dest`: Origin and destination. See airports() for additional metadata.
+
+* `air_time`: Amount of time spent in the air, in minutes
+
+* `distance`: Distance between airports, in miles
+
+* `time_hour`: Scheduled date and hour of the flight as a POSIXct date. Along with origin, can be used to join flights data to weather data.
+
+
+***
+END!

@@ -1,0 +1,456 @@
+---
+title: "HW: MSRR CH05 and CH07"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    theme: yeti
+    highlight: textmate
+---
+
+***
+
+> **INSTRUCTIONS:** Complete the following problems from _Mathematical Statistics with Resampling and R_ and any additional problems created by the instructor. You can access the textbook datasets on our [Class Data Files](https://stat-jet-asu.github.io/Datasets/DatasetList.html) page or from the `R` package `resampledata`. The textbook typically uses base `R` functions, but you should use `dplyr` and `ggplot2` for summaries and visualizations. One exception is `table()`. Some code for chapter examples and problems is provided on the [companion web site](https://sites.google.com/site/chiharahesterberg/chapter-materials-Ed2). Refer to the case studies in Chapter 1, the relevent chapter, or the instructor's dataset descriptions to add informative titles and axis labels to your plots and to provide context for your answers. You should use the [R Style Guide](http://adv-r.had.co.nz/Style.html) and inline `R` code for answers outside code chunks. Load all packages and datasets in the code chunk provided.
+
+```{r chunk_setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+
+### Packages & Datasets
+
+```{r packages&datasets}
+#
+library(tidyverse)
+library(infer)
+library(resampledata)
+library(gtools)
+Bangladesh <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Bangladesh.csv")
+```
+
+
+***
+### Problem 5.1
+
+```{r}
+die <- 1:6
+
+N <- 3
+S <- numeric(N) 
+
+for (i in 1:N) {
+  # i indexes from the vectors from 1 to how ever big we want it to be
+  S[i] <- sample(die, N)
+
+} 
+
+mean(S)
+var(S)
+tibble(S)
+```
+
+
+***
+### Problem 5.3
+
+Note: This **[link](https://davetang.org/muse/2013/09/09/combinations-and-permutations-in-r/)** will be helpful for enumerating all of the ordered bootstrap samples using `R`, as well as counting the number of ordered and unordered samples. However, you may also approach this problem "by hand" and with visual inspection, since the original sample is very small.
+
+```{r}
+
+
+x <- c(1:3)
+
+permutations(n=3,r=3,v=x,repeats.allowed=T)
+
+nrow(permutations(n=3,r=3,v=x,repeats.allowed=T))
+
+
+```
+
+Part (a)
+
+```{r}
+#) Without repeating 6, repeating 27
+
+
+A <- c(1, 2, 3)
+B <- c(2, 1, 3)
+C <- c(3, 2, 1)
+D <- c(1, 3, 2)
+E <- c(2, 3, 1)
+G <- c(3, 1, 2)
+```
+
+Part (b)
+
+```{r}
+# 
+n <- 3   # is the number of things to choose from
+r <- 27  # choosing r of them
+perm_without_replacement <- function(n, r){
+  return(factorial(n)/factorial(n - r))
+}
+
+
+#27 choices, choose 3
+perm_without_replacement(27,3)
+
+choose(n=27,k=3)
+
+comb_with_replacement <- function(n, r){
+  return( factorial(n + r - 1) / (factorial(r) * factorial(n - 1)) )
+}
+
+comb_with_replacement(3,3)
+```
+A: 10
+
+Part (c)
+
+```{r}
+#
+(permutations(n=3,r=3,v=x,repeats.allowed=T))
+```
+A: 2/27 no other is 6/27
+
+
+Part (D)
+
+```{r}
+# 2/27 for first event compare to 6/27 occorance. 
+```
+
+
+***
+### Problem 5.8
+
+Part (a)
+
+```{r}
+#
+my.sample <- rnorm(200, 36, 8)
+```
+A: normal distribution since its from rnorm. mean is generally the same with sd as sqrt(var) so sqrt(8) would be around 2.
+
+
+Part (b)
+
+```{r}
+#
+N <- 10^5
+my.boot <- numeric(N)
+for (i in 1:N)
+ {
+  x <- sample(my.sample, 16, replace = TRUE)  #draw resample
+  my.boot[i] <- mean(x)                     #compute mean, store in my.boot
+  }
+
+ggplot() + geom_histogram(aes(my.boot), bins=15)
+
+mean(my.boot)  #mean
+sd(my.boot)    #bootstrap SE
+
+df <- data.frame(x = my.boot)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+```
+
+Part (c)
+
+```{r}
+#
+
+mean(my.boot)  #mean
+sd(my.boot)    #bootstrap SE
+```
+
+Part (d)
+
+```{r}
+#
+mean(my.boot) - mean(my.sample) #bias
+```
+
+Part (e)
+
+```{r}
+#
+N <- 10
+my.boot <- numeric(N)
+for (i in 1:N)
+ {
+  x <- sample(my.sample, 16, replace = TRUE)  #draw resample
+  my.boot[i] <- mean(x)                     #compute mean, store in my.boot
+  }
+
+ggplot() + geom_histogram(aes(my.boot), bins=15)
+
+mean(my.boot)  #mean
+sd(my.boot)    #bootstrap SE
+
+df <- data.frame(x = my.boot)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+
+```
+
+```{r}
+
+
+N <- 50
+my.boot <- numeric(N)
+for (i in 1:N)
+ {
+  x <- sample(my.sample, 16, replace = TRUE)  #draw resample
+  my.boot[i] <- mean(x)                     #compute mean, store in my.boot
+  }
+
+ggplot() + geom_histogram(aes(my.boot), bins=15)
+
+mean(my.boot)  #mean
+sd(my.boot)    #bootstrap SE
+
+df <- data.frame(x = my.boot)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+```
+
+
+OBSERVATIONS ON THE EFFECTS OF SAMPLE SIZE: 10 sample size is too smal to get anythign meaningfull. 50 is a bit closer but still janky.
+
+
+***
+### Problem 5.11 and Problem 7.29
+
+Part 5.11 (a)
+
+```{r}
+#
+str(Bangladesh$Chlorine)
+
+Chlorine <- Bangladesh %>%
+  filter(Chlorine > 0)
+
+summary(Bangladesh$Chlorine)
+
+
+
+
+Chlorine <- na.omit(Bangladesh)
+
+Chlorine <- subset(Bangladesh, select = Chlorine, subset = !is.na(Chlorine), drop = T)
+
+Chlorine <- pull(Bangladesh, Chlorine)
+
+# Chlorine
+
+
+```
+
+Part 5.11 (b)
+
+```{r}
+#
+
+n <- length(Chlorine)  #sample size
+N <- 10^4  # number of bootstrap samples or iteration
+
+Chlorine.mean <- numeric(N) # storage for sim results
+
+for (i in 1:N)
+{
+   x <- sample(Chlorine, n, replace = TRUE)
+   Chlorine.mean[i] <- mean(x)
+}
+
+ggplot() + geom_histogram(aes(Chlorine.mean), bins = 15, fill = "light blue") + 
+  labs(title = "Bootstrap distribution of means") + 
+  geom_vline(xintercept = mean(Chlorine), colour = "blue")
+
+mean(na.omit(Chlorine.mean))
+
+Chlorine.mean <- na.omit(Chlorine.mean)
+```
+
+Part 5.11 (c)
+
+```{r}
+#
+
+quantile(Chlorine.mean, c(.025, .975))
+
+```
+
+A: I am 95% confident that the true pop. is between this interval. 
+
+Part 5.11 (d)
+
+```{r}
+#
+
+mean(Chlorine.mean) - mean(na.omit(Chlorine)) #bias
+sd(Chlorine.mean)                   #bootstrap SE
+```
+
+Part 7.29 (b)
+
+```{r}
+# 
+t.test(Bangladesh$Chlorine)
+
+
+```
+
+Part 7.29 (c) (do not compute CH07 bootstrap *t* CI)
+
+COMPARISON BETWEEN 95% *t* CI AND BOOTSTRAP: I think I messed it up with all the functions trying to remove the NA but the confidence intervals are quiet different. 
+
+
+***
+### Problem 5.12
+
+```{r}
+#
+
+n <- length(Chlorine)  #sample size
+N <- 10^4  # number of bootstrap samples or iteration
+
+Chlorine.mean <- numeric(N) # storage for sim results
+
+for (i in 1:N)
+{
+   x <- sample(Chlorine, n, replace = TRUE)
+   Chlorine.mean[i] <- mean(x, trim = .25)
+}
+
+ggplot() + geom_histogram(aes(Chlorine.mean), bins = 15, fill = "light blue") + 
+  labs(title = "Bootstrap distribution of trimmed means") + 
+  geom_vline(xintercept = mean(Chlorine), colour = "blue")
+
+mean(na.omit(Chlorine.mean))
+
+Chlorine.mean <- na.omit(Chlorine.mean)
+```
+
+COMPARISON OF MEAN AND TRIMMED MEAN RESULTS: Before ti was 77~ now its ~17 so big difference.  
+
+
+***
+### Problem 5.16
+
+Part (a)
+
+```{r}
+
+library(dplyr)
+# 
+str(MathAnxiety)
+
+summary(MathAnxiety$AMAS)
+
+MathAnxiety_summBoy <- MathAnxiety %>%
+ filter(Gender == "Boy") %>%
+ summarise(xbar = mean(AMAS), 
+           s = sd(AMAS))
+
+
+MathAnxiety_summGirl <- MathAnxiety %>%
+ filter(Gender == "Girl") %>%
+ summarise(xbar = mean(AMAS), 
+           s = sd(AMAS))
+
+MathAnxiety_summGirl
+
+MathAnxiety_summBoy
+
+
+```
+
+Part (b)
+
+```{r}
+#
+
+testF <- MathAnxiety %>% filter(Gender == "Girl") %>% pull(AMAS)
+testM <- MathAnxiety %>% filter(Gender == "Boy") %>% pull(AMAS)
+
+observed <- mean(testF) - mean(testM)
+
+nf <- length(testF)
+nm <- length(testM)
+
+N <- 10^4
+
+TestMean <- numeric(N)
+
+for (i in 1:N)
+{
+  sampleF <- sample(testF, nf, replace = TRUE)
+  sampleM <- sample(testM, nm, replace = TRUE)
+  TestMean[i] <- mean(sampleF) - mean(sampleM)
+}
+
+df <- data.frame(TestMean)
+ggplot(df) + geom_histogram(aes(TestMean), bins = 15) + 
+  labs(title = "Bootstrap distribution of difference in means", xlab = "means") +
+  geom_vline(xintercept = observed, colour = "blue")
+
+ggplot(df, aes(sample = TestMean))  + stat_qq() + stat_qq_line()
+
+
+
+
+```
+
+Part (c)
+
+```{r}
+#
+mean(testF) - mean(testM)  #bootstrap mean
+mean(TestMean)
+sd(TestMean) 
+
+quantile(TestMean,c(0.025,0.975))
+mean(TestMean) - observed  #bias
+```
+
+Part (d) ADDED
+
+Compute a 95% *t* confidence interval for the difference in mean times.
+
+```{r}
+#
+# testAll <- pull(MathAnxiety, AMAS)
+# #testAll <- Skateboard$Testosterone
+# 
+# N <- 10^4 - 1  #set number of times to repeat this process
+# 
+# #set.seed(99)
+# result <- numeric(N) # space to save the random differences
+# for(i in 1:N)
+#   {
+#   index <- sample(71, size = nf, replace = FALSE) #sample of numbers from 1:71
+#   result[i] <- mean(testAll[index]) - mean(testAll[-index])
+# }
+# 
+# (sum(result >= observed)+1)/(N + 1)  #P-value
+# 
+# ggplot() + geom_histogram(aes(result), bins = 15) + 
+#   labs(x = "xbar1-xbar2", title="Permutation distribution for AMAS levels") +
+#   geom_vline(xintercept = observed, colour = "blue")
+# 
+# df <- data.frame(result)
+# ggplot(df, aes(sample = result)) + stat_qq() + stat_qq_line()
+# 
+# Didn't knit but got answers ###
+
+```
+
+INTERPRET AND COMPARE THE INTERVALS, GIVEN YOUR EDA: Small P-Value, reject null hypothesis that there is no difference in pop. means
+
+
+***
+```{r}
+sessionInfo()
+```

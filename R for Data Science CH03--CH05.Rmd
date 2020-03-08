@@ -1,0 +1,297 @@
+---
+title: "R for Data Science CH03--CH05"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(comment = "")
+```
+
+***
+
+Read [Chapter 3](https://r4ds.had.co.nz/data-visualisation.html), [Chapter 4](https://r4ds.had.co.nz/workflow-basics.html), and [Chapter 5](https://r4ds.had.co.nz/transform.html) of _R for Data Science_. Work through the activities below and complete this accompanying Markdown document. Knit to HTML and submit your work as instructed. 
+
+```{r, message = FALSE}
+# load all packages here
+library(ggplot2)
+
+library(dplyr)
+
+library(nycflights13)
+library(tidyverse)
+
+```
+
+
+### 3.5.1 Exercises
+
+1) What happens if you facet on a continuous variable?
+
+ANSWER: It will facet for each value. AS in a bunch fo different graphs
+
+
+2) Read `?facet_wrap`. What does `nrow` do? What does `ncol` do? What other options control the layout of the individual panels? Why doesn’t `facet_grid()` have `nrow` and `ncol` arguments? Read the documentation [here](https://ggplot2.tidyverse.org/reference/facet_wrap.html) and [here](https://ggplot2.tidyverse.org/reference/facet_grid.html).
+
+ANSWER: nrow is how many rows of faceted graphs do you want, same with ncol. it treats individual cells as a graph in a larger matrix in some sense. Theres a bunch fo panel commands, scaling, facet.by on specificity. facet grid uses the variables to figure out the x and y, vertical ~ horizontal.
+
+
+### 3.6.1 Exercises
+
+6) Recreate the R code necessary to generate the following graphs (see textbook).
+
+```{r}
+# show your code here (plot1)
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(aes(size = 2)) +
+  geom_smooth(se = FALSE)
+```
+
+```{r}
+# show your code here (plot2)
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, fill = drv)) + 
+  geom_point(aes( size = 2)) +
+  geom_smooth(se = FALSE)
+```
+
+
+```{r}
+# show your code here (plot3)
+names(mpg)
+str(mpg)
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, fill = drv, color = drv)) + 
+  geom_point(aes(size = 2)) +
+  geom_smooth(se = FALSE)
+```
+
+```{r}
+# show your code here (plot4)
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(aes(color = drv, size = 2)) +
+  geom_smooth(se = FALSE)
+```
+
+```{r}
+# show your code here (plot5)
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, group = drv)) + 
+  geom_point(aes(color = drv, size = 2)) +
+  geom_smooth(aes(linetype = drv), se = FALSE)
+```
+
+```{r}
+# show your code here (plot6)
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(aes(color = drv, size = 2))
+```
+
+
+### 3.9.1 Exercises
+
+2) What does `labs()` do? Read the [documentation](https://ggplot2.tidyverse.org/reference/labs.html).
+
+ANSWER: Puts abels on the graph with titles, captions, subtitles, x, y, etc. 
+
+
+3) What’s the difference between `coord_quickmap()` and `coord_map()`? Read the [documentation](https://ggplot2.tidyverse.org/reference/coord_map.html).
+
+ANSWER: coord map is the more precise version of it. quickmaps estimates it and works better for smaller maps closer to equator. Both project the earth on 2d.
+
+
+4) What does the plot (see textbook) tell you about the relationship between city and highway mpg? Why is `coord_fixed()` important for this plot? What does `geom_abline()` do on this plot? Read the documentation [here](https://ggplot2.tidyverse.org/reference/coord_fixed.html) and [here](https://ggplot2.tidyverse.org/reference/geom_abline.html).
+
+ANSWER: SHows a positive linear relationship. Coord fix changes the aspect ratio of the graph, it can be skewed to manipulate the relationship. geom abline shows the slope witht he y intercept, it would be the line in thsi case. 
+
+
+### 5.2.4 Exercises
+
+1) Find all flights that...
+
+a) Had an arrival delay of two or more hours
+
+```{r}
+# show your code here
+filter(flights, arr_delay >= 120)
+
+```
+
+
+
+b) Flew to Houston (IAH or HOU)
+
+```{r}
+# show your code here
+filter(flights, dest %in% c('IAH', 'HOU'))
+```
+
+
+c) Were operated by United, American, or Delta
+
+```{r}
+# show your code here
+joined_flight <- left_join(flights, airlines)
+
+filter(joined_flight, name %in% c('United Air Lines Inc.','American Airlines Inc.','Delta Air Lines Inc.'))
+```
+
+
+
+d) Departed in summer (July, August, and September)
+
+```{r}
+# show your code here
+filter(flights, month %in% c(7,8,9))
+```
+
+
+e) Arrived more than two hours late, but didn’t leave late
+
+```{r}
+# show your code here
+filter(flights, arr_time > 120 & dep_delay < 0)
+```
+
+
+f) Were delayed by at least an hour, but made up over 30 minutes in flight
+
+```{r}
+# show your code here
+filter(flights, dep_delay >= 60, sched_arr_time > -30)
+```
+
+g) Departed between midnight and 6am (inclusive)
+
+```{r}
+# show your code here
+filter(flights, dep_time >= 2400 | dep_time <= 600)
+```
+```{r}
+names(flights)
+# summary(flights)
+str(flights)
+glimpse(flights)
+```
+
+
+3) How many flights have a missing dep_time? What other variables are missing? What might these rows represent?
+
+ANS: dep_delay = 8255, arr_time = 8713, arr_delay = 9430, dep_time = 8255. seems liek they represent the zeros and just counted as na. 
+
+```{r}
+# show your code here
+sum(!complete.cases(flights$dep_time))
+sum(!complete.cases(flights))
+summary(flights)
+```
+
+
+### 5.3.1 Exercises
+
+1) How could you use arrange() to sort all missing values to the start? (Hint: use `is.na()`).
+
+```{r}
+# show your code here
+df <- tibble(x = c(1, NA, 3))
+arrange(df, desc(is.na(x)))
+```
+
+
+2) Sort flights to find the most delayed flights. Find the flights that left earliest.
+
+```{r}
+# show your code here
+arrange(flights, dep_delay)
+arrange(flights, desc(dep_delay))
+```
+
+
+3) Sort flights to find the fastest flights.
+
+```{r}
+# show your code here
+arrange(flights, air_time)
+```
+
+
+4) Which flights travelled the longest? Which travelled the shortest?
+
+```{r}
+# show your code here
+flights %>%
+  arrange(air_time) %>%
+  select(carrier, flight, air_time)
+
+flights %>%
+  arrange(-air_time) %>%
+  select(carrier, flight, air_time)
+```
+
+
+### 5.5.2 Exercises
+
+1) Currently `dep_time` and `sched_dep_time` are convenient to look at, but hard to compute with because they’re not really continuous numbers. Convert them to a more convenient representation of number of minutes since midnight.
+
+```{r}
+# show your code here
+
+mutate(flights,
+       dep_time = (dep_time %/% 100) * 60 + (dep_time %% 100),
+       sched_dep_time = (sched_dep_time %/% 100) * 60 + (sched_dep_time %% 100))
+```
+
+
+2) Compare `dep_time`, `sched_dep_time`, and `dep_delay`. How would you expect those three numbers to be related? Do they meet this expectation?
+
+```{r}
+# show your code here
+flights_deptim <-
+  mutate(flights,
+    dep_time_min = (dep_time %/% 100 * 60 + dep_time %% 100) %% 1440,
+    sched_dep_time_min = (sched_dep_time %/% 100 * 60 +
+      sched_dep_time %% 100) %% 1440,
+    dep_delay_diff = dep_delay - dep_time_min + sched_dep_time_min
+  )
+flights_deptim
+```
+
+ANSWER:
+
+
+### 5.7.1 Exercises
+
+2) Which plane (tailnum) has the worst on-time record?
+
+```{r}
+# show your code here
+flights %>%
+  group_by(tailnum) %>%
+  summarise(arr_delay = mean(arr_delay)) %>%
+  filter(min_rank(desc(arr_delay)) <= 1)
+```
+
+ANSWER: N844MH
+
+
+3) What time of day should you fly if you want to avoid delays as much as possible?
+
+```{r}
+# show your code here
+flights %>%
+  group_by(hour) %>%
+  summarise(arr_delay = mean(arr_delay, na.rm = TRUE)) %>%
+  arrange(arr_delay)
+```
+
+ANSWER: Morning flights
+
+
+***
+
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,674 @@
+---
+title: "Chihara & Hesterberg MSRR CH04 HW"
+author: "Jefferson Ong"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    theme: yeti
+    highlight: textmate
+---
+
+***
+
+> **INSTRUCTIONS:** Complete the following problems from _Mathematical Statistics with Resampling and R_ and any additional problems created by the instructor. You can access the textbook datasets on our [Class Data Files](https://stat-jet-asu.github.io/Datasets/DatasetList.html) page or from the `R` package `resampledata`. The textbook examples use base `R` code for plotting, but you `ggplot2` for visualizations. You may use `table()` to make tables, but you should use `dplyr` for other summaries. Refer to the case studies in Chapter 1 or the instructor's dataset descriptions where applicable to add informative titles and axis labels to your plots and to provide context for your answers. You should use the [R Style Guide](http://adv-r.had.co.nz/Style.html) and inline `R` code for answers outside code chunks. Load all packages and datasets in the code chunk provided.
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+```{r packages&datasets}
+#
+library(tidyverse)
+library(resampledata)
+library(plotrix)
+```
+
+
+***
+### Problem 4.5
+
+Part (a)
+
+```{r}
+A <- c(3, 5, 7, 9, 10, 16)
+
+B <- c(8, 10, 11, 15, 18, 25, 28)
+
+As <- sample(A, size = 3, replace = FALSE)
+
+Bs <- sample(B, size = 3, replace = FALSE)
+
+N <- 10^4
+
+Sum <- numeric(N)
+
+for (i in 1:N) {
+
+A <- c(3, 5, 7, 9, 10, 16)
+
+B <- c(8, 10, 11, 15, 18, 25, 28)
+
+As <- sample(A, size = 3, replace = FALSE)
+
+Bs <- sample(B, size = 3, replace = FALSE)
+
+Sum[i] <- max(As + Bs)
+
+}
+
+hist(Sum)
+
+Rsimdata <- tibble(Sum = Sum)
+
+Rsimdata %>%
+  summarise(avg = mean(Sum),
+            var = var(Sum))
+
+ggplot(Rsimdata, aes(x = Sum)) +
+  geom_density()
+
+```
+
+Looks like its normal. Maybe skewed left. 
+
+Part (b)
+
+```{r}
+
+# n <- 45 
+# p <- Sum / n
+# bin_pmf <- tibble(x = 10:n, 
+#                   probability = dbinom(x, n, p),
+#                   cumulative = pbinom(x, n, p))
+# 
+# 
+# 
+# print.data.frame(bin_pmf, digits = 4, row.names = FALSE)
+
+str(Sum)
+
+b <- (Sum[Sum < 20])
+
+str(b)
+
+(119)/10^4
+
+```
+
+
+A: About 01%, I didn't know how to use pbinom or dbinom here since I didn't know probability of a particular number occuring. I imagine each are weighted differently. I just subset the dataset for less than 20 then divided that from total entry to get a percentage.
+
+
+
+Part (c)
+
+```{r}
+#
+N <- 10^4
+
+SumB <- numeric(N)
+
+for (i in 1:N) {
+
+A <- c(3, 5, 7, 9, 10, 16)
+
+B <- c(8, 10, 11, 15, 18, 25, 28)
+
+As <- sample(A, size = 3, replace = FALSE)
+
+Bs <- sample(B, size = 3, replace = FALSE)
+
+SumB[i] <- max(union(As, Bs))
+
+}
+
+hist(SumB) 
+
+Rsimdata <- tibble(SumB = SumB)
+
+Rsimdata %>%
+  summarise(avg = mean(SumB),
+            var = var(SumB))
+
+ggplot(Rsimdata, aes(x = SumB)) +
+  geom_density()
+```
+Definitely skewed left. Not completely sure what max or union does. 
+
+
+Part (d)
+
+```{r}
+str(SumB)
+
+bb <- (SumB[SumB < 20])
+
+str(bb)
+
+(2853)/10^4
+```
+
+About 31%
+
+
+***
+### Problem 4.6
+
+Part (a)
+
+```{r}
+#
+str(Recidivism)
+table(Recidivism$Recid)
+
+11636 + 5386
+```
+```{r}
+N <- 10^4
+
+phat <- numeric(N)
+
+for (i in 1:N)
+{
+  sampj <- sample(Recidivism$Recid, 25)
+  phat[i] <- mean(sampj == "Yes") # proportion yes
+}
+
+hist(phat) 
+
+phatdata <- tibble(phat = phat)
+
+phatdata %>%
+  summarise(avg = mean(phat),
+            var = var(phat),
+            s = sd(phat))
+
+ggplot(Rsimdata, aes(x = phat)) +
+  geom_density()
+```
+
+Looks normal-ish density function is funky but follows bell shape. mean .31 with sd of .09
+
+
+Part (b)
+
+X ~ Binom(25, .316)
+
+E[X] = np = 25 * .316
+
+SE = sqrt(np(1-p))
+
+```{r}
+# 
+n <- 25
+p <- .316
+
+25 * .316
+
+SE = sqrt(n * p * (1 - p))
+
+SE
+
+std.error(phat)
+```
+
+Its so different. I don't understand what I did wrong. in theory SE is 2.3 but the simulation showed 9e^-4
+
+```{r}
+# sd(Recidivism$Recid) Unsure what this does
+```
+
+
+
+
+Part (c)
+
+```{r}
+#
+n <- 250
+p <- .316
+
+n * p
+
+SE = sqrt(n * p * (1 - p))
+
+SE
+
+
+
+N <- 10^4
+
+phat <- numeric(N)
+
+for (i in 1:N)
+{
+  sampj <- sample(Recidivism$Recid, 250)
+  phat[i] <- mean(sampj == "Yes") # proportion yes
+}
+
+hist(phat) 
+
+phatdata <- tibble(phat = phat)
+
+phatdata %>%
+  summarise(avg = mean(phat),
+            var = var(phat),
+            s = sd(phat))
+
+ggplot(Rsimdata, aes(x = phat)) +
+  geom_density()
+
+std.error(phat)
+```
+
+SE in simulation is now .03 while theory is at 7.3
+
+Part (d) ADDED
+
+Describe the distributions in Part (a) and Part (c). How do the simulated estimates and theoretical calculations of standard error compare? What is the impact of increasing the sample size?
+
+ANSWER: The second graph is much smoother than the first since its drawing more samples however the standard error is also larger. As I understand it, it should be smaller with more samples or is it just scaling to the newer large numbers? The impact seems like its making it bigger.
+
+
+***
+### Problem 4.7
+
+Part (a)
+
+```{r}
+#
+hist(FlightDelays$Delay)
+
+FlightDelays %>%
+  summarise(avg = mean(Delay),
+            var = var(Delay),
+            s = sd(Delay))
+
+ggplot(FlightDelays, aes(x = Delay)) +
+  geom_histogram()
+```
+
+SKewed right
+
+Part (b)
+
+```{r}
+#
+N <- 10^4
+
+phatk <- numeric(N)
+
+for (i in 1:N)
+{
+  sampk <- sample(FlightDelays$Delay, 25)
+  phatk[i] <- mean(sampk) # proportion yes
+}
+
+hist(phatk) 
+
+phatkdata <- tibble(phatk = phatk)
+
+phatkdata %>%
+  summarise(avg = mean(phatk),
+            var = var(phatk),
+            s = sd(phatk))
+
+ggplot(phatkdata, aes(x = phatk)) +
+  geom_density()
+```
+
+Part (c)
+
+```{r}
+
+SE = sd(FlightDelays$Delay)
+
+SE
+```
+
+Well simulated gave 8.3, sd function gave 41.6 I'm not sure how to go about getting the theoretical sd or is my simulation wrong somehow? 
+
+```{r}
+# table(FlightDelays$Delay)
+```
+
+
+Part (d)
+
+```{r}
+N <- 10^4
+
+phatk <- numeric(N)
+
+for (i in 1:N)
+{
+  sampk <- sample(FlightDelays$Delay, 250)
+  phatk[i] <- mean(sampk) # proportion yes
+}
+
+hist(phatk) 
+
+phatkdata <- tibble(phatk = phatk)
+
+phatkdata %>%
+  summarise(avg = mean(phatk),
+            var = var(phatk),
+            s = sd(phatk))
+
+ggplot(phatkdata, aes(x = phatk)) +
+  geom_density()
+```
+
+More normal now, sd is also much smaller. I may just not be interpreting it correctly. 
+
+Part (e) ADDED
+
+Describe the distributions in Part (a), Part (b), and Part (d). How do the simulated estimates and theoretical calculations of standard error compare? What is the impact of increasing the sample size?
+
+ANSWER: It went from Right skewed to a normal function. SE are still quiet wonky. Biggest impact is turning it into a noraml distribution which is better to work with. 
+
+
+***
+### Problem 4.16
+
+Part (a)
+
+```{r}
+#
+p = exp(1/10)
+
+n = 30
+
+n * p
+```
+
+Part (b)
+
+```{r}
+#
+N <- 1000
+
+J <- numeric(N)
+
+for (i in 1:N)
+{
+  J[i] <- mean(rexp(30, rate = (1/10))) 
+}
+
+hist(J) 
+
+Jdata <- tibble(J = J)
+
+Jdata %>%
+  summarise(avg = mean(J),
+            var = var(J),
+            s = sd(J))
+
+ggplot(Jdata, aes(x = J)) +
+  geom_density()
+
+str(J)
+
+bJ <- (J[J >= 12])
+
+str(bJ)
+
+(148)/1000
+```
+
+About 15%, .148
+
+Part (c)
+
+ANSWER: Yes if the mean s 12, it would be unsual. The outcome however is not unsual. 15% chance of occuring. 
+
+
+***
+### Problem 4.17
+
+Part (a)
+
+X ~ N(15, 9)
+
+Y ~ N(4, 4)
+
+W = X - 2Y
+
+```{r}
+#
+15 - 2 * 4
+
+9 - 2 * 4
+```
+
+W ~ N(7, 1)
+
+Part (b)
+
+```{r}
+#
+
+N <- 10^4 # numbers if simulation
+
+n <- 10 # storage for sim result
+  
+samp_mean <- numeric(N)
+
+for (i in 1:N) {
+
+samp <- rnorm(n, 7, sqrt(1))
+
+samp_mean[i] <- mean(samp) # The [i] is an index and it stores to that index
+}
+
+
+library(tidyverse)
+
+simdata <- tibble(samp_mean = samp_mean)
+
+simdata %>%
+  summarise(avg = mean(samp_mean),
+            var = var(samp_mean),
+            s = sd(samp_mean))
+
+ggplot(simdata, aes(x = samp_mean)) +
+  geom_density()
+```
+
+Means are close, var is off by 9/10
+
+Part (c)
+
+```{r}
+#
+pnorm(10, 7, 1)
+```
+The simulated sampling of P(W =< 10) would also be nearly 100% as the entire distribution is under 10. 
+
+***
+### Problem 4.18
+
+Part (a)
+
+```{r}
+#
+dpois(4, 1) + dpois(12, 1) + dpois(3, 1)
+```
+
+Part (b)
+
+```{r}
+#
+W <- numeric(1000)
+
+for (i in 1:1000)
+{
+  w <- dpois(0:4, 1) 
+  y <- dpois(0:12, 1)
+  Z <- dpois(0:3, 1)
+  W[i] <- mean(w) + mean(y) + mean(Z)
+}
+
+hist(W)
+
+simdataW <- tibble(W = W)
+
+simdataW %>%
+  summarise(avg = mean(W),
+            var = var(W),
+            s = sd(W))
+
+ggplot(simdataW, aes(x = W)) +
+  geom_density()
+```
+
+Part (c)
+
+```{r}
+#
+
+mean(W < 40)
+```
+
+
+***
+### Problem 4.19
+
+Part (a)
+
+W_10 ~ N(36, 113) + Y_5 ~ N(16, 7^2)
+
+```{r}
+#
+
+# W (W_10 ~ N(36, 113) + Y_5 ~ N(16, 7^2))
+
+W <- numeric(1000)
+
+for (i in 1:1000)
+{
+  w <- rnorm(10, 36, sqrt(113))  
+  y <- rnorm(5, 16, 7) 
+  W[i] <- mean(w) + mean(y) 
+}
+
+hist(W)
+
+
+```
+
+Part (b)
+
+```{r}
+#
+  
+W <- numeric(N)
+
+for (i in 1:N) {
+
+  w <- rnorm(10, 36, sqrt(113))  
+  y <- rnorm(5, 16, 7) 
+  W[i] <- mean(w) + mean(y) 
+}
+
+
+library(tidyverse)
+
+simdataW <- tibble(W = W)
+
+simdataW %>%
+  summarise(avg = mean(W),
+            var = var(W),
+            s = sd(W))
+
+ggplot(simdataW, aes(x = W)) +
+  geom_density()
+```
+
+Part (c)
+
+```{r}
+#
+W <- numeric(1000)
+
+for (i in 1:1000)
+{
+  x <- rnorm(10, 20, 8)  # draw 10 from N(20, 8^2)
+  y <- rnorm(15, 16, 7) # draw 15 from N(16, 7^2)
+  W[i] <- mean(x) + mean(y) # save sum of means
+}
+
+hist(W)
+
+mean(W < 40)
+
+W <- numeric(1000)
+
+for (i in 1:1000)
+{
+  w <- rnorm(10, 36, sqrt(113))  
+  y <- rnorm(5, 16, 7) 
+  W[i] <- mean(w) + mean(y) 
+}
+
+hist(W)
+
+mean(W < 40)
+```
+
+
+***
+### Problem 4.20
+
+Part (a)
+
+W ~ N(-3, 34))
+
+```{r}
+#
+# W ~ N(-3, 34)) W_9
+```
+
+Part (b)
+
+```{r}
+#
+W <- numeric(1000)
+
+for (i in 1:1000)
+{
+  x <- rnorm(9, 20, 8)  
+  y <- rnorm(12, 16, 7) 
+  W[i] <- mean(x) - mean(y) 
+}
+
+hist(W)
+
+
+simdataW <- tibble(W = W)
+
+simdataW %>%
+  summarise(avg = mean(W),
+            var = var(W),
+            s = sd(W))
+
+ggplot(simdataW, aes(x = W)) +
+  geom_density()
+```
+
+Part (c)
+
+```{r}
+#
+
+mean(W < -1.5)
+```
+
+
+***
+```{r}
+sessionInfo()
+```

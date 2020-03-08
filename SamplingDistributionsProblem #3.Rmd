@@ -1,0 +1,108 @@
+---
+title: "Sampling Proficiency Problem"
+subtitle: "Considering the Distribution of Vietnam Draft Numbers"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+***
+```{r}
+# Load any packages and datasets you need here.
+library(readr)
+library(tidyverse)
+
+draft <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv")
+```
+
+
+#### The Problem
+
+In December 1969, the U.S. Selective Service System conducted a lottery to a determine draft order for eligible young men in the upcoming year. The 366 days of the year (including February 29) were written on pieces of paper and placed in a plastic capsules. These capsules were hand-mixed in shoeboxs and dumped in a glass jar. On live TV, capsules were pulled out one at a time. The first number chosen was 258 (September 14). Anyone born on that day in 1944 through 1950 was assigned lottery number 1, and would be the first men called up to go to Vietnam. The first 195 birthdates drawn were later called to serve in the order they were taken from the jar. Some people claimed that the draft numbers were not randomly distributed through the year, saying that men with later birthdays were more likely to be called up. As a result, the process was changed for the following year to try to improve the randomness.
+
+There were 366 draft numbers in 1970, one for each day of the year. We could simulate our own draft lottery by sampling without replacement from a vector of integers 1 through 366 to estimate the sampling distribution of the proportion of draft numbers less than or equal to 195 that might randomly be assigned to either half of the year.
+
+
+#### The Analysis
+
+Sample values from the vector of integers {1, 2, 3, ..., 366} to represent the draft numbers assigned to days in the second half of the year and determine what proportion are less than or equal to 195. Repeat this sampling process 10^4^ times to simulate the natural sampling variability of this proportion. 
+
+```{r}
+str(draft)
+summary(draft)
+
+draftF <- draft %>%
+  filter(draftyear == 1970)
+
+draftE <- draft %>%
+  filter(draftyear == 1970) %>%
+  filter(halfyear == "second")
+summary(draftE$halfyear)
+summary(draftF$halfyear)
+```
+
+```{r}
+pop <- c(1:366)
+pop_tb <- tibble(pop = pop)
+
+pop_tb %>% summarize(mu = mean(pop), sigma = sd(pop), prop = mean(pop <= 195))
+
+n <- 184
+N <- 10^4
+xbar <- numeric(N)
+for (i in 1:N) {
+  samp <- sample(pop, n, replace = F)
+  xbar[i] = mean(samp <= 195)
+}
+
+xbar_tb <- tibble(sim_xbar = xbar)
+
+xbar_tb %>% summarize(sim_mu = mean(sim_xbar), std_error = sd(sim_xbar), propX = mean(sim_xbar <= 195))
+
+summary(xbar_tb)
+```
+
+
+Compute the mean and standard error of your simulated distribution. Create both a density plot and a normal quantile-quantile plot to assess normality.
+
+```{r}
+#
+xbar_tb %>% summarize(sim_mu = mean(sim_xbar), std_error = sd(sim_xbar))
+
+ggplot(NULL, aes(x = xbar)) +
+  geom_density()
+
+ggplot(NULL, aes(sample = xbar)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+
+```
+
+The actual proportion for the 1970 draft was 0.64. In the next year it was 0.52. Althought fewer men were called in 1971, we can still use this as a comparison. Based on the simulated sampling distribution, was the proportion for 1970 unusual if the system was completely random? What about 1971? Explain.
+
+
+```{r}
+#
+(sum(xbar >= .64) + 1)/(N + 1)
+
+(sum(xbar >= .52) + 1)/(N + 1)
+```
+
+**ANSWER:** Its quiet rare for a proportion of .64 but not rare for a proportion of .52. 
+
+The Central Limit Theorem (CLT) applies to proportions as well as means, as long as certain conditions are met. Why can we not use the CLT here?
+
+**ANSWER:** We're sampling without replacement meaning that our dataset we're sampling isn't independent and changes. 
+
+
+***
+```{r}
+sessionInfo()
+```

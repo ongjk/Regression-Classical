@@ -1,0 +1,496 @@
+---
+title: "Sampling distribution notes"
+author: "Jefferson Ong"
+date: "3/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+---
+
+# Sampling distribution
+
+The probability distribution of a statistic
+
+How to account for the variability
+
+We will still think about shape, center, spread and outliers
+
+What is the distribution of X-bar (the sample mean) ?
+
+What is the distribution of p_hat (sample proportion) ?
+
+What is the distribution of x + y? 
+
+where is X and Y are two random vars?
+
+what is the distribution fo 2X?
+
+What is the distribution of X_bar - Y_bar
+
+Empirical = simulation/experimentation
+
+Theoretical = Math Calculation
+
+---
+
+X ~ N(0, 1)
+
+Y ~ N(0, 1)
+
+Q = X + Y
+
+A random draw from X, random draw from Y, then sum the results
+
+A random draw is rnorm
+
+```{r}
+X <- rnorm(10 ^ 4, 0, 1)
+
+Y <- rnorm(10 ^ 4, 0, 1)
+
+S <- X + Y
+
+# S
+library(dplyr)
+sampdata <- tibble(S = S)
+
+library(ggplot2)
+
+ggplot(sampdata, aes(x = S)) +
+  geom_density()
+
+
+ggplot(sampdata, aes(sample = S)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+```
+
+```{r}
+sampdata %>%
+   summarise(mean_s <- mean(S),
+             se_s <- sd(S))
+```
+
+
+## The standard deviation of a sampling distribution is commonly called STANDARD ERROR
+
+```{r}
+# n = sample size
+# N = number of simulations or iterations
+N <- 10^4
+
+S <- numeric(N)
+
+for (i in 1:N) {
+
+X <- rnorm(1, 0, 1)
+
+Y <- rnorm(1, 0, 1)
+
+S[i] <- X + Y
+
+}
+
+ggplot(sampdata, aes(sample = S)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+
+
+sampdata %>% summarise(means = mean(S),
+             ses = sd(S))
+
+
+
+
+```
+```{r}
+N <- 10^4
+
+R <- numeric(N)
+
+for (i in 1:N) {
+
+X <- runif(1, 0, 1)
+
+Y <- runif(1, 0, 1)
+
+R[i] <- X + Y
+
+}
+
+ggplot(sampdata, aes(x = R)) +
+  geom_density()
+
+ggplot(sampdata, aes(sample = R)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+
+
+sampdata %>% summarise(meanR = mean(R),
+             seR = sd(R))
+```
+
+```{r}
+n <- 2
+
+N <- 10^4
+
+R <- numeric(N)
+
+for (i in 1:N) {
+
+R[i] <- sum(runif(n, 0, 1))
+
+}
+
+ggplot(sampdata, aes(x = R)) +
+  geom_density()
+
+ggplot(sampdata, aes(sample = R)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+
+
+sampdata %>% summarise(meanR = mean(R),
+             seR = sd(R))
+```
+
+X_1, X_2, X_3, .., X_n  iid (means that indepenedent and identically dist.) unif(0, 1)
+
+X_1 ~ Unif (0, 1)
+
+X_2 ~ Unif (0, 1)
+
+
+```{r}
+n <- 100
+
+N <- 10^4
+
+R <- numeric(N)
+
+for (i in 1:N) {
+
+R[i] <- sum(rexp(n, 1))
+
+}
+
+
+sampdata <- tibble(R = R)
+
+
+ggplot(sampdata, aes(x = R)) +
+  geom_density()
+
+
+ggplot(sampdata, aes(sample = R)) + #quantile tquantile plot requires sample
+  geom_qq() +
+  geom_qq_line(color = "red")
+
+
+sampdata %>% summarise(meanR = mean(R),
+             seR = sd(R))
+
+```
+
+
+## Probability
+
+mean is the sum of values over n
+
+= (1/n) (x1, x2, x3, ..., xn)
+
+------------
+
+
+## Next week, comparing the math to the simulation
+
+X ~ N(2, 4), 2 is mean, 4 is variance. This is a normal distribution X
+
+Y ~ N(6, 9)
+
+S = x + y
+
+What is the distribution of S?
+
+This means that what is the shape, center(expected value), spread(variance/standard deviation)
+
+E[X + Y] = E[X] + E[Y]
+
+S = X + Y
+
+E[S] = [X + Y] = E[X] + E[Y]
+
+E[S] = 2 + 6 = 8
+
+---
+
+Var[X + Y] = Var[X] + Var[Y]
+
+Var[S] = 4 + 9 = 13
+
+SD[S] = Sqrt(Var[S]) = sqrt(13) = 3.61
+
+Shape is normal because we're adding together normal distributions at the start.
+
+----
+
+
+S = X + Y
+
+X ~ N(2, 4)
+
+Y ~ N(6, 9)
+
+Now to simulate we need one random value from X and one random value from Y then add, do it a bunch of times.
+
+We will use rnorm from X
+
+```{r}
+# X <- rnorm(1, 2, sqrt(4)) # we're taking 1 random sample, with mean of 2, and standard deviation of sqrt(4)
+# 
+# Y <- rnorm(1, 6, sqrt(9)) # took 1, mean 6, variance squared of 9
+# 
+# S = X + Y
+
+# Now do it thousands of times, law of large numbers mean we'll get closer to theoretical
+
+N <- 10^5
+S <- numeric(N) # Creates a empty vector because R likes it?
+
+for (i in 1:N) {
+  # i indexes from the vectors from 1 to how ever big we want it to be
+  X <- rnorm(1, 2, sqrt(4)) 
+
+  Y <- rnorm(1, 6, sqrt(9)) 
+
+S[i] = X + Y # so first S[i] places it in a vector in it's ith space up to nth space
+} 
+
+mean(S)
+var(S)
+tibble(S)
+
+
+
+```
+
+Pretty close to the theoretical. This method produces the same product as this method so if faced with a question that can't be solved in math.
+
+Now if 
+
+E[X - Y] = E[X] - E[Y]
+
+S = X - Y
+
+E[S] = [X - Y] = E[X] - E[Y]
+
+E[S] = 2 - 6 = -4
+
+Var[X - Y] = Var[X] + Var[Y]
+
+Var[S] = 4 + 9 = 13
+
+SD[S] = Sqrt(Var[S]) = sqrt(13) = 3.61
+
+```{r}
+
+N <- 10^5 # numbers of simulation
+S <- numeric(N) # Creates a empty vector because R likes it?   # storage for sim result
+
+for (i in 1:N) {
+  # i indexes from the vectors from 1 to how ever big we want it to be
+  X <- rnorm(1, 2, sqrt(4))  # sample one value from X
+
+  Y <- rnorm(1, 6, sqrt(9)) # sample one value from Y 
+
+S[i] = X - Y # so first S[i] places it in a vector in it's ith space up to nth space
+} 
+
+library(tidyverse)
+
+simdata <- tibble(S = S)
+
+simdata %>%
+  summarise(avg = mean(S),
+            var = var(S))
+
+ggplot(simdata, aes(x = S)) +
+  geom_density()
+```
+
+Normal that is centered at about -4. Simple!
+
+----
+
+Now level up a bit. 
+
+X ~ N(2, 4) I take a sampel of size n (little n is a sample size, big N is a number of iteration)
+
+What is the sampling distribution of X_bar?
+
+Steps
+
+1: Draw a sample of size n
+
+2: Take a sample mean
+
+```{r}
+N <- 10^4 # numbers if simulation
+
+n <- 10 # storage for sim result
+  
+samp_mean <- numeric(N)
+
+for (i in 1:N) {
+
+samp <- rnorm(n, 2, sqrt(4))
+
+samp_mean[i] <- mean(samp) # The [i] is an index and it stores to that index
+}
+
+
+library(tidyverse)
+
+simdata <- tibble(samp_mean = samp_mean)
+
+simdata %>%
+  summarise(avg = mean(samp_mean),
+            var = var(samp_mean))
+
+ggplot(simdata, aes(x = samp_mean)) +
+  geom_density()
+
+
+```
+Start from the inside then out.
+
+
+Whats happening to samp_mean is (x_1 + x_2)/ 2
+
+x_1 and x_2 are both N(2, 4)
+
+or (.5)(x_1 + x_2)
+
+samp_mean = (.5)(x_1 + x_2)
+
+The expected value of samp_mean is the expected value of (.5)(x_1 + x_2). 
+
+E(samp_mean) = E((.5)(x_1 + x_2)) = (.5)E(x_1 + x_2) = (.5)(2 + 2) = 2
+
+Now variance
+
+Variance is a squared quantity
+
+Var(samp_mean) = Var(.5)(x_1 + x_2) = (.5^2)Var(x_1 + x_2) = (.25)(4 + 4) = 2
+
+
+If a sample size of 4 it would be Var(x1 + x2 + x3 + x4)
+
+(1/16)Var(x1 + x2 + x3 + x4)
+
+(1/16)(16) = 1
+
+---
+
+This is where the central limit theorem comes in.  the sampling distribution of the sample mean of a reasonably large number of i.i.d. random variables X1, X2, ..., Xn, will be approximately normal, regardless of the underlying distribution. This rule also applies to the sums of sample values and to the count or proportion of successes in sample from a Binomial population.
+
+## It will work out to Var/n
+
+A commonly used rule of thumb is that a "sufficiently large" sample is n ≥ 30. However, in practice...
+
+if the underlying distribution is symmetric and unimodal with no outliers (e.g., uniform), then n < 30 is often sufficient.
+
+if the underlying distribution is skewed or has outliers (e.g., exponential), n >> 30 may be required.
+
+when X has a normal distribution, the sampling distribution of the mean is exactly normal for all n.
+
+----
+
+If poission need to find expected and somethign else first
+
+---
+
+# Binomial coems in here
+
+E[X]
+
+Var[X] 
+
+are different
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

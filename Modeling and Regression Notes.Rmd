@@ -1,0 +1,500 @@
+---
+title: "Modeling and Regression"
+author: "Jefferson Ong"
+date: "2/14/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+```
+
+Regressiong and inference
+
+- Another way to explore data and look for relationships in data
+
+model = visualization or representation so we can understand what it is. like molecules and what they look like but we represent them as these atoms and bonds. mathematical model? thats using geometry, equations, etc. some aspect of math.
+
+In particular going to look at linear models, simple linear models
+
+## Simple Linear Model
+
+
+
+General modeling framework: y is a function of one or more x values, plus some amount of random error.
+
+y = f(\overrightarrow{x}) + \epsilon
+
+y is the outcome or predicted variable
+
+x is an explanatory or predictor variable ("signal")
+
+\epsilon is the unsystematic error component ("noise")
+
+
+Our basic simple linear model has the following form, with f(x) being the familiar equation of a straight line.
+
+y = \beta_0 + \beta_1 x + \epsilon
+
+-Most models are simplifications, which is were the error epsilon comes in. 
+
+linear models don't need to be a straight line, it means here that its multiple by a coefficient times the variable compare to exponential. 
+
+## Estimating the Model
+
+The observed value of the ith data point yi in the dataset can be expressed in terms of the fitted line and a residual (its deviation from the fitted line).
+
+y_i = b_0 + b_1 x_i + e_i
+
+error is also called residual or deviation(maybe)
+
+The predicted (or fitted) value of the line is a prediction made by plugging a value x into the fitted line.
+
+
+\hat{y}_i = b_0 + b_1 x_i
+
+---
+
+What is the best line out of all the lines, to represent the model. We will go into least squared method. 
+
+
+## The "Best Fit" Line
+
+The residual for each data point is the difference between the observed value of y and the predicted value of y.
+
+y_i - \hat{y}_i = (b_0 + b_1 x_i + e_i) - (b_0 + b_1 x_i) = e_i
+
+In least squares modeling, the best-fit line is the one that meets the following criteria.
+
+Passes through the point (\bar{x}, \bar{y})
+ 
+Has sum of the residuals \sum_{i=1}^{n} e_i equal to zero
+
+Has sum of the squared residuals \sum_{i=1}^{n} {e_i}^2 is minimized
+ 
+The sum of squared residuals (SSE) is an important quantity in regression analysis and is used for several purposes.
+
+
+SSE = sum of sqaured errors(residuals) 
+
+
+## Our Model
+
+
+A general model, if we use height to explain / predict armspan…
+
+armspan = \beta_0 + \beta_1 (height) + \epsilon
+
+\beta_0 = 0
+
+
+
+\beta_1 = 1
+
+```{r}
+library(readr)
+
+anthro <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/anthropometric.csv")
+```
+```{r}
+glimpse(anthro)
+
+```
+
+
+```{r}
+set.seed(1)
+anthro_sample <- sample_n(anthro, 20)
+head(anthro_sample)
+```
+ 
+
+The sample_n function comes from dplyr. Setting a seed value ensures we all have the same "random" sample. 
+
+random sample = we know the probability of how much soemthign is getting picked. 
+
+Probability sample(same as top) =  we know the chance that a member of the sampled group will get chosen.
+
+simple random sample = every possible subgroup of size n has the same chance to be picked. 
+
+
+sample_n
+
+sampling with replacement vs sampling without replacement. with replacement means that i'm putting the object back, so the system is reset into its initial state. without replacement on the other hand is taking stuff out. replace = FALSE is default. 
+
+
+weight = NULL means that every stage has equal chance of getting picked. 
+
+---
+
+set seed(1) not really random
+
+pseudo random numbers (whole subset of math/computer science), anything using algorithm is not truly random. Theres a function that outputs numbers that acts random, system needs to not have pattern.
+
+Need to do EDA first
+
+Conduct exploratory data analyses on the x and y variables to investigate their shape, center, spread, and outliers.
+
+```{r}
+str(anthro_sample)
+summary(anthro_sample)
+names(anthro_sample)
+glimpse(anthro_sample)
+```
+
+```{r}
+anthro_sample %>%
+  group_by(gender) %>%
+  arrange(height) %>%
+  summarize(mean(height))
+```
+```{r}
+anthro_sample %>% summarize( n = n(),
+                             xbar_x = mean(height),
+                             stdv_x = sd(height),
+                             xbar_x = mean(armspan),
+                             stdv_y = sd(armspan))
+```
+
+
+
+## Scatterplot
+
+```{r}
+ggplot(anthro_sample, aes(x = height, y = armspan)) +
+  geom_point() + coord_fixed(xlim = c(60, 80), ylim = c(60, 80))
+```
+univariate outlier -any unusually large or small values for a single variable
+
+bivariate outlier -unusual pairing (really short with really long arms) doesn't fit the pattern
+
+
+## Scatterplot with Fitted Line
+
+
+
+```{r}
+ggplot(anthro_sample, aes(x = height, y = armspan)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  coord_fixed(xlim = c(60, 80), ylim = c(60, 80))
+```
+
+Linear model 
+
+method = "lm" least squares linear model, se = FALSE se is standard error
+
+The default is some sort of fit
+
+## Scatterplot with Fitted & Plotted Lines
+
+
+```{r}
+ggplot(anthro_sample, aes(x = height, y = armspan)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  coord_fixed(xlim = c(60, 80), ylim = c(60, 80))
+```
+
+They seem consistent + - some sampling variability.
+
+Hypothesis y = 0 + 1x (the red line)
+
+y_hat = b_0 + b_1 x, geom smooth is the fitted esmitate
+
+sampling variability = samples from a population will vary from the population---stuff =(
+
+
+
+## Different Samples, Varying Estimates
+
+```{r}
+# there are more efficient ways to do this, notice the pattern
+size_n <- 50
+
+sample01 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S01")
+sample02 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S02")
+sample03 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S03")
+sample04 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S04")
+sample05 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S05")
+sample06 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S06")
+sample07 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S07")
+sample08 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S08")
+sample09 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S09")
+sample10 <- sample_n(anthro, size_n) %>% mutate(samplenum = "S10")
+
+tensamps <- rbind(sample01, sample02, sample03, sample04, sample05,
+                  sample06, sample07, sample08, sample09, sample10)
+```
+
+We're going to sample from data and take a particular size, then set that size on the side to see what happens. 
+
+size_n <- 20 set the sample size above to make it easy to change
+
+
+
+
+
+
+
+
+
+## Plotting All the Estimated Lines
+
+
+```{r}
+ggplot(tensamps, aes(x = height, y = armspan, color = samplenum)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  coord_fixed(xlim = c(60, 80), ylim = c(60, 80)) +
+  geom_abline(intercept = 0, slope = 1, color = "red")
+```
+
+
+## Fitting the Linear Model
+
+```{r}
+square_model <- lm(armspan ~ height, data = anthro_sample)
+
+square_model   # try str(square_model) and see what you get
+```
+
+Lm() note it matches method = "lm" in geom_smooth
+
+lm(y ~ x, data = __) 
+
+x= height, y = arm, y is a function of x. So lm(armspan ~ height, data = antho_sample) "armspan as a function of height"
+
+this means y_hat = -9.25 + 1.13x
+
+lm outputs a list but only displays part of the list contents as a default.
+
+```{r}
+square_model$coefficients
+```
+```{r}
+summary(square_model)
+str(square_model)
+```
+
+residuals have the same units as y
+
+
+## Accessing Results—Coefficients
+
+The package moderndive contains some useful functions to help us easily access regression output for information and additional analysis.
+
+```{r}
+library(moderndive)
+
+square_model_table <- get_regression_table(square_model)
+
+square_model_table
+```
+
+
+This output is a tibble. Why is this potentially useful to us?
+
+pearson correlation coefficient = r. measure strength of linear relationship. Unitless measure. Goes from -1 to 0 to +1, unitless and standardize. its going to be between these numbers. Zero means hat theres no linear relationship. Ideally the points are just random points on the scatter. The best fit line for it would have zero slope. +1 is perfectly linear with a positive slope. If data is standardize so both x and y had mean 0 and SD = 1, slope = 1. -1 is perfectly linear negative slope. 
+
+Strong or Weak relationsjip depends on dicipline. We can divide into 3rds so 0-.33 is weak, .33-.66 moderate, and .66  - 1 is strong. Vice versa for negative. 
+
+We have cor(var1, var2), order doesn't matter, strength is strength. The value is between -1 to 1.
+
+For our example
+
+```{r}
+anthro_sample %>%
+  summarize(corr = cor(height, armspan))
+```
+That is a r = .91 so a strong positive relationship. 
+
+Turns the table into an accessible structure
+
+lower and upper ci takes the estimate + _ margin of error. Based on SSR and sample size captures random error. I am confidence that b_0 and b_1 are in there ranges. 
+## Accessing Results—Fits and Residuals
+
+```{r}
+square_model_points <- get_regression_points(square_model)
+
+head(square_model_points)
+```
+
+this is a wrapper function. its a function that takes information from another functions. 
+
+
+What are height_hat and residual?
+
+y_hat is our fitted or predicted y. Is what we get when we plug x into the equation
+
+y without hat is our observed
+
+y-y_hat = e is the residual
+
+## Parallel Slopes Model
+
+```{r}
+ggplot(anthro_sample, aes(x = height, y = armspan, color = gender)) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE)
+```
+
+Simple regression but now a set of straights line, same slopes at different intercepts.
+
+
+```{r}
+square_model_pll <- lm(armspan ~ height + gender, data = anthro_sample)
+
+square_model_pll
+```
+
+
+
+```{r}
+# What are the equations of the parallel lines?
+-9.25 + 1.13 *(75)
+
+# ggplot(square_model_points , aes( aes(x = residual))) + geom_density()
+```
+```{r}
+anthro %>%
+  group_by(gender) %>%
+  summarize(mean(ideal))
+
+```
+
+## Assessing Results—R2
+
+
+R2 is the proportion of variation in the y variable explained by the model f(x). It is also known as coefficient of determination.
+
+
+R^2 = 1 - \frac{var(residuals)}{var(y)} = \frac{var(y)-var(residuals)}{var(y)}
+
+0 \le R^2 \le 1
+
+For a deterministic relationship where x is a perfect predictor of y, R2 = 1 (all variation explained).
+
+If x and y have no relationship with respect to the fitted model, R2 = 0 (no variation explained).
+
+R^2 is between 0 and 1. SOmetimes its presented as a percentage. 
+
+It is really, in words. How much variations in y is explained the model / (over) How much variation is in y in the first place?
+
+Y= b_0 + b_1(x) + \sigma
+
+(modelvar/(totalvar)) + (errorvar/(totalvar)) = 1
+
+1 -  errorvar/(totalvar) = modelvar/(totalvar) this is R^2
+
+
+
+```{r}
+ggplot(anthro_sample, aes(x = height, y = armspan)) +
+  geom_point() + 
+  geom_hline(yintercept = mean(anthro_sample$armspan)) +
+  coord_fixed(xlim = c(60, 80), ylim = c(60, 80))
+```
+
+
+R2 for Our Vitruvian Model
+
+
+```{r}
+square_model_points %>% 
+  summarise(R_squared = 1 - var(residual) / var(armspan))
+```
+
+
+```{r}
+summary(square_model)$r.squared
+```
+About 83% of the variability in people's armspans is explained by our model using height.
+
+This means that 17% is explained by other sources that are captured in the error term. 
+
+## Parallel Slopes Model
+
+Suppose we have a situation in which there are subgroups in our data whose models are parallel: they have the same slope but different intercepts.
+
+y = f(x_1, x_2) + \epsilon = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \epsilon
+
+x1 = quantitative predictor variable
+
+x2 = categorical grouping variable
+
+
+If x2 has two categories, represented by 0 and 1…
+
+model_0: \beta_0 + \beta_1 x_1 + \beta_2 (0) = \beta_0 + \beta_1 x_1
+
+model_1: \beta_0 + \beta_1 x_1 + \beta_2 (1) = (\beta_0 + \beta_2) + \beta_1 x_1
+
+```{r}
+ggplot(anthro_sample, aes(x = height, y = armspan, color = gender)) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE)
+```
+
+Simple regression but now a set of straights line, same slopes at different intercepts.
+
+
+
+```{r}
+square_model_pll <- lm(armspan ~ height + gender, data = anthro_sample)
+
+square_model_pll
+```
+We interprety slope as change in y_hat per one unit change in x. 
+
+b_o and (b_1) have units of y
+
+b_0 = units are inches of armspan
+
+b_1 = inches of armspan per inch of height
+
+
+The .87 We add .87 inches of armspan per inch of height
+
+error also has y units
+
+Ex: if female =gender, height = 69
+
+Then y_hat = 6.91 + .875(69) + 2.53(0)
+
+
+```{r}
+6.91 + .875*(69) + 2.53*(0)
+```
+
+
+What are the equations of the two models?
+
+model_F: y_hat = 6.9121 + .87(height)
+
+model_M: y_hat = .69 + .87(height) + 2.53
+
+   
+         y_hat = 9.4 + .87(height)
+
+Now want a data frame. Need a dataset with the predictions in the same format as orginal data.
+
+
+
+```{r}
+summary(square_model_pll)
+```
+We interprety slope as change in y_hat per one unit change in x. 
+
+b_o and (b_1) have units of y
+
+b_0 = units are inches of armspan
+
+b_1 = inches of armspan per inch of height
+
+
+
+
+
+

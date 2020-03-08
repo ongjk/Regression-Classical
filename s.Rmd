@@ -1,0 +1,104 @@
+---
+title: 'Data Manipulation in R with `dplyr`'
+author: 'Author: Jefferson Ong'
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+**Course Link:** [Data Manipulation in R with `dplyr`](https://www.datacamp.com/courses/dplyr-data-manipulation-r-tutorial)
+
+***
+
+**Instructions**
+
+Work through all of the activities in the DataCamp course _Data Manipulation in R with `dplyr`_ and then practice your new skills by completing the following exercises. Use `%>%` whenever possible and try to make your code concise. You are welcome to include additional text or comments. 
+
+HINT: `CRTL + SHIFT + M` on PCs or `CMD + SHIFT + M` on Macs will automatically insert a pipe operator (`%>%`).
+
+***
+
+### Load Packages
+
+Load the packages you need here. Configure the code chunk to suppress any messages that loading packages might generate.
+
+```{r}
+library(dplyr)
+
+library(hflights)
+# load all packages here
+library(ggplot2)
+
+library(nycflights13)
+library(tidyverse)
+library(rmarkdown)
+```
+
+### Create a Dataset
+
+Use `left_join()` to add the information from `airlines` to `flights`. Recall that you learned about `left_join()` in a previous DataCamp course. Save the result as `flightsA`. Run `glimpse()` and `summary()` to show to show the structure and contents.
+
+
+```{r}
+flightsA <- left_join(flights, airlines)
+glimpse(flightsA)
+summary(flightsA)
+```
+
+
+Create a new dataset from `flightsA` that contains only December flights from LaGuardia (LGA) to Atlanta (ATL) and data for the carrier name, day, scheduled departure time, departure and arrival delays, time in the air, and distance traveled (in that order). Change the name of `name` to `carrier_name`. Save the results as `flightsB`. Run `glimpse()` and `summary()` to show to show the structure and contents.
+
+```{r}
+
+```
+
+
+Create three new variables in your dataset: (1) a variable called `loss` that subtracts departure delay time from arrival delay time; (2) a variable called `loss_ratio` that divides `loss` by departure delay; and (3) a variable called `avg_speed` that divides distance traveled by air time, then multiplies the result by 60. Save the results as `flightsC`. Run `glimpse()` and `summary()` to show to show the structure and contents.
+
+```{r}
+
+```
+
+
+Filter `flightsC` using `complete.cases(.)` to remove any rows that contain `NA` values. Also remove the variable `distance` from the dataset, since it is a constant value and no longer needed now that you have done the calculations. Save the results as `flightsD`. Run `glimpse()` and `summary()` to show to show the structure and contents.
+
+```{r}
+
+```
+
+
+Summarise the number of flights, the average departure delay, and the average arrival delay by carrier and arrange by average arrival delay. Save the results as `flightsD`. Run `glimpse()` and to show the structure then print out the contents of `flightsE`.
+
+```{r}
+
+```
+
+
+### Better Workflow!
+
+Can you recreate the `flightsD` dataset using one efficiently-organized piped workflow?
+
+```{r}
+
+```
+
+
+### Two Questions
+
+1) Look at the summary for the calculated variable `loss_ratio`. What values are unusual or potentially problematic for later analyses? What caused this? You may need to do additional explorations on the variable.
+
+ANSWER: 
+
+
+2) Try filtering `flightsD` by `!complete.cases(.)` to produce a dataset containing only cases with missing values. Explore this dataset. What do cases have in common? Why do you think they have missing information?
+
+ANSWER:
+
+
+***
+
+```{r}
+sessionInfo()
+```

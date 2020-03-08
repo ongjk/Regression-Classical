@@ -1,0 +1,467 @@
+---
+title: "Inference for Numerical Data HW"
+author: "Jefferson Ong"
+date: "4/2/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(openintro)
+library(readr)
+library(infer)
+
+GSS_moredays <- read_csv("https://assets.datacamp.com/production/repositories/846/datasets/408f7effbe5b0ef743439636d9aae9aa27a149aa/gss_moredays.csv")
+
+gss <- read_csv("https://assets.datacamp.com/production/repositories/846/datasets/1c0f04aae31ed37d453234a2b373315609492a7e/gss_wordsum_class.csv")
+
+manhattan <- read_csv("https://assets.datacamp.com/production/repositories/846/datasets/bd62fb71666052ffe398d85e628eae9d0339c9c4/manhattan.csv")
+
+```
+
+
+## Bootstrapping for estimating a parameter
+
+
+Bootstrapping techniques
+Assume the data is representative
+Pulling oneself up by one's bootstraps
+
+
+
+Take a bootstrap sample - a random sample taken with
+replacement from the original sample, of the same size as the
+original sample.
+2. Calculate the bootstrap statistic - a statistic such as mean, median,
+proportion, etc. computed on the bootstrap samples.
+3. Repeat steps (1) and (2) many times to create a bootstrap
+distribution - a distribution of bootstrap statistics.
+
+
+Standard error method
+sample statistic ± t × SE
+df for t is n − 1, where n is the sample size
+SE is the standard deviation of the bootstrap distribution
+distribution
+
+
+
+
+```{r}
+# Generate bootstrap distribution of medians
+rent_med_ci <- manhattan %>%
+  # Specify the variable of interest
+  specify(response = rent) %>%  
+  # Generate 15000 bootstrap samples
+  generate(reps = 15000, type = "bootstrap") %>%
+  # Calculate the median of each bootstrap sample
+  calculate(stat = "median")
+
+# Plot the rent_med_ci statistic
+ggplot(rent_med_ci, aes(x = stat)) +
+  # Make it a histogram with a binwidth of 50
+  geom_histogram(binwidth = 50)
+```
+
+```{r}
+# From previous step
+# visit_sd_ci <- ncbirths_complete_visits %>%
+#   specify(response = visits) %>%
+#   generate(reps = 15000, type = "bootstrap") %>%
+#   calculate(stat = "sd")
+#   
+# # Calculate the 90% CI via percentile method
+# visit_sd_ci %>%
+#   summarize(
+#     l = quantile(stat, 0.05),
+#     u = quantile(stat, 0.95)
+#   )
+```
+
+```{r}
+# From previous steps
+n_replicates <- 1500
+weight_mean_ht <- ncbirths %>%
+  specify(response = weight) %>%
+  hypothesize(null = "point", mu = 7) %>% 
+  generate(reps = n_replicates, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+weight_mean_obs <- ncbirths %>%
+  summarize(mean_weight = mean(weight)) %>%
+  pull()
+
+# Calculate p-value
+weight_mean_ht %>%
+  # Filter on stat greater than or equal to weight_mean_obs
+  filter(stat >= weight_mean_obs) %>%
+  # p_val is twice the number of filtered rows divided by the total number of rows
+  summarize(
+    one_sided_p_val = n() / n_replicates,
+    two_sided_p_val = 2 * one_sided_p_val
+  )
+```
+
+
+Re-centering a bootstrap distribution for hypothesis
+testing
+Bootstrap distributions are by design centered at the observed
+sample statistic.
+However since in a hypothesis test we assume that H is true, we
+shift the bootstrap distribution to be centered at the null value.
+p-value = The proportion of simulations that yield a sample statistic
+at least as favorable to the alternative hypothesis as the observed
+sample statistic.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Introducing the t-distribution
+
+t-distribution
+σ is unknown (almost always) →
+∼ t-distribution
+t-distribution is bell shaped but
+has thicker tails the normal
+Observations more likely to fall
+beyond 2 SDs from the mean
+
+
+
+Shape of the t-distribution
+Always centered at 0
+Has one parameter: degrees of freedom (df) - determines thickness
+of tails
+As df increases, the t-distribution approaches the normal
+distribution
+
+
+SE (standard error) = standard deviation of the sampling distribution
+σ unknown:
+SE =
+Use t for inference for a mean
+Only true if certain conditions are satisfied.
+
+
+
+```{r}
+# P(T < 3) for df = 10
+(x <- pt(3, df = 10))
+
+# P(T > 3) for df = 10
+(y <- 1 - x)
+
+# P(T > 3) for df = 100
+(z <- 1 - pt(3, df = 100))
+
+# 95th percentile for df = 10
+(x <- qt(0.95, df = 10))
+
+# Upper bound of middle 95th percent for df = 10
+(y <- qt(0.975, df = 10))
+
+# Upper bound of middle 95th percent for df = 100
+(z <- qt(0.975, df = 100))
+```
+
+```{r}
+# Filter for employed respondents
+acs12_emp <- acs12 %>%
+  filter(employment == "employed")
+
+# Construct 95% CI for avg time_to_work
+t.test(acs12_emp$time_to_work)
+```
+
+
+```{r}
+# From previous step
+textdiff_med_ci <- textbooks %>%
+  specify(response = diff) %>%
+  generate(reps = 15000, type = "bootstrap") %>%
+  calculate(stat = "median")
+
+# Calculate the 90% CI via percentile method
+textdiff_med_ci %>%
+  summarize(
+    l = quantile(stat, 0.025),
+    u = quantile(stat, 0.975)
+  )
+```
+
+
+```{r}
+# From previous steps
+n_replicates <- 15000
+hsb2 <- hsb2 %>%
+  mutate(diff = math - science)
+scorediff_med_ht <- hsb2 %>%
+  specify(response = diff) %>%
+  hypothesize(null = "point", med = 0) %>% 
+  generate(reps = n_replicates, type = "bootstrap") %>% 
+  calculate(stat = "median")
+scorediff_med_obs <- hsb2 %>%
+  summarize(median_diff = median(diff)) %>%
+  pull()
+  
+# Calculate two-sided p-value
+scorediff_med_ht %>%
+  filter(stat >= scorediff_med_obs) %>%
+  summarize(
+    one_sided_p_val = n() / n_replicates,
+    two_sided_p_val = 2 * one_sided_p_val
+  )
+```
+
+
+
+
+
+
+
+
+
+
+## Inference for difference in two parameters
+
+Analysis outline
+Step 2. Set the hypotheses:
+H : μ = μ ; There is no difference between average change in
+treatment and control groups.
+H : μ > μ ; There is a difference between average change in
+treatment and control groups.
+
+Hypothesis test: calculate p-value
+Calculate the p-value as the proportion of simulations where the
+simulated difference between the sample means is at least as extreme
+as the observed
+
+Bootstrap CI for a difference
+1. Take a bootstrap sample of each sample - a random sample taken
+with replacement from each of the original samples, of the same
+size as each of the original samples.
+2. Calculate the bootstrap statistic - a statistic such as difference in
+means, medians, proportion, etc. computed based on the bootstrap
+samples.
+3. Repeat steps (1) and (2) many times to create a bootstrap
+distribution - a distribution of bootstrap statistics.
+4. Calculate the interval using the percentile or the standard error
+method.
+
+```{r}
+stem.cell <- stem.cell %>%
+  mutate(change = after - before)
+  
+# Calculate observed difference in means
+diff_mean <- stem.cell %>%
+  # Group by treatment group
+  group_by(trmt) %>%
+  # Calculate mean change for each group
+  summarize(mean_change = mean(change)) %>% 
+  # Pull out the value
+  pull() %>%
+  # Calculate difference
+  diff()
+
+n_replicates <- 1000
+diff_mean_ht <- stem.cell %>%
+  specify(change ~ trmt) %>% 
+  hypothesize(null = "independence") %>%  
+  generate(reps = n_replicates, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("esc", "ctrl"))
+  
+diff_mean_ht %>%
+  # Filter for simulated test statistics greater than observed
+  filter(stat >= diff_mean) %>%
+  # Calculate p-value
+  summarize(p_val = n() / n_replicates)
+```
+
+```{r}
+ncbirths_complete_habit <- ncbirths %>%
+  filter(!is.na(habit))
+diff_mean_obs <- ncbirths_complete_habit %>%
+  group_by(habit) %>%
+  summarize(mean_weight = mean(weight)) %>%
+  pull() %>%
+  diff()
+n_replicates <- 1000
+diff_mean_ht <- ncbirths_complete_habit %>% 
+  specify(weight ~ habit) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = n_replicates, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("nonsmoker", "smoker")) 
+  
+# Calculate p-value
+diff_mean_ht %>%
+  # Identify simulated test statistics at least as extreme as observed
+  filter(stat <= diff_mean_obs) %>%
+  # Calculate p-value
+  summarize(
+    one_sided_p_val = n() / n_replicates,
+    two_sided_p_val = 2 * one_sided_p_val
+  )
+```
+
+
+```{r}
+# From previous step
+# acs12_complete_hrlypay_citizen <- acs12 %>%
+#   filter(!is.na(hrly_pay), !is.na(citizen))
+# 
+# # Get nuber of rows in full dataset
+# n_all <- nrow(acs12)
+# 
+# # Get number of rows in filtered dataset
+# n_non_missing <- nrow(acs12_complete_hrlypay_citizen)
+# 
+# # Calculate number missing
+# n_missing <- n_all - n_non_missing
+# 
+# # Calculate proportion missing
+# prop_missing <- n_missing / n_all
+# 
+# # From previous step
+# acs12_complete_hrlypay_citizen <- acs12 %>%
+#   filter(!is.na(hrly_pay), !is.na(citizen))
+# 
+# acs12_complete_hrlypay_citizen %>%
+#   # Group by citizen
+#   group_by(citizen) %>%
+#   summarize(
+#     # Calculate mean hourly pay
+#     x_bar = mean(hrly_pay),
+#     # Calculate std dev of hourly pay
+#     s = sd(hrly_pay),
+#     # Count number of rows
+#     n = n()
+#   )
+#   
+# # Using acs12_complete_hrlypay_citizen, plot hrly_pay
+# ggplot(acs12_complete_hrlypay_citizen, aes(x = hrly_pay)) +
+#   # Add a histogram layer
+#   geom_histogram(binwidth = 5) +
+#   facet_grid(rows = vars(citizen))
+# 
+# # Construct 95% CI using a t-test
+# test_results <- t.test(hrly_pay ~ citizen, data = acs12_complete_hrlypay_citizen)
+```
+
+
+Conditions
+Independence:
+Observations in each sample
+should be independent of
+each other.
+The two samples should be
+independent of each other.
+Sample size / skew: The more
+skewed the original data, the
+higher the sample size required
+to have a symmetric sampling
+distribution
+
+
+## Comparing many means
+
+
+
+
+```{r}
+# Run an analysis of variance on wordsum vs. class
+aov_wordsum_class <- aov(wordsum ~ class, data = gss)
+
+# Tidy the model
+# tidy(aov_wordsum_class)
+```
+
+
+```{r}
+# Run a pairwise t-test on wordsum and class, without adjustment
+t_test_results <- pairwise.t.test(gss$wordsum, gss$class, p.adjust.method = "none")
+
+# Tidy the result
+# tidy(t_test_results)
+```
+
+
+
+ANOVA for vocabulary scores vs. self identified social
+class
+H : The average vocabulary score is the same across all social classes,
+μ = μ = μ = μ .
+H : The average vocabulary scores differ between at least one pair of
+social classes.
+
+Variability partitioning
+Total variability in vocabulary score:
+Variability that can be attributed to differences in social class -
+between group variability
+Variability attributed to all other factor - within group variability
+
+
+Conditions for ANOVA
+Independence:
+within groups: sampled observations must be independent
+between groups: the groups must be independent of each other
+(non-paired)
+Approximate normality: distribution of the response variable
+should be nearly normal within each group
+Equal variance: groups should have roughly equal variability
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

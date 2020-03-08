@@ -1,0 +1,432 @@
+---
+title: "Bernoulli and Binomial Distributions"
+author: "Jefferson Ong"
+date: "3/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+## Bernoulli Trials
+
+A Bernoulli trial is a single random event that has two possible outcomes, often called "success" and "failure"
+
+Classic examples include a coin flip where a head is considered success and a tail is considered failure, or one roll of a standard 6-sided die where 1 is success and anything else is failure.
+
+p = probability of success
+
+q = probablity of failure = 1-p
+
+p + q = 1
+
+
+Other probability distributions (e.g., binomial, geometric) model the outcomes of sequences of Bernoulli trials; for example, the number of heads seen in 100 coin flips, or how many times we have to roll a 6-sided die to observe our first 1.
+
+A necessary condition for binomial and geometric distributions is that all of the trials are independent with constant chance of success p on each trial.
+
+Bernoulli trials are named for the Swiss mathematician Jacob Bernoulli (1654-1705), who made important advancements in probability theory, including an early version of the law of large numbers.
+
+## The Binomial Model
+
+The binomial distribution is a discrete probability distribution. It models the number of successes in a sequence of independent Bernoulli trials.
+
+
+
+X \sim Bin(n,p), n is the number of each trial, p is the probablity of each one
+
+x = number of successes = {0, 1, 2, …, n}  sample space
+
+n = number of trials
+
+p = probability of success on a single trial
+
+1 - p = probability of failure on a single trial (sometimes called q)
+
+Uses a continuous number, probablity density function (pdf), area under a point
+
+
+## Probability Mass Function (pmf)
+
+Uses a discrete numbers probability mass function (pmf), can have a solution
+
+
+The probability of a given number of successes x in a Bernoulli model is found using the probability mass function (pmf). This differs somewhat from a continuous pdf.
+
+P(X = x) = f(x) = {n \choose x}p^x(1-p)^{n-x} =
+
+\left( \frac{n!}{x!(n-x)!} \right) p^x(1-p)^{n-x}
+
+This means that n choose x
+
+0! = 1
+
+EX: n = 2, p = .4. P(X = 0) then (2  choose 0)(.4)^0(1-.4)
+^2
+
+FxF = (.6)(.6) = .36
+
+What is the chance of getting one success? so thats S/F or F/S
+
+S/F = (.4)(.6)
+
+F/S = (.6)(.4) add em together since its an or statement = .48
+
+(2 Choose 1)(.4)^1(1-.4)^1
+
+so thats ((2!)/1!1!)(.4)^1(1-.4)^1 = .48
+
+Function in R called ?choose
+
+factorial() or choose()
+
+```{r}
+choose(10, 6)
+```
+
+
+R has a function to solve the pmf for any given binomial model. Inputs may be single values or vectors.
+
+P(X=x) = f(x) = dbinom(x, size, prob)
+
+size is = n, prob is = p
+
+so
+
+```{r}
+dbinom(0, 2, .4) #no success out of 2 trials
+
+dbinom(1, 2, .4) # 1 success 
+
+dbinom(2, 2, .4) # 2 sucess out of 2 trails with a chance of .4
+
+
+dbinom(0:2, 2, .4) # does all of that stuff up there, normal distribution does the same thing. 
+```
+
+
+
+
+## Cumulative Distribution Function (CDF) # This is an integral, it sums from the smallest value to the input value
+
+The probability of a given number of successes or fewer is found using the CDF. This differs slightly from a continuous CDF.
+
+
+F(x)=P(X \leq x) = \sum\limits_{i=0}^x {n \choose i}p^i(1-p)^{n-i}
+
+
+R has a function to solve the pmf for any given binomial model, as well as its inverse. Be careful of the function notation in R!
+
+
+P(X≤x) = F(x) = pbinom(q, size, prob)
+
+P(X>x) = 1−F(x) = use lower.tail = FALSE (carefully)
+
+qth percentile (approx) = F−1(x) = qbinom(p, size, prob)
+
+
+This is a different p from prob = p, this is the probablity like 75% of the area or whatever
+
+
+
+## Expected Value and Variance
+
+The expected (mean) number of successes and the variance of number of successes are found as follows. The expressions for expected value and variance reduce to simpler functions of the two binomial parameters n and p.
+
+E(x) = sum of all X of xf(x) = 0(.36) + 1(.48) + 2(.16) = .8 but this simplify to n * p
+
+E[X] = \sum\limits_{\text{all x}} x f(x) \rightarrow np
+
+Var[X] = \sum\limits_{\text{all x}} (x - \mu)^2 f(x) \rightarrow np(1-p)
+
+SD[X] = \sqrt{Var[X]}
+
+
+## Simulating the Binomial Distribution
+
+In addition to calculating probabilities, we can simulate random binomial values in R using rbinom (n, size, prob).
+
+n = the number of random values we want to generate
+
+size = number of trials (this is the Binomial parameter n)
+
+prob = probability of success on a single trial (parameter p)
+
+Reminder: Take care when using dbinom, pbinom, qbinom, and rbinom—the function notation in R could be confused with the Binomial parameters!
+
+
+## Plotting the Binomial
+
+```{r}
+rbinom(1, 1, .5)  #1 flip of a fair coin, can only be 1 or 0. THis is a single bernueli trial. Half the time its 1 or 0. 
+
+rbinom(1, 1, .6) # weighted towards heads
+
+sim_results <- rbinom(1000000, 1, .5) # one million replications of a fair coin flip. million people, 1 flip
+
+table(sim_results)
+
+
+sim_results2 <- rbinom(1, 10^6, .5) # million flips in 1 trial. will be a single value. 1 person, a million flips
+
+sim_results3 <- rbinom(10^6, 10^6, .5) # Each a million times
+
+hist(sim_results3) # plot of how many heads they got. tend to get around expected value of (half a million)
+
+rbinom(20, 10, .5)
+
+dbinom(0:10, 10, .5) #chance of getting 0 heads in 10 tries, 1, 2, ..10
+```
+
+### Create the Mass Function
+
+```{r}
+n <- 10
+p <- .5
+bin_pmf <- tibble(x = 0:n, probability = dbinom(x, n, p))
+print.data.frame(bin_pmf, digits = 4, row.names = FALSE)
+```
+
+
+
+### Plot the Mass Function
+
+
+```{r}
+ggplot(bin_pmf, aes(x = x, y = probability)) + 
+  geom_bar(stat = "identity", fill = "darkgray") +
+  scale_x_continuous(breaks = 0:n)
+```
+## Shading the Mass Function
+
+```{r}
+bin_pmf <- bin_pmf %>% 
+  mutate(shading = ifelse(x <= 3, "red", "darkgray"))
+ggplot(bin_pmf, aes(x = x, y = probability)) + 
+  geom_bar(stat = "identity", fill = bin_pmf$shading) +  #that shading is a vector of colors
+  scale_x_continuous(breaks = 0:n)
+```
+
+## Binomial Example
+
+Modeling the Zener Test: Distribution
+
+What are the parameters of the appropriate binomial model?
+Calculate the complete pmf and CDF for X = number correct.
+Display the pmf and CDF together in a data frame or tibble.
+What is the expected number of correct guesses?
+What is the probability of getting exactly the expected value?
+What is the variance and SD in number of correct guesses?
+
+### Zener Card Tests
+
+n = number of trials  = 25
+
+p = probability of success  = 1 / 5
+
+success = guessing the symbol on the card
+
+failure = not guessing the symbol on the card
+
+ x = total number of correct cards
+
+X ~ Bin(25, (1/5))
+
+the expected value of X is (n * p)  = 5
+                        = 25 * (1/5)  = 5
+                        
+sample space = X = { 0,  1, 2, ... 25}                       
+          
+```{r}
+n <- 25
+p <- .2
+bin_pmf <- tibble(x = 0:n, 
+                  probability = dbinom(x, n, p),
+                  cumulative = pbinom(x, n, p))
+
+
+
+print.data.frame(bin_pmf, digits = 4, row.names = FALSE)
+```
+The cumulative distribution is the pbinom
+
+exactly 5 is .196
+
+5 or less is about .61
+
+plotting
+
+```{r}
+ggplot(bin_pmf, aes(x = x, y = probability)) + 
+  geom_bar(stat = "identity", fill = "darkgray") +
+  scale_x_continuous(breaks = 0:n)
+```
+
+
+What is var[X] = n * p *(1 - p) = (25)(1/5)(4/5) = 4
+
+What is the SD[X] = Sqrt(var[X]) =sqrt(4) = 2
+
+
+X~Bin(25, (1/5))
+
+P(X >= 10) 
+
+0, 1, 2, 3, ..., 25
+
+We're asking greater or equal to 10 or more
+
+so on the left we got P(X <= 9)
+
+Our pbinom is set up find this number line probability
+
+so our problem is also P(X > 9)
+
+```{r}
+pbinom(9, 25, .2, lower.tail = F) #subtracts the bottom part
+
+
+1 - pbinom(9, 25, .2)
+
+```
+
+
+More than 10 on the other hand is P(X > 10)
+
+on the left side its P(X <= 10)
+
+```{r}
+pbinom(10, 25, .2, lower.tail = F)
+```
+
+Ex: X = 7 what is the chance of getting 7 exactly?
+
+P(X = 7)
+
+```{r}
+dbinom(7, 25, .2)
+```
+
+Hypothesis testing, a more typical question is. What is the chance of getting my result or a more extreme result (upper tail only)?
+
+P(X >= 7)
+
+```{r}
+pbinom(6, 25, .2, lower.tail = F)
+```
+
+Most extreme 5% is a standard rule for statistical significance.
+
+What value of X goes with this rule?
+
+qbinom (q is the inverse of p, I give u a probability I get a value out)
+
+```{r}
+qbinom(.05, 25, .2, lower.tail = F)
+```
+
+
+I'm looking for top 5% so I will put lower.tail = F, because its discrete, we can't get exact 5%. 
+
+To back check it.
+
+```{r}
+pbinom(8, 25, .2, lower.tail = F) # this is greater than 8
+
+pbinom(7, 25, .2, lower.tail = F) # THIS IS 8 OR MORE, too much
+```
+What if I have 50 trials? what is the top 5%?
+
+```{r}
+qbinom(.05, 50, .2, lower.tail = F)
+```
+
+As the sample size goes up the shape changes, can't just scale up linearly. 
+
+# Simulating
+
+what if I simulate a test for one person? what would I need to do? 
+
+simulate 1 test for 1 person
+
+```{r}
+rbinom(1, 25, .2)
+```
+
+simulate 1 test for 18 people
+
+```{r}
+rbinom(18, 25, .2)
+```
+
+If someone is psychic, this person might have a higher P. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

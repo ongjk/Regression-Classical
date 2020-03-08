@@ -1,0 +1,90 @@
+---
+title: 'Challenge #2 (WK4 -- 02/07)'
+author: "Jefferson Ong"
+date: "2/7/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(nycflights13)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+
+draft <- read.csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv"))
+```
+
+
+```{r}
+names(flights)
+str(flights)
+```
+
+```{r}
+flightsP <- flights %>%
+  filter(month == 12, origin == "LGA")
+
+str(flightsP)
+```
+
+```{r}
+ggplot(flightsP, aes(x = arr_delay)) +
+  geom_histogram(bins = 100, aes(y = ..density..)) +
+  geom_density() + 
+  labs(title = " flights originating from LGA in December",
+       x = "delay",
+       caption = "source: nycflights13") 
+
+```
+
+```{r}
+# x = as.numeric(draftnumber) in aes
+
+draft_1970 <- draft %>%
+  filter(draftyear == 1970)
+
+ggplot(draft_1970, aes(x = as.numeric(draftnumber))) +
+    geom_histogram(bins = 10, aes(y = ..density..)) +
+    geom_density() +
+    facet_grid( . ~ halfyear)
+```
+
+
+```{r}
+names(draft_1970)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

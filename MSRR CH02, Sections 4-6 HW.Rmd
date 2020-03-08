@@ -1,0 +1,292 @@
+---
+title: "MSRR CH02, Sections 4-6 HW"
+author: "SOLUTIONS / Jill E. Thomley"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment = "")
+```
+
+***
+
+**Instructions**
+
+Complete the following problems from _Mathematical Statistics with Resampling and R_ and additional example problems using the normal distribution functions in `R`. You can access the textbook datasets on our [Class Data Files](https://stat-jet-asu.github.io/Datasets/DatasetList.html) page or from the `R` package `resampledata`. The textbook examples use base `R`code for plotting, but you `ggplot2` for visualizations. You may use `table()` to make tables, but you should use `dplyr` for other summaries. Refer to the case studies in Chapter 1 to add informative titles and axis labels to your plots and to provide context for your answers.
+
+Load the packages and datasets you need here.
+
+```{r}
+library(resampledata)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(psych)
+```
+
+
+***
+#### Problem 2.7
+
+Part (a)
+
+Note: For summaries, include sample size, mean, standard deviation, five-number summary, skewness, and kurtosis.
+
+```{r}
+str(Spruce)
+
+SpruceHt <- Spruce %>%
+  mutate(Htchange = Height5 - Height0)
+describe(SpruceHt$Htchange)
+```
+
+```{r}
+SpruceHt <- Spruce %>%
+  mutate(Htchange = Height5 - Height0)
+Sprucesum <- describe(SpruceHt$Htchange)
+
+Sprucesum
+str(Sprucesum)
+str(SpruceHt)
+```
+
+Part (b)
+
+Note: Also make a density plot and ecdf plot. As we learned to do in class, include theoretical normal reference curves.
+
+```{r}
+Sprucedat <- SpruceHt %>%
+  mutate(htmean = mean(Htchange), htsd = sd(Htchange))
+
+ggplot(Sprucedat , aes(x = Htchange)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(Sprucedat$htmean, Sprucedat$htsd),   
+                color = "red")
+
+ggplot(Sprucedat, aes(x = Htchange)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(Sprucedat$htmean, Sprucedat$htsd), 
+                color = "red")
+```
+
+
+
+ANSWER: Yep, looks fairly normal
+
+Part (c)
+
+```{r}
+str(Sprucedat)
+```
+
+
+```{r}
+
+
+ggplot(Sprucedat, aes(x = Fertilizer, y = Di.change)) +
+  geom_boxplot()
+```
+
+Part (d)
+
+Note: For summaries, include sample size, mean, standard deviation, five-number summary, skewness, and kurtosis. Use `dplyr` functions rather than `tapply()`.
+
+
+```{r}
+Spruce %>%
+  summarize(meand = mean(Di.change))
+
+# Spruce %>%
+  # group_by(Fertilizer)
+  # summarize(n     = n(Di.change)
+                      # xbar  = mean(Di.change, na.rm = TRUE),
+                     #  stdev = sd(Di.change, na.rm = TRUE),
+                     #  min   = fivenum(Di.change)[1],
+                     # Q1    = fivenum(Di.change)[2],
+                   #   med   = fivenum(Di.change)[3],                  
+                    #  Q3    = fivenum(Di.change)[4],
+                   #   max   = fivenum(Di.change)[5],
+                   #   skew  = skewness(Di.change, na.rm = TRUE),
+                   #   kurt  = kurtosis(Di.change, na.rm = TRUE))
+
+# Code doesn't work, says Di.change not found. Not sure why when top code works
+```
+
+
+
+
+
+Part (e)
+
+```{r}
+ggplot(Sprucedat, aes(x = Ht.change, y = Di.change)) +
+  geom_point()
+```
+
+ANSWER: Looks postively linear
+
+
+***
+#### Problem 2.8
+
+Note: Where the problem asks you to "describe the distribution," discuss the shape and possible outliers. Choose an appropriate number of bins for the histograms.
+
+```{r}
+str(MobileAds)
+```
+
+
+Part (a)
+
+```{r}
+ggplot(MobileAds, aes(x = m.cpc_pre)) +
+  geom_histogram()
+
+ggplot(MobileAds, aes(x = m.cpc_post)) +
+  geom_histogram()
+```
+
+ANSWER: Both are right skewed
+
+Part (b)
+
+Note: Use `mutate` and name the new variable `m.cpc_diff`.
+
+```{r}
+MobileAdsB <- MobileAds %>%
+  mutate(m.cpc_diff = m.cpc_post - m.cpc_pre)
+
+ggplot(MobileAdsB, aes(x = m.cpc_diff)) +
+  geom_histogram()
+```
+
+ANSWER: Looks like a noraml distribution
+
+Part (c)
+
+```{r}
+ggplot(MobileAdsB, aes(sample = m.cpc_diff)) + 
+  stat_qq() +
+  stat_qq_line(color = "red")
+```
+
+ANSWER: No since it looks like half the data is below and the other is above when it should be more scattered. 
+
+
+***
+#### `R` Problem 1
+
+Let the random variable X have a standard normal distribution.
+
+Part (a) : What is P(X < 1.5)?
+
+```{r}
+pnorm( 1.5, 0, 1)
+```
+
+Part (b) : What is P(-2.0 < X < 1.5)?
+
+```{r}
+pnorm(1.5, 0, 1) - pnorm(-2, 0, 1)  # P(-2 <= X <= -1)
+```
+
+Part (c) : What is P(X < -1.75 or X > 1.75)?
+
+```{r}
+pnorm(q = -1.75, 0, 1) + pnorm(1.75, 0, 1, lower.tail = F)
+```
+
+Part (d) : What value of x satisfies P(X < x) = 0.45?
+
+```{r}
+qnorm(.45, 0, 1)
+```
+
+Part (e) : What value of x satisfies P(X ≥ x) = 0.35?
+
+```{r}
+qnorm(1 - .35, 0, 1)
+```
+
+Part (f) : The middle 50% of the area under a standard normal curve lies between what values?
+
+```{r}
+x_1 = qnorm(p = .25, mean = 0, sd = 1)
+
+x_2 = qnorm(p = .75, mean = 0, sd = 1)
+
+x_1 
+x_2
+```
+
+
+***
+#### `R` Problem 2
+
+In Hottsylvania, the mean July midday temperature is 32 °C with a standard deviation of 3 °C. Assume that midday temperatures can be modeled with an approximately normal distribution. July has 31 days.
+
+Part (a) : About how many days should be less than 29.44 °C (about 85 °F)?
+
+```{r}
+pnorm(29.44, 32, 3)
+
+0.1967372 * 31
+```
+
+A: About 6 days
+
+Part (b) : How many days should have a midday temperature between 35 °C and 38 °C?
+
+```{r}
+pnorm(38, 32, 3) - pnorm(35, 32, 3)
+
+0.1359051 * 31
+```
+
+A: About 4 days
+
+Part (c) : The midday temperature of the hottest 30% of days should be greater than what temperature?
+
+```{r}
+qnorm(.3, 32, 3)
+```
+
+A: 30.4268
+
+***
+#### `R` Problem 3
+
+Generate a random sample of size 100 from a standard normal distribution. Create a density plot and a normal probability plot with appropriate theoretical reference curves.
+
+```{r}
+rand_dat <- tibble(unif_sample = runif(100, 0, 1))
+
+rand_stat <- rand_dat %>%
+  summarize(randmean = mean(unif_sample), randsd = sd(unif_sample))
+
+ggplot(rand_dat , aes(x = unif_sample)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(rand_stat$randmean, rand_stat$randsd),   
+                color = "red")
+
+ggplot(rand_dat, aes(x = unif_sample)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(rand_stat$randmean, rand_stat$randsd), 
+                color = "red")
+```
+
+
+
+***
+
+```{r}
+sessionInfo()
+```

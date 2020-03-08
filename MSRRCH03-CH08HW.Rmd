@@ -1,0 +1,455 @@
+---
+title: "HW: MSRR CH03 and CH08"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    theme: yeti
+    highlight: textmate
+---
+
+***
+
+> **INSTRUCTIONS:** Complete the following problems from _Mathematical Statistics with Resampling and R_ and any additional problems created by the instructor. You can access the textbook datasets on our [Class Data Files](https://stat-jet-asu.github.io/Datasets/DatasetList.html) page or from the `R` package `resampledata`. The textbook typically uses base `R` functions, but you should use `dplyr` and `ggplot2` for summaries and visualizations. One exception is `table()`. Some code for chapter examples and problems is provided on the [companion web site](https://sites.google.com/site/chiharahesterberg/chapter-materials-Ed2). Refer to the case studies in Chapter 1, the relevent chapter, or the instructor's dataset descriptions to add informative titles and axis labels to your plots and to provide context for your answers. You should use the [R Style Guide](http://adv-r.had.co.nz/Style.html) and inline `R` code for answers outside code chunks. Load all packages and datasets in the code chunk provided.
+
+```{r chunk_setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+
+### Packages & Datasets
+
+```{r packages&datasets}
+#
+library(resampledata)
+library(tidyverse)
+library(infer)
+library(gtools)
+```
+
+
+***
+### Problem 3.1
+
+Part (a)
+
+```{r}
+#
+a <- c(8, 10, 15)
+
+b <- c(5, 9)
+
+diff_mean <- mean(a) - mean(b)
+diff_mean
+```
+
+# Inclass
+
+```{r}
+values <- c(5, 8, 9, 10, 15)
+
+perms <- permutations(5, 5, values, repeats.allowed = F)
+
+trt_grp <- perms[,1:3]
+ctl_grp <- perms[, 4:5]
+
+perm_diffs <- rowMeans(trt_grp) - rowMeans(ctl_grp)
+
+perms
+trt_grp
+ctl_grp
+perm_diffs
+```
+
+[, ] All the rows and the first 3 columns
+[rows, columns]
+
+```{r}
+sum(perm_diffs >= 4)/120
+
+mean(perm_diffs >= 4)
+```
+
+
+Part (b)
+
+```{r}
+
+
+aperm <- permutations(n=3,r=3,v=a,repeats.allowed=T)
+
+bperm <- permutations(n=2,r=2,v=b,repeats.allowed=T)
+
+diff_meanx <- mean(aperm) - mean(bperm)
+
+aperm
+
+bperm
+diff_meanx
+```
+
+Part (c)
+
+```{r}
+#
+15 - 5
+
+```
+
+A: 15 is the largest possible mean for the experiment group while 5 would be the lowest for the control. The greatest in terms of difference of proportion would be 5:15 or 1:3
+
+Part (d)
+
+```{r}
+mean(bperm) - diff_mean
+
+mean(aperm)
+
+(8 + 8 + 10) / 3
+(8 + 8 + 15) / 3
+```
+A: The means of the control group are 5, 7, 7, 9. while the mean of the treatment group's lowest number is 8. Only 9 could be bigger. 9 would only be bigger than 2/27 of the treatment group. 
+
+***
+### Problem 3.5
+
+Part (a)
+
+```{r}
+FlightDelays <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/FlightDelays.csv")
+
+N<-10^4-1
+UA.Delay <- FlightDelays %>% filter(Carrier == "UA") %>% pull(Delay)
+AA.Delay <- FlightDelays %>% filter(Carrier == "AA") %>% pull(Delay)
+
+observedSumUA <- sum(UA.Delay)
+observedmeanUA <- mean(UA.Delay)
+observedmeanDiff <- mean(UA.Delay) - mean(AA.Delay)
+m <-length(UA.Delay)  #number of UA observations
+
+sumUA<-numeric(N)
+meanUA<-numeric(N)
+meanDiff<-numeric(N)
+
+set.seed(0)
+for (i in 1:N)
+{
+  index <- sample(4029,  m, replace = FALSE)
+  sumUA[i] <- sum(FlightDelays$Delay[index])
+  meanUA[i] <- mean(FlightDelays$Delay[index])
+  meanDiff[i] <- mean(FlightDelays$Delay[index]) - mean(FlightDelays$Delay[-index])
+
+}
+
+(sum(sumUA >= observedSumUA) + 1)/(N + 1)  #P-value
+
+(sum(meanUA >= observedmeanUA) + 1)/(N + 1)  #P-value
+
+(sum(meanDiff >= observedmeanDiff) + 1)/(N + 1)  #P-value
+
+```
+
+
+A: Yes it is. P-value is quiet small meaning that theres evidence to reject the null there there are no difference. 
+
+Part (b)
+
+```{r}
+str(FlightDelays)
+```
+
+
+
+```{r}
+#
+
+N<-10^4-1
+June.Delay <- FlightDelays %>% filter(Month == "June") %>% pull(Delay)
+May.Delay <- FlightDelays %>% filter(Month == "May") %>% pull(Delay)
+
+observedSumJune <- sum(June.Delay)
+observedmeanMay <- mean(May.Delay)
+observedmeanDiff <- mean(June.Delay) - mean(May.Delay)
+m <-length(June.Delay)  #number of UA observations
+
+sumJune<-numeric(N)
+meanJune<-numeric(N)
+meanDiff<-numeric(N)
+
+set.seed(0)
+for (i in 1:N)
+{
+  index <- sample(4029,  m, replace = FALSE)
+  sumJune[i] <- sum(FlightDelays$Delay[index])
+  meanJune[i] <- mean(FlightDelays$Delay[index])
+  meanDiff[i] <- mean(FlightDelays$Delay[index]) - mean(FlightDelays$Delay[-index])
+
+}
+
+(sum(sumJune >= observedSumJune) + 1)/(N + 1)  #P-value
+
+(sum(meanJune >= observedmeanMay) + 1)/(N + 1)  #P-value
+
+(sum(meanDiff >= observedmeanDiff) + 1)/(N + 1)  #P-value
+```
+
+A: Yes the difference between the months are statistically significance. It makes a difference. 
+
+
+***
+### Problem 3.6
+
+Part (a)
+```{r}
+str(UA.Delay)
+str(AA.Delay)
+```
+
+
+```{r}
+UA.Delay <- FlightDelays %>% filter(Carrier == "UA") %>% pull(Delay)
+AA.Delay <- FlightDelays %>% filter(Carrier == "AA") %>% pull(Delay)#
+
+
+observed3 <- mean(UA.Delay > 20) - mean(AA.Delay > 20)
+observed3
+
+#ratio of variances
+observed4 <- var(UA.Delay)/var(AA.Delay)
+observed4
+
+N <- 10^4-1  #set number of times to repeat this process
+#set.seed(99)
+ result3 <- numeric(N)
+ result4 <- numeric(N)
+
+ for(i in 1:N) {
+  index <- sample((1123 + 2906), size = 1123, replace = FALSE)
+  result3[i] <- mean(FlightDelays$Delay[index] > 20) - mean(FlightDelays$Delay[-index] > 20)
+  result4[i] <- var(FlightDelays$Delay[index])/var(FlightDelays$Delay[-index])
+  }
+
+ ggplot() + geom_histogram(aes(result3)) + geom_vline(xintercept=observed3, colour="red") + xlab("difference in proportions")
+
+#P-value difference in means
+(sum(result3 <= observed3) + 1)/(N+ 1)
+ 
+```
+A: Maintain null since p-value is .99
+
+
+
+
+Part (b)
+
+Note: Use the *ratio* of variances, not difference.
+
+```{r}
+#
+
+ggplot() + geom_histogram(aes(result4)) + geom_vline(xintercept=observed4, colour="red") +   xlab("variance1/variance2")
+
+(sum(result4 <= observed4) + 1)/(N+ 1)  #P-value
+```
+
+A: Unsure on hwo to interpret variance but I imagine this means that both flights didn't have a large variance to make an extreme difference. 
+
+
+***
+### Problem 3.10 and Problem 8.8
+
+Part 3.10 (all)
+
+```{r}
+#
+C.Height5 <- Spruce %>% filter(Competition == "C") %>% pull(Height5)
+NC.Height5 <- Spruce %>% filter(Competition == "NC") %>% pull(Height5)
+str(Spruce)
+str(C.Height5)
+str(NC.Height5)
+```
+
+```{r}
+C.Height5 <- Spruce %>% filter(Competition == "C") %>% pull(Height5)
+NC.Height5 <- Spruce %>% filter(Competition == "NC") %>% pull(Height5)#
+
+
+observed3 <- mean(C.Height5) - mean(NC.Height5)
+observed3
+
+#ratio of variances
+observed4 <- var(C.Height5)/var(NC.Height5)
+observed4
+
+N <- 10^4-1  #set number of times to repeat this process
+#set.seed(99)
+ result3 <- numeric(N)
+ result4 <- numeric(N)
+
+ for(i in 1:N) {
+  index <- sample((72), size = 36, replace = FALSE)
+  result3[i] <- mean(Spruce$Height5[index]) - mean(Spruce$Height5[-index])
+  result4[i] <- var(Spruce$Height5[index])/var(Spruce$Height5[-index])
+  }
+
+ ggplot() + geom_histogram(aes(result3)) + geom_vline(xintercept=observed3, colour="red") + xlab("difference in proportions")
+
+#P-value difference in means
+(sum(result3 <= observed3) + 1)/(N+ 1)
+```
+
+
+CONCLUSIONS: Reject NULL with p - value of 1e-04. meaning that competition from other plants does make a difference. 
+
+Part 8.8 (a)
+
+Note: Perform a two-sample *t*-test for means.
+
+```{r}
+#
+t.test(Height5 ~ Competition, data = Spruce)
+```
+
+CONCLUSIONS: Yes there is a difference with a p-value of 1.52e-05
+
+Part 8.8 (b)
+
+IMPLICATIONS FOR CAUSATION: Removing competition for the plants such as weeds helped the seedling grow at a faster rate. 
+
+
+***
+### Problem 3.12
+
+Part (a)
+
+```{r}
+#
+str(Recidivism)
+
+```
+
+```{r}
+Recidivismprop <- Recidivism %>%
+  summarise(propRe = mean(Recid == "Yes"))
+
+table(Recidivismprop)
+
+RecidivismpropB <- Recidivism %>%
+  filter(Offense == "Misdemeanor") %>%
+  summarise(propReB = mean(na.omit(Recid == "Yes"))) 
+
+
+table(RecidivismpropB)
+# 
+# Test1 <- Recidivism %>%
+#   filter(Offense == "Misdemeanor")
+# 
+# Test1$Recid
+```
+
+
+Part (b)
+
+```{r}
+RecidivismYes <- Recidivism %>% filter(Recid == "Yes")
+ MisdemeanorRecid <- RecidivismYes %>% filter(Offense == "Misdemeanor") %>% pull(Days)
+ DefaultRecid <- RecidivismYes  %>% pull(Days)
+str(MisdemeanorRecid)
+str(DefaultRecid)
+```
+
+
+```{r}
+#
+RecidivismYes <- Recidivism %>% filter(Recid == "Yes")
+ MisdemeanorRecid <- RecidivismYes %>% filter(Offense == "Misdemeanor") %>% pull(Days)
+ DefaultRecid <- RecidivismYes  %>% pull(Days)
+ 
+  observed3 <- mean(DefaultRecid) - mean(MisdemeanorRecid)
+ observed3
+ 
+ #ratio of variances
+ observed4 <- var(DefaultRecid)/var(MisdemeanorRecid)
+ observed4
+ 
+ N <- 10^4-1  #set number of times to repeat this process
+ #set.seed(99)
+  result3 <- numeric(N)
+  result4 <- numeric(N)
+ 
+  for(i in 1:N) {
+   index <- sample((1091 + 5386), size = 1091, replace = FALSE)
+   result3[i] <- mean(RecidivismYes$Days[index]) - mean(RecidivismYes$Days[-index])
+   result4[i] <- var(RecidivismYes$Days[index])/var(RecidivismYes$Days[-index])
+   }
+ 
+  ggplot() + geom_histogram(aes(result3)) + geom_vline(xintercept=observed3, colour="red") + xlab("difference in proportions")
+ 
+#  P-value difference in means
+ (na.omit(sum(result3 <= observed3) + 1)/(N+ 1))
+
+```
+
+CONCLUSIONS: Unsure completely whats going on with graph/p-value. Theoretical there is difference of about 12 in the means. 
+
+
+***
+### Problem 3.13
+
+```{r}
+#
+str(Recidivism)
+
+RecidivismYes <- Recidivism %>% filter(Recid == "Yes")
+ UnderRecid <- RecidivismYes %>% filter(Age25 == "Under 25") %>% pull(Days)
+ OverRecid <- RecidivismYes %>% filter(Age25 == "Over 25") %>% pull(Days)
+ 
+ str(UnderRecid)
+  str(OverRecid)
+  
+  
+```
+
+```{r}
+
+RecidivismYes <- Recidivism %>% filter(Recid == "Yes")
+ UnderRecid <- RecidivismYes %>% filter(Age25 == "Under 25") %>% pull(Days)
+ OverRecid <- RecidivismYes %>% filter(Age25 == "Over 25") %>% pull(Days)#
+ 
+ observed3 <- mean(UnderRecid) - mean(OverRecid)
+ observed3
+ 
+ #ratio of variances
+ observed4 <- var(UnderRecid)/var(OverRecid)
+ observed4
+ 
+ N <- 10^4-1  #set number of times to repeat this process
+ #set.seed(99)
+  result3 <- numeric(N)
+  result4 <- numeric(N)
+ 
+  for(i in 1:N) {
+   index <- sample((1123 + 4263), size = 1123, replace = FALSE)
+   result3[i] <- mean(RecidivismYes$Days[index]) - mean(RecidivismYes$Days[-index])
+   result4[i] <- var(RecidivismYes$Days[index])/var(RecidivismYes$Days[-index])
+   }
+ 
+  ggplot() + geom_histogram(aes(result3)) + geom_vline(xintercept=observed3, colour="red") + xlab("difference in proportions")
+ 
+#  P-value difference in means
+ (sum(result3 <= observed3) + 1)/(N+ 1)
+```
+```{r}
+ (sum(result3 <= observed3) + 1)/(N+ 1)
+```
+
+CONCLUSIONS: Small P-Value, means reject NULL, that for those who recided there is a difference in the number of days depending on their age. 
+
+
+***
+```{r}
+sessionInfo()
+```

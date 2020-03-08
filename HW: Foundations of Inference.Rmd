@@ -1,0 +1,343 @@
+---
+title: 'HW: Foundations of Inference'
+author: 'Jefferson Ong'
+date: '`r format(Sys.time(), "%B %d, %Y @ %I:%M %p")`'
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    theme: yeti
+    highlight: textmate
+---
+
+**DataCamp Course Link:** [Foundations of Inference](https://www.datacamp.com/courses/foundations-of-inference)
+
+***
+
+> **INSTRUCTIONS:** Complete the exercises below, which are based on the activities in the DataCamp course. In each case, perform a permutation hypothesis test with 10^4^ reps. Include in your output: (1) the null and alternative hypotheses; (2) proportion summaries for both groups; (3) difference in proportions (test statistic); (4) a plot of the permutation results including a vertical line representing the test statistic; (5) p-value; and (6) Whether you reject the null hypothesis and what you conclude from the data. You should use the [R Style Guide](http://adv-r.had.co.nz/Style.html) for your document. Load all packages in the code chunk provided. The datasets have been loaded for you.
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(infer)
+```
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+```{r packages&datasets}
+disc <- tibble(promote = rep(c("promoted", "not_promoted"), c(35, 13)),
+               sex = rep(rep(c("male", "female"), 2), c(21, 14, 3, 10)))
+
+disc_big <- readRDS(gzcon(url("https://assets.datacamp.com/production/repositories/538/datasets/f03da8fc4a2ae50a3ddf775324f4df90c96f7f26/disc_big.rds")))
+
+opportunity <- tibble(decision = rep(c("buyDVD", "nobuyDVD"), c(97, 53)),
+                      group = rep(rep(c("control", "treatment"), 2), c(56, 41, 19, 34)))
+```
+
+Different sample size, changes the p-value since one is 10x the sample size.
+
+Opportunity is buy or no buy, whether people will save money. 
+
+Research question(datacamp) whether women are discriminated or not. Are men more likely to get promoted than women? In statistic, is the proportion of men greater than women in being promoted?
+
+NULL hypothesis is that nothing is going on. There's nothing going on, everything is normal. Copy down the H_o and H_a. Formal logical process, that starts with 2 binary statement that you can only have one at a time. Court system that we assume you're innocent before guilty. 
+
+
+
+### <span style="font-size: 100%; color: #2780E3;">&#9312;</span> Hypothesis Test 1: `disc` Data
+
+H0: gender and promotion are unrelated variables.
+
+HA: men are more likely to be promoted.
+
+
+```{r}
+# Create a contingency table summarizing the data
+disc %>%
+  # Count the rows by sex, promote
+  count(sex, promote)
+
+# Find proportion of each sex who were promoted
+disc %>%
+  # Group by sex
+  group_by(sex) %>%
+  # Calculate proportion promoted summary stat
+  summarise(promoted_prop = mean(promote == "promoted")) 
+
+table(disc)
+```
+
+```{r}
+# Replicate the entire data frame, permuting the promote variable
+disc_perm <- disc %>%
+  specify(promote ~ sex, success = "promoted") %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 5, type = "permute")
+
+disc_perm %>%
+  # Group by replicate
+  group_by(replicate) %>%
+  # Count per group
+  count()
+
+disc_perm %>%
+  # Calculate difference in proportion, male then female
+  calculate(stat = "diff in props", order = c("male", "female"))
+```
+```{r}
+# Calculate the observed difference in promotion rate
+# diff_orig <- disc %>%
+#   # Group by sex
+#   group_by(sex) %>%
+#   # Summarize to calculate fraction promoted
+#   summarize(prop_prom = mean(promote == "promoted")) %>%
+#   # Summarize to calculate difference
+#   summarize(stat = diff(prop_prom)) %>% 
+#   pull()
+#   
+# See the result
+# diff_orig
+
+# Create data frame of permuted differences in promotion rates
+disc_perm <- disc %>%
+  # Specify promote vs. sex
+  specify(promote~sex, success = "promoted") %>%
+  # Set null hypothesis as independence
+  hypothesize(null = "independence") %>%
+  # Generate 1000 permutations
+  generate(reps = 1000, type = "permute") %>%
+  # Calculate difference in proportions
+  calculate(stat = "diff in props", order = c("male", "female"))
+
+# From previous steps
+ diff_orig <- disc %>%
+   group_by(sex) %>%
+    summarise(prop_prom = mean(promote == "promoted")) %>%
+    summarise(stat = diff(prop_prom)) %>% 
+    pull()
+ disc_perm <- disc %>%
+   specify(promote ~ sex, success = "promoted") %>%
+   hypothesize(null = "independence") %>%
+   generate(reps = 1000, type = "permute") %>%
+   calculate(stat = "diff in props", order = c("male", "female"))
+   
+ # Using permutation data, plot stat
+ ggplot(disc_perm, aes(x = stat)) + 
+   # Add a histogram layer
+   geom_histogram(binwidth = 0.01) +
+   # Add a vertical line at diff_orig
+   geom_vline(aes(xintercept = diff_orig), color = "red")
+```
+
+```{r}
+# Visualize and calculate the p-value for the original dataset
+disc_perm %>%
+  visualize(obs_stat = diff_orig, direction = "greater")
+
+disc_perm %>%
+  get_p_value(obs_stat = diff_orig, direction = "greater")
+
+```
+
+Since the p-value is less than 5% we reject the null hypothesis and find that there is a relationship in this data with being promoted and gender. 
+
+
+
+
+### <span style="font-size: 100%; color: #2780E3;">&#9313;</span> Hypothesis Test 2: `disc_large` Dataset
+
+H0: gender and promotion are unrelated variables.
+
+HA: men are more likely to be promoted.
+
+```{r}
+disc_big %>%
+  # Count the rows by sex, promote
+  count(sex, promote)
+
+# Find proportion of each sex who were promoted
+disc_big %>%
+  # Group by sex
+  group_by(sex) %>%
+  # Calculate proportion promoted summary stat
+  summarise(promoted_prop = mean(promote == "promoted")) 
+```
+
+```{r}
+# Replicate the entire data frame, permuting the promote variable
+disc_permW <- disc_big %>%
+  specify(promote ~ sex, success = "promoted") %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 5, type = "permute")
+
+disc_permW %>%
+  # Group by replicate
+  group_by(replicate) %>%
+  # Count per group
+  count()
+
+disc_permW %>%
+  # Calculate difference in proportion, male then female
+  calculate(stat = "diff in props", order = c("male", "female"))
+```
+
+```{r}
+# Create data frame of permuted differences in promotion rates
+disc_permW <- disc_big %>%
+  # Specify promote vs. sex
+  specify(promote~sex, success = "promoted") %>%
+  # Set null hypothesis as independence
+  hypothesize(null = "independence") %>%
+  # Generate 1000 permutations
+  generate(reps = 1000, type = "permute") %>%
+  # Calculate difference in proportions
+  calculate(stat = "diff in props", order = c("male", "female"))
+
+# From previous steps
+ diff_origW <- disc_big %>%
+   group_by(sex) %>%
+    summarise(prop_prom = mean(promote == "promoted")) %>%
+    summarise(stat = diff(prop_prom)) %>% 
+    pull()
+ disc_permW <- disc_big %>%
+   specify(promote ~ sex, success = "promoted") %>%
+   hypothesize(null = "independence") %>%
+   generate(reps = 1000, type = "permute") %>%
+   calculate(stat = "diff in props", order = c("male", "female"))
+   
+ # Using permutation data, plot stat
+ ggplot(disc_permW, aes(x = stat)) + 
+   # Add a histogram layer
+   geom_histogram(binwidth = 0.01) +
+   # Add a vertical line at diff_orig
+   geom_vline(aes(xintercept = diff_origW), color = "red")
+```
+
+```{r}
+disc_permW %>%
+  visualize(obs_stat = diff_origW, direction = "greater")
+
+disc_permW %>%
+  get_p_value(obs_stat = diff_origW, direction = "greater")
+
+```
+
+We reject the null hypothesis again. Since the p-value is less than 5% we reject the null hypothesis and find that there is a relationship in this data with being promoted and gender. 
+
+
+
+
+### <span style="font-size: 100%; color: #2780E3;">&#9314;</span> Hypothesis Test 3: `opportunity` Dataset
+
+H0: Reminding students will have no impact on their spending decisions. 
+
+HA: Reminding students will reduce the chance they continue with a purchase.
+
+```{r}
+table(opportunity)
+```
+
+
+```{r}
+# Tabulate the data
+opportunity %>%
+  count(decision, group)
+
+# Find the proportion who bought the DVD in each group
+opportunity %>%
+  group_by(group) %>%
+  summarize(buy_prop = mean(decision == "buyDVD"))
+```
+
+```{r}
+# Calculate the observed difference in purchase rate
+diff_obs <- opportunity %>%
+  # Group by group
+  group_by(group) %>%
+  # Calculate proportion deciding to buy a DVD
+  summarise(prop_buy = mean(decision == "buyDVD")) %>%
+  # Calculate difference between groups
+  summarise(stat = diff(prop_buy)) %>% 
+  pull()
+    
+# Review the result
+diff_obs
+
+# Create data frame of permuted differences in purchase rates
+opp_perm <- opportunity %>%
+  # Specify decision vs. group, where success is buying a DVD
+  specify(decision ~ group, success = "buyDVD") %>%
+  # Set the null hypothesis to independence
+  hypothesize(null = "independence") %>%
+  # Generate 1000 reps of type permute
+  generate(reps = 1000, type = "permute") %>%
+  # Calculate the summary stat difference in proportions
+  calculate(stat = "diff in props", order = c("treatment", "control"))
+    
+# Review the result
+opp_perm
+  
+# Using the permuation data, plot stat
+ggplot(opp_perm, aes(x = stat)) + 
+  # Add a histogram layer with binwidth 0.005
+  geom_histogram(binwidth = 0.005) +
+  # Add a vline layer with intercept diff_obs
+  geom_vline(aes(xintercept = diff_obs), color = "red")
+```
+```{r}
+# Visualize the statistic 
+opp_perm %>%
+  visualize(obs_stat = diff_orig, direction = "less")
+
+# Calculate the p-value using `get_p_value`
+opp_perm %>%
+  get_p_value(obs_stat = diff_orig, direction = "less")
+
+# Calculate the p-value using `summarize`
+opp_perm %>%
+  summarise(p_value = mean(stat <= diff_orig))
+```
+
+P value is greater than 5% so we do not reject the null hypothesis and that reminding students has no effect on buying.
+
+## All the conclusions contradicted what was said in class and in datacamp so i'm not completely sure whats going on. However I just followed whether to reject or not base on the p-value. 
+
+
+
+1: Hypothesis
+
+2: Descriptive summary
+
+3: Diff. in prop(test stat)
+
+4: simulation in plot
+
+5: p - value
+
+diff_orig can be called observed difference in the data (2). Then show the actualy difference in proportion (3)
+
+"randomzing gender discrimination" (3), (4)
+
+---
+
+What prop. of simulated results are > diff_orig? (finding p -value)
+
+disc_perm is my sim results
+
+diff_orig is actual data
+
+mean(disc_perm > diff_orig), get_p_value() does this
+
+
+
+
+Uses infer package
+
+***
+```{r}
+sessionInfo()
+```

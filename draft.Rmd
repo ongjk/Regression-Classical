@@ -1,0 +1,116 @@
+---
+title: "draft"
+author: "Jefferson Ong"
+date: "1/23/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+draft <- read.csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv"))
+```
+
+```{r}
+attributes(draft)$names
+attributes(draft)$class
+```
+
+```{r}
+dim(draft)
+dim(draft)[1] #first element
+dim(draft)[2] #second element
+class(dim(draft)) # integer vector out
+```
+
+```{r}
+names(draft)
+nrow(draft)
+ncol(draft)
+```
+```{r}
+head(draft) 
+tail(draft)
+```
+
+```{r}
+head(draft)[,3]
+
+head(draft)[2,]
+```
+
+
+
+
+
+```{r}
+sum(complete.cases(draft))
+sum(!complete.cases(draft))
+```
+```{r}
+length(draft)
+
+#  datasetname$variablename
+
+length(draft$month)
+```
+```{r}
+summary(draft)
+#year is ordinal
+
+```
+```{r}
+str(draft)
+```
+```{r}
+which(is.na(draft$draftnumber) == TRUE)
+
+# is.na(draft$draftnumber) does a logical test and creates a true/false vector
+
+# "which" will extracts the location of the == TRUE
+
+draft$draftnumber[426] #has the NA value
+draft$draftnumber[1157] #has the number in it
+```
+```{r}
+index <- which(is.na(draft$draftnumber) == TRUE)
+draft[index,]
+```
+
+```{r}
+draft[index, ]
+draft[426, ]
+draft[1158, ]
+
+```
+draft[i, j]
+i = row # or name
+j = cikumn # or name
+
+```{r}
+draft[index, 1:2]
+```
+
+```{r}
+draft[index, 1:3]
+```
+
+```{r}
+draft[index, "day"]
+```
+```{r}
+draft[index, c("month", "day", "draftyear")]
+```
+
+
+
+
+
+
+
+
+
+
+

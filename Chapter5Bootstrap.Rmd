@@ -1,0 +1,1116 @@
+---
+title: "Chapter 5 Bootstrap"
+author: "Chihara-Hesterberg"
+date: "November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+library(dplyr)
+library(ggplot2)
+library(infer)
+```
+
+###Example 5.2
+```{r}
+my.sample <- rgamma(16, 1, 1/2)
+
+N <- 10^5
+my.boot <- numeric(N)
+for (i in 1:N)
+ {
+  x <- sample(my.sample, 16, replace = TRUE)  #draw resample
+  my.boot[i] <- mean(x)                     #compute mean, store in my.boot
+  }
+
+ggplot() + geom_histogram(aes(my.boot), bins=15)
+
+mean(my.boot)  #mean
+sd(my.boot)    #bootstrap SE
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+###Example 5.3
+
+Arsenic in wells in Bangladesh
+```{r}
+Bangladesh <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Bangladesh.csv")
+
+ggplot(Bangladesh, aes(Arsenic)) + geom_histogram(bins = 15)
+
+ggplot(Bangladesh, aes(sample = Arsenic)) + stat_qq() + stat_qq_line() 
+
+Arsenic <- pull(Bangladesh, Arsenic)
+
+#Alternatively
+#Arsenic <- Bangladesh$Arsenic
+
+n <- length(Arsenic)
+N <- 10^4
+
+arsenic.mean <- numeric(N)
+
+for (i in 1:N)
+{
+   x <- sample(Arsenic, n, replace = TRUE)
+   arsenic.mean[i] <- mean(x)
+}
+
+ggplot() + geom_histogram(aes(arsenic.mean), bins = 15) + 
+  labs(title = "Bootstrap distribution of means") + 
+  geom_vline(xintercept = mean(Arsenic), colour = "blue")
+
+df <- data.frame(x = arsenic.mean)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(arsenic.mean)                 #bootstrap mean
+mean(arsenic.mean) - mean(Arsenic) #bias
+sd(arsenic.mean)                   #bootstrap SE
+
+sum(arsenic.mean > 161.3224)/N
+sum(arsenic.mean < 89.75262)/N
+
+# sampling theory. If this sample is a random sample from the pop. the odds are good that it looks like the pop. values that are common in pop. happens in pop. 
+#Bootstrapping means that our sample is our estimated model for the population. Then use that as a probability model. We will sample WITH replacement. because we're treating the sample as a probability model, we want it to be independent thats why we're replacement. Will sample the exact same size. 
+```
+#### Example 5.31
+
+Descriptive statistic. Estimation, Based on a sample mean X_bar, I want to estimate the population mean \mu. This is Inferential statistics. I will use data and theory to make an educated guess (inference). 
+
+What kind of theory can I use? 
+
+Step 1: I could use an assymtotic theory. The central limit theorem, if I have a reasonably large iid random sample from a population w/ mean \mu and variance \sigma^2. Then X_bar ~ N( \mu, (\sigma^2/n)) where n is the sample size. 
+
+"Reasonably large" depends on population shape.. our best guess about pop. shape is the shape of the sample. 
+
+```{r}
+# Bangladesh <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Bangladesh.csv")
+# 
+# ggplot(Bangladesh, aes(Arsenic)) + geom_histogram(bins = 15)
+# 
+# ggplot(Bangladesh, aes(sample = Arsenic)) + stat_qq() + stat_qq_line()  # Assesses normality
+# 
+# Arsenic <- pull(Bangladesh, Arsenic)
+# #Alternatively
+# #Arsenic <- Bangladesh$Arsenic
+# 
+# n <- length(Arsenic)
+# N <- 10^4
+# 
+# arsenic.mean <- numeric(N)
+# 
+# for (i in 1:N)
+# {
+#    x <- sample(Arsenic, n, replace = TRUE)
+#    arsenic.mean[i] <- mean(x)
+# }
+# 
+# ggplot() + geom_histogram(aes(arsenic.mean), bins = 15) + 
+#   labs(title = "Bootstrap distribution of means") + 
+#   geom_vline(xintercept = mean(Arsenic), colour = "blue")
+# 
+# df <- data.frame(x = arsenic.mean)
+# ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+# 
+# mean(arsenic.mean)                 #bootstrap mean
+# mean(arsenic.mean) - mean(Arsenic) #bias
+# sd(arsenic.mean)                   #bootstrap SE
+# 
+# sum(arsenic.mean > 161.3224)/N
+# sum(arsenic.mean < 89.75262)/N
+
+
+
+arsenic_summ <- Bangladesh %>%
+  summarise(xbar = mean(Arsenic), 
+            s = sd(Arsenic))
+
+print(arsenic_summ)
+
+ggplot(Bangladesh, aes(Arsenic)) + 
+  geom_histogram(bins = 15)
+
+ggplot(Bangladesh, aes(sample = Arsenic)) + 
+  stat_qq() + 
+  stat_qq_line()
+
+ggplot(Bangladesh, aes(Arsenic)) + 
+  geom_density()
+
+ggplot(Bangladesh, aes(x = 1, y = Arsenic)) + 
+  geom_boxplot()
+```
+
+This means that the central limit theorem needs a huge number of data sicne it is skewed so heavily. 
+
+X_bar (sample mean) = 125.3 (10 is safe by fda standard). This is the point estimate; x_bar estimates \mu 
+
+How close to the truth( \mu) do I think I am? Use an interval
+
+I am going to use the variability data from the sample to help estimate a range of possible values for \mu. We're going to call this interval estimate. So its point estimate +/- ME (marinal error)
+
+This yields an interval of possible (likely) values for the mean \mu
+
+----
+
+The most common (historically) method for x_bar are 95% confidence intervals using CLT and normal theory (normal distribution). If we think about the bell curve and got a mean and middle 95%, we're looking at the two boundaries on both sides. So mean minus and mean plus something on either side. 
+
+mu +/- multiplier of sigma (multiplier depends on waht middle % I want)
+
+CLT says that X_bar~ N( \mu, sigma^2/n)
+
+sd = sqrt(sigma^2/n) = sigma/(sqrt(n))
+
+mean +/- multiplier (sigma/(sqrt(n))) the standard dev of the dist. of X_bar
+
+If I know sigma but not mu (manufacturing). 
+
+First step is stick in a good estimate for pop. val. I can estimate mu with x_bar
+
+Now I have X_bar +/- Z (sigma/(sqrt(n)))
+
+For a P% CI, Z is the value on the standard normal curve that gives the middle P%
+
+----
+
+If I want to middle 95% of a standard normal curve. What is Z(on the right) so its about 1.96, a 95% CI for mu based on X_bar with sigma known
+
+X_bar +/- 1.96(sigma/(sqrt(n)))
+
+```{r}
+qnorm(.975, 0, 1)
+```
+
+But we normally don't know sigma, so we're forced to estimate sigma with a sample standard deviation S, but don't have a bell(normal)-curve anymore.
+
+X_bar +/- ____(sigma/(sqrt(n)))
+
+SO therse another curve thats very similar to the normal curve, 
+
+### The T curve, similar to normal but fatter in tails(more areas in the sides). The smaller the sample size the fatter the ends, the bigger the sample size the closer it is to the normal
+
+T-curve, centered on zero with sd depend on sample size.
+
+critical parameters = df(degrees of freedom) which are functions of n. 
+
+
+```{r}
+#Traditional confidence interval using formula
+
+arsenic_summ <- Bangladesh %>%
+  summarise(xbar = mean(Arsenic), 
+            s = sd(Arsenic))
+
+arsenic_summ$xbar - qt(.975, 270) * arsenic_summ$s / sqrt(271)
+
+
+arsenic_summ$xbar + (qt(.975, 270)) * (arsenic_summ$s) / sqrt(271)
+
+# df = n - 1 = 271 - 1 = 270
+# qt(.975, 270) this is t
+
+
+# xbar -() t )* (s) / sqrt(n)
+# 
+# xbar + t * s / sqrt(n)
+
+# I am 95% confident that the true mean of arsenic(mu) is between 89.6 ppb and 160.96 ppb. 
+
+#t.test does this
+```
+```{r}
+# traditional confidence interval using t.test
+t.test(Bangladesh$Arsenic)
+
+# t here is not the t for confidence interval, has to do hypothesis, same with df, p-value
+
+t.test_results <- t.test(Bangladesh$Arsenic)
+
+str(t.test_results)
+
+
+t.test_results$conf.int
+```
+
+### Week 11 Hypothesis testing
+
+WE let the sample serve as a probability model WITH replacement, since we want each draw to be independent.
+
+iid : Independent idenditically distributed
+
+
+```{r}
+Arsenic <- pull(Bangladesh, Arsenic)
+
+#Alternatively
+#Arsenic <- Bangladesh$Arsenic
+
+n <- length(Arsenic)  #sample size
+N <- 10^4  # number of bootstrap samples or iteration
+
+arsenic.mean <- numeric(N) # storage for sim results
+
+for (i in 1:N)
+{
+   x <- sample(Arsenic, n, replace = TRUE)
+   arsenic.mean[i] <- mean(x)
+}
+
+ggplot() + geom_histogram(aes(arsenic.mean), bins = 15, fill = "light blue") + 
+  labs(title = "Bootstrap distribution of means") + 
+  geom_vline(xintercept = mean(Arsenic), colour = "blue")
+
+df <- data.frame(x = arsenic.mean)
+ggplot(df, aes(sample = x)) + 
+  stat_qq() + 
+  stat_qq_line()
+
+mean(arsenic.mean)                 #bootstrap mean
+mean(arsenic.mean) - mean(Arsenic) #bias
+sd(arsenic.mean)                   #bootstrap SE
+
+sum(arsenic.mean > 161.3224)/N
+sum(arsenic.mean < 89.75262)/N
+```
+
+
+Instead of a formula. make 
+
+## Bootstrap Percentile interval
+
+In a traditional T- curve, with 95% confidence. Where are those t intervals
+
+Now in the bootstrap distribution for X_bar. we're still looking for the middle 95%. Where are those upper and lower bounds. WE don't know exactly the shape, so we take a quantile by counting. 
+
+The quantile function: quantile()
+
+Lower is .025, below the upper is .975
+
+```{r}
+quantile(arsenic.mean, c(.025, .975))
+```
+
+Skewed distribution for X_bar means the CI is not symmetric around. 
+
+
+T-based CI assumes CCT is applicable and sampling dsit.. of X_bar is approx. normal. 
+
+89.68 to 160.96 ppb
+
+```{r}
+# traditional confidence interval using t.test
+t.test(Bangladesh$Arsenic)
+
+# t here is not the t for confidence interval, has to do hypothesis, same with df, p-value
+
+t.test_results <- t.test(Bangladesh$Arsenic)
+
+str(t.test_results)
+
+
+t.test_results$conf.int
+```
+
+Bootstrap Percentile interval. WE generated our own sampling dist. of X_bar. 92.12 to 163.45 ppb. 
+
+Our inspection says the sampling dist. of X_bar here is somewhat right skewed, not approx. normal. 
+
+Both assume the sample represents the pop. well. WE have to trust our methods. because we can't check.
+
+```{r}
+sum(arsenic.mean > 160.96)/N
+sum(arsenic.mean < 89.68)/N
+```
+
+```{r}
+mean(arsenic.mean)                 #bootstrap mean. Depends on our bootstrap resamples
+bias <- mean(arsenic.mean) - mean(Arsenic) #bias
+se <- sd(arsenic.mean)                   #bootstrap SE
+
+mean(Arsenic) # same for everyone
+
+bias / se
+
+```
+
+When we estimate things, we want it to center on the real value. If I take a bunch of sample mean, I want it to avg to sample mean. It will be unbiased. 
+
+E[\theta_hat] : \theta -> unbiased
+
+\theta_hat estimates \theta, where \theta is a some stat. 
+
+For example, as the CLT tells us, the mean of the sampling dist. of X_bar is \mu
+
+E[\theta_hat] - \theta = bias
+
+E[\theta_hat] - \theta < 0 -> our stat tends to underestimate on avg. 
+
+E[\theta_hat] - \theta > 0 -> our stat tends to overestimate on avg. 
+
+---
+
+Our sample mean X_bat estimates \mu    (\theta)
+
+The mean of our bootstrap distribution estimates E(X_bar)       (E(\theta_hat))
+
+
+---
+
+bias = mean of boostrap dsit - mean(sample)
+
+
+
+Turn numbers into proportion. How many of those wells are above the safe level fo 10. 
+
+```{r}
+mean(Arsenic > 10)
+```
+
+
+```{r}
+arsenic_summx <- Bangladesh %>%
+  summarise(xbar = mean(Arsenic > 10))   # Proportion where arsenic is greater than 10
+
+
+
+length(Bangladesh$Arsenic * .576)
+
+
+
+Arsenic <- pull(Bangladesh, Arsenic)
+
+#Alternatively
+#Arsenic <- Bangladesh$Arsenic
+
+n <- length(Arsenic)  #sample size
+N <- 10^4  # number of bootstrap samples or iteration
+
+arsenic.prop <- numeric(N) # storage for sim results
+
+for (i in 1:N)
+{
+   x <- sample(Arsenic, n, replace = TRUE)
+   arsenic.prop[i] <- mean(x > 10)
+}
+
+ggplot() + geom_histogram(aes(arsenic.prop), bins = 15, fill = "light blue") + 
+  labs(title = "Bootstrap distribution of proportions") + 
+  geom_vline(xintercept = mean(Arsenic > 10), colour = "blue")
+
+
+dfs <- data.frame(x = arsenic.prop)
+ggplot(dfs, aes(sample = x)) + 
+  stat_qq() + 
+  stat_qq_line()
+```
+```{r}
+quantile(arsenic.prop, c(.025, .975))
+```
+
+
+Traditional t-based CI for mean \mu using X_bar
+
+df = n - 1
+
+t.test()
+
+X_bar and S are not dependent so we have two sources of variability
+
+
+
+
+Traditional Z-based CI for pop. proportion using p_hat(sample.prop)
+
+P_hat +/- Z * sqrt(p_hat(1-p_hat)/n)
+
+This is always Z because the SE is a fucntion of p_hat too
+
+prop.test()
+
+
+1) compute the stat of interest (like x_bar) from the sample
+
+2) Draw a large number of bootstrap resamples from the sample. 
+
+3) Compute the stat of interest in each resample
+
+4) Find the distribution of the stat of interest from the bootstrap stats. 
+
+-shape(plot)  -center(mean) -variability(se, find using sd)
+
+5) find the quantiles we need for our bootstrap pencentile interval. 
+
+
+
+x-bar mean(arsenic)
+
+p_hat (proportion > 10)
+
+mean(arsenic > 10) #true/false logic vector so mean finds prop. of TRUE(algebraicly way of finding it despite still using mean)
+
+
+```{r}
+library(resampledata)
+str(Spruce)
+```
+
+Mu_1 - Mu_2 (what is the real difference between my no fertilizer or fertizer group)
+
+My stat of interest is estimated  by X-bar1 - X-bar2
+
+```{r}
+heights5_summ <- Spruce %>%
+  group_by(Fertilizer) %>%
+  summarise(xbar = mean(Height5),
+            s = sd(Height5))
+  
+print(heights5_summ)
+
+-diff(heights5_summ$xbar)  #observed difference
+```
+
+
+```{r}
+ggplot(Spruce) + 
+  geom_histogram(aes(x = Height5), bins = 10, fill = "light blue") +
+#  labs(title = "Bootstrap distribution of means") + 
+  facet_grid(Fertilizer~.)
+# 
+ggplot(Spruce, aes(sample = Height5)) +
+  stat_qq() +
+  stat_qq_line() +
+  facet_grid(Fertilizer~.)
+```
+
+```{r}
+#t test to compare two means
+t.test(Height5 ~ Fertilizer, data = Spruce) # right side is the independent, predictor variable
+
+#X_barF - X_barNF but symmetric, we just apply opposite to the confidence interval
+# It would just be -10.7 to -18.8 its the same margin of error(always positive)
+
+# (X_bar1 - X_bar2) +/- ME, zero is not possible as one of the true differences, so theres always a difference, the fertilizer had an effect. 
+```
+```{r}
+Height5_F <- pull(filter(Spruce, Fertilizer == 'F'), Height5)
+
+Height5_NF <- pull(filter(Spruce, Fertilizer == 'NF'), Height5)
+
+n_NF <- length(Height5_NF) #sample size
+n_F <- length(Height5_F)  
+N <- 10^4  # number of bootstrap samples or iteration
+
+height5_mean_diff <- numeric(N) # storage for sim results
+
+for (i in 1:N) {
+   samp_NF <- sample(Height5_NF, n_NF, replace = TRUE)
+   samp_F <- sample(Height5_F, n_F, replace = TRUE)
+   height5_mean_diff[i] <- mean(samp_NF) - mean(samp_F)
+}
+```
+
+In the for loop
+
+sample from NF, sample from F. Take mean of each sample. find X_nf - X_f (since that's waht we did w/e the actual data)
+
+
+```{r}
+
+ggplot() + 
+  geom_histogram(aes(height5_mean_diff), bins = 15, fill = "light blue") + 
+  labs(title = "Bootstrap distribution of mean difference") + 
+  geom_vline(xintercept = mean(Height5_NF) - mean(Height5_F), colour = "blue")
+
+
+dfs <- data.frame(x = height5_mean_diff)
+ggplot(dfs, aes(sample = x)) + 
+  stat_qq() + 
+  stat_qq_line()
+```
+
+```{r}
+quantile(height5_mean_diff, c(.025, .975))
+```
+
+My 95% bootstrap percentile interval for \mu_nf - \mu_f is -18.64 to -10.79
+
+```{r}
+t.test(Height5 ~ Fertilizer, data = Spruce)
+```
+My t based 95% CI for \mu_f - \mu_nf is 10.74 to 18.81
+
+Our simulation shows an approx normal sampling dist. for X_1 - X_2 so the CLT is prob. valid here. Therefore, the t-based interval is likely valid and the two results are similar. 
+
+ratio of mean X_1 / X_2
+
+----
+
+# Tuesday
+
+H_o: \mu_NF = \mu_F (no difference)  or \mu_NF - \mu_F = 0
+
+H_a: \mu_NF < \mu_F (pfertilized trees have greater avg. ht.) or   \mu_NF - \mu_F < 0
+
+same magnitude, diff sign.
+
+----
+
+We compare the test stat to the t curve with appropriate DF. 
+
+\alpha = .05 traditional value. Ex: in medicine \alpah would be .01
+
+also chance of type 1 error.
+
+If p-value < \alpha => reject H_o in favor of H_a
+
+In a permutation resmapling test, we generate our own null distribution.
+
+null distribution: the sampling dist. of the test stat when H_o is true. 
+
+---
+
+
+###Example 3.4 Verizon
+###Permutation test
+
+```{r}
+# Verizon <- read.csv("https://sites.google.com/site/chiharahesterberg/data2/Verizon.csv")
+
+# Verizon %>% group_by(Group) %>% summarize(mean(Time))  #generate descriptive statistic. Same as height5_summ
+
+Height5_Fq <- Spruce %>% filter(Fertilizer == "F") %>% pull(Height5) #makes bucket
+
+Height5_NFq <- Spruce %>% filter(Fertilizer == "NF") %>% pull(Height5) #makes other bucket
+
+observed_diff <- mean(Height5_NFq) - mean(Height5_Fq)
+observed_diff
+
+n_F <-length(Height5_Fq)
+  
+n_NF <- length(Height5_NFq)
+```
+
+
+```{r}
+
+Height5 <- Spruce %>% pull(Height5) # Pulls out with no group info from the buckets. 
+
+n_all <- length(Height5)
+n_all
+```
+
+
+Now need to do a permutation resmapling. without replacement. 
+
+group 1: NF. I need to sample the size of the NF group. 
+sample 36 of the 72 possible subscripts.
+
+```{r}
+N <- 10^4 - 1  #set number of times to repeat this process. SUBTRACT 1 SINCE DATA IS ONE PERMUTATION ALREADY
+#set.seed(99)
+
+random_diffs <- numeric(N) # space to save the random differences
+
+for (i in 1:N)
+{
+  index <- sample(n_all, size = n_NF, replace = FALSE) #sample of numbers from 1:1687
+  random_diffs[i] <- mean(Height5[index]) - mean(Height5[-index])
+}
+
+```
+
+```{r}
+ggplot() + 
+  geom_histogram(aes(random_diffs), fill = "light blue") + 
+  geom_vline(xintercept = observed_diff, colour = "red") +
+ xlab("xbar1-xbar2")
+
+(sum(random_diffs <= observed_diff) + 1)/(N + 1)  #P-value-
+
+```
+
+
+Red line is actual data. X_barNF - X_barF. 
+
+H_o: \mu_nF = \mu_F
+
+H_a: \mu_NF < \mu_F  one sided test
+
+or \mu_NF - \mu_F = 0
+
+What is the prob of getting my data or something more extreme. Not using function like t.test, going to count up, what fraction of our simulated values. Thats what the last line does. 
+
+Won't be as close as t.test since thats a theoretical. So throw out NULL and that using fertilizer does make a difference. 
+
+Someone more conservative, that maybe the fertilizer would've damaged the plants.
+
+H_o: \mu_F = \mu_NF
+
+H_a: \mu_F != \mu_NF  two tail test. 
+
+X_barF - X_barNF what would change in the simulation. Now will sample fertilizer group, sign changes. (two tail test) "what is group 1 form the entire set".
+
+p-value depends on H_o. So the red line is on the other side. I have to think about both sides, so what is more extreme in both directions. 
+
+----
+
+Two sided P - value
+
+Test Stat: X_barF - X_barNF
+
+we did a permutation resamping test(simulation) to find the sampling dist. of X_barF - X_barNF so we can compute a p - value. 
+
+
+I want to count what is above |X_bar1 - X_bar2|
+
+
+I want to count what is below -|X_bar1 - X_bar2|
+
+We ahve a function for absolute value
+
+```{r}
+abs(observed_diff)
+
+-abs(observed_diff)
+
+lower_P <- (sum(random_diffs <= -abs(observed_diff)) + 1)/(N + 1)  #Lower.tail
+
+Upper_P <- (sum(random_diffs >= abs(observed_diff)) + 1)/(N + 1) # Upper tail]
+
+lower_P + Upper_P
+```
+
+If apha = .05 pvalue < alpha, so we reject H_O and conclude H_a: \mu_F != \mu_NF 
+
+If we reject H_o, go back to the data and talk about our estimated means and diff. We can also CI/Bootstrap %-ile interval to estimate the magnitude of the diff.
+
+Proportion test? 
+
+```{r}
+heights5_prop <- Spruce %>%
+  group_by(Fertilizer) %>%
+  summarise(proportion = mean(Height5 > 40))
+
+str(heights5_prop)
+```
+
+Still have two groups F and NF, im just taking the proportions instead of a the means, still dumping into buckets and randomly allocate to two seperate groups. Just change the statistic that we're calculating, same with median or variance, ratio. 
+
+Mean of a true false vector is a proportion of true. 
+
+---
+
+Proportion test
+
+```{r}
+homingpigeons <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/homingpigeons.csv")
+
+str(homingpigeons)
+```
+
+```{r}
+homingpigeons %>%
+  group_by(group) %>%
+  summarise(prop_n = mean(home == "no"),
+            prop_y = mean(home == "yes")) #no is alphabetically first
+
+prop.test(table(homingpigeons$group, homingpigeons$home))
+
+
+
+```
+prop1: control, prop2: magnet
+
+
+Fail to reject NULL with p-value of .89, conclude that pop. prop are the same and that sample differences are just sampling error(random)
+
+X-squared is chi-square(df: 1) is equal to Z^2 where Z~N(0, 1). Can you do simulation version of this test?
+
+
+H_o: proportionCTL = proportionTRT
+
+H_a: proportionCTL != proportionTRT
+
+proportion who did not get home
+
+```{r}
+ggplot(homingpigeons, aes(x = group, fill = home)) +
+  geom_bar()
+```
+
+
+
+```{r}
+# home_all <- homingpigeons %>% pull(home) # Pulls out with no group info from the buckets. 
+# 
+# n_all <- length(home_all)
+# 
+# 
+# homing_c <- pull(filter(homingpigeons, group == "control"), home)
+# homing_m <- pull(filter(homingpigeons, home == "magnet"), home)
+# 
+# observed_diff <- mean(home_c == "no") - mean(home_m == "no")
+# observed_diff
+# 
+# n_c <- length(homing_c) #sample size
+# n_m <- length(homing_m)  
+# N <- 10^4  # number of bootstrap samples or iteration
+# 
+# height5_mean_diff <- numeric(N) # storage for sim results
+# 
+# for (i in 1:N) {
+#    index <- sample(n_all, size = n_c, replace = F)
+#    random_diff[i] <- mean(home_all[index] == "no") - mean(home_all[-index] == "no")
+# }
+```
+
+```{r}
+# abs(observed_diff)
+# 
+# -abs(observed_diff)
+# 
+# lower_P <- (sum(random_diffs <= -abs(observed_diff)) + 1)/(N + 1)  #Lower.tail
+# 
+# Upper_P <- (sum(random_diffs >= abs(observed_diff)) + 1)/(N + 1) # Upper tail]
+# 
+# lower_P + Upper_P
+```
+
+
+
+```{r}
+# home_c <- pull(filter(homingpigeons, group == "control"), home)
+# home_m <- pull(filter(homingpigeons, home == "magnet"), home)
+# 
+# observed_diff <- mean(home_c == "no") - mean(home_m == "no")
+# observed_diff
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###Example 5.4 Skateboard
+```{r}
+Skateboard <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Skateboard.csv")
+
+testF <- Skateboard %>% filter(Experimenter == "Female") %>% pull(Testosterone)
+testM <- Skateboard %>% filter(Experimenter == "Male") %>% pull(Testosterone)
+
+observed <- mean(testF) - mean(testM)
+
+nf <- length(testF)
+nm <- length(testM)
+
+N <- 10^4
+
+TestMean <- numeric(N)
+
+for (i in 1:N)
+{
+  sampleF <- sample(testF, nf, replace = TRUE)
+  sampleM <- sample(testM, nm, replace = TRUE)
+  TestMean[i] <- mean(sampleF) - mean(sampleM)
+}
+
+df <- data.frame(TestMean)
+ggplot(df) + geom_histogram(aes(TestMean), bins = 15) + 
+  labs(title = "Bootstrap distribution of difference in means", xlab = "means") +
+  geom_vline(xintercept = observed, colour = "blue")
+
+ggplot(df, aes(sample = TestMean))  + stat_qq() + stat_qq_line()
+
+mean(testF) - mean(testM)
+mean(TestMean)
+sd(TestMean)
+
+quantile(TestMean,c(0.025,0.975))
+
+mean(TestMean)- observed  #bias
+```
+
+###Permutation test for Skateboard means
+```{r}
+testAll <- pull(Skateboard, Testosterone)
+#testAll <- Skateboard$Testosterone
+
+N <- 10^4 - 1  #set number of times to repeat this process
+
+#set.seed(99)
+result <- numeric(N) # space to save the random differences
+for(i in 1:N)
+  {
+  index <- sample(71, size = nf, replace = FALSE) #sample of numbers from 1:71
+  result[i] <- mean(testAll[index]) - mean(testAll[-index])
+}
+
+(sum(result >= observed)+1)/(N + 1)  #P-value
+
+ggplot() + geom_histogram(aes(result), bins = 15) + 
+  labs(x = "xbar1-xbar2", title="Permutation distribution for testosterone levels") +
+  geom_vline(xintercept = observed, colour = "blue")
+
+df <- data.frame(result)
+ggplot(df, aes(sample = result)) + stat_qq() + stat_qq_line()
+
+```
+
+###Section 5.4.1 
+Matched pairs for Diving data
+
+```{r}
+Diving2017 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Diving2017.csv")
+Diff <- Diving2017 %>% mutate(Diff = Final - Semifinal) %>% pull(Diff)
+#alternatively
+#Diff <- Diving2017$Final - Diving2017$Semifinal
+n <- length(Diff)
+
+N <- 10^5
+result <- numeric(N)
+
+for (i in 1:N)
+{
+  dive.sample <- sample(Diff, n, replace = TRUE)
+  result[i] <- mean(dive.sample)
+}
+
+ggplot() + geom_histogram(aes(result), bins = 15)
+
+quantile(result, c(0.025, 0.975))
+```
+
+
+###Example 5.5 
+Verizon cont.
+Bootstrap means for the ILEC data and for the CLEC data
+
+Bootstrap difference of means.
+```{r}
+Verizon <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Verizon.csv")
+
+Time.ILEC <- Verizon %>% filter(Group == "ILEC") %>% pull(Time)
+Time.CLEC <- Verizon %>% filter(Group == "CLEC") %>% pull(Time)
+
+observed <- mean(Time.ILEC) - mean(Time.CLEC)
+
+n.ILEC <- length(Time.ILEC)
+n.CLEC <- length(Time.CLEC)
+
+N <- 10^4
+
+time.ILEC.boot <- numeric(N)
+time.CLEC.boot <- numeric(N)
+time.diff.mean <- numeric(N)
+
+set.seed(100)
+for (i in 1:N)
+ {
+  ILEC.sample <- sample(Time.ILEC, n.ILEC, replace = TRUE)
+  CLEC.sample <- sample(Time.CLEC, n.CLEC, replace = TRUE)
+  time.ILEC.boot[i] <- mean(ILEC.sample)
+  time.CLEC.boot[i] <- mean(CLEC.sample)
+  time.diff.mean[i] <- mean(ILEC.sample) - mean(CLEC.sample)
+}
+
+#bootstrap for ILEC
+ggplot() + geom_histogram(aes(time.ILEC.boot), bins = 15) + 
+  labs(title = "Bootstrap distribution of ILEC means", x = "means") + 
+  geom_vline(xintercept = mean(Time.ILEC), colour = "blue") + 
+  geom_vline(xintercept = mean(time.ILEC.boot), colour = "red", lty=2)
+
+summary(time.ILEC.boot)
+
+df <- data.frame(x = time.ILEC.boot)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+#bootstrap for CLEC
+ggplot() + geom_histogram(aes(time.CLEC.boot), bins = 15) + 
+  labs(title = "Bootstrap distribution of CLEC means", x = "means") + 
+  geom_vline(xintercept = mean(Time.CLEC), colour = "blue") + 
+  geom_vline(xintercept = mean(time.CLEC.boot), colour = "red", lty = 2)
+
+df <- data.frame(x = time.CLEC.boot)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+#Different in means
+ggplot() + geom_histogram(aes(time.diff.mean), bins = 15) + 
+  labs(title = "Bootstrap distribution of difference in means", x = "means") +
+  geom_vline(xintercept = mean(time.diff.mean), colour = "blue") + 
+  geom_vline(xintercept = mean(observed), colour = "red", lty = 2)
+
+df <- data.frame(x = time.diff.mean)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(time.diff.mean)
+quantile(time.diff.mean, c(0.025, 0.975))
+
+```
+
+###Section 5.5 
+Verizon cont.
+
+Bootstrap difference in trimmed means
+
+```{r}
+Time.ILEC <- Verizon %>% filter(Group == "ILEC") %>% pull(Time)
+Time.CLEC <- Verizon %>% filter(Group == "CLEC") %>% pull(Time)
+n.ILEC <- length(Time.ILEC)
+n.CLEC <- length(Time.CLEC)
+
+N <- 10^4
+time.diff.trim <- numeric(N)
+
+#set.seed(100)
+for (i in 1:N)
+{
+  x.ILEC <- sample(Time.ILEC, n.ILEC, replace = TRUE)
+  x.CLEC <- sample(Time.CLEC, n.CLEC, replace = TRUE)
+  time.diff.trim[i] <- mean(x.ILEC, trim = .25) - mean(x.CLEC, trim = .25)
+}
+
+ggplot() + geom_histogram(aes(time.diff.trim), bins = 15) + 
+  labs(x = "difference in trimmed means") + 
+  geom_vline(xintercept = mean(time.diff.trim),colour = "blue") + 
+  geom_vline(xintercept = mean(Time.ILEC, trim = .25) - mean(Time.CLEC, trim = .25), colour = "red", lty = 2)
+
+df <- data.frame(x = time.diff.trim)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(time.diff.trim)
+quantile(time.diff.trim, c(0.025,0.975))
+```
+
+###Section 5.5 Other statistics
+Verizon cont: 
+
+Bootstrap of the ratio of means
+
+<tt>`Time.ILEC`</tt> and <tt>`Time.CLEC`</tt> created above.
+
+<tt>`n.ILEC`</tt>, <tt>`n.CLEC`</tt> created above
+
+```{r}
+N <- 10^4
+time.ratio.mean <- numeric(N)
+
+#set.seed(100)
+for (i in 1:N)
+{
+  ILEC.sample <- sample(Time.ILEC, n.ILEC, replace = TRUE)
+  CLEC.sample <- sample(Time.CLEC, n.CLEC, replace = TRUE)
+  time.ratio.mean[i] <- mean(ILEC.sample)/mean(CLEC.sample)
+}
+
+ggplot() + geom_histogram(aes(time.ratio.mean), bins = 12) + 
+  labs(title = "bootstrap distribution of ratio of means", x = "ratio of means") +
+  geom_vline(xintercept = mean(time.ratio.mean), colour = "red", lty = 2) + 
+  geom_vline(xintercept  = mean(Time.ILEC)/mean(Time.CLEC), col = "blue")
+
+df <- data.frame(x = time.ratio.mean)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(time.ratio.mean)
+sd(time.ratio.mean)
+quantile(time.ratio.mean, c(0.025, 0.975))
+```
+
+###Example 5.7 Relative risk example
+```{r}
+highbp <- rep(c(1,0),c(55,3283))   #high blood pressure
+lowbp <- rep(c(1,0),c(21,2655))    #low blood pressure
+
+N <- 10^4
+boot.rr <- numeric(N)
+high.prop <- numeric(N)
+low.prop <- numeric(N)
+
+for (i in 1:N)
+{
+   x.high <- sample(highbp,3338, replace = TRUE)
+   x.low  <- sample(lowbp, 2676, replace = TRUE)
+   high.prop[i] <- sum(x.high)/3338
+   low.prop[i]  <- sum(x.low)/2676
+   boot.rr[i] <- high.prop[i]/low.prop[i]
+}
+
+ci <- quantile(boot.rr, c(0.025, 0.975))
+
+ggplot() + geom_histogram(aes(boot.rr), bins = 15) + 
+  labs(title = "Bootstrap distribution of relative risk", x = "relative risk") +
+  geom_vline(aes(xintercept = mean(boot.rr), colour = "mean of bootstrap")) +
+  geom_vline(aes(xintercept = 2.12, colour="observed rr"), lty = 2) + 
+  scale_colour_manual(name="", values = c("mean of bootstrap"="blue", "observed rr" = "red"))
+
+temp <- ifelse(high.prop < 1.31775*low.prop, 1, 0)
+temp2 <- ifelse(high.prop > 3.687*low.prop, 1, 0)
+temp3 <- temp + temp2
+
+df <- data.frame(y=high.prop, x=low.prop, temp, temp2, temp3)
+df1 <- df %>% filter(temp == 1)
+df2 <- df %>% filter (temp2 == 1)
+df3 <- df %>% filter(temp3 == 0)
+
+ggplot(df, aes(x=x, y = y)) + 
+  geom_point(data =df1, aes(x= x, y = y), colour = "green") + 
+  geom_point(data = df2, aes(x = x, y = y), colour = "green") + 
+  geom_point(data = df3, aes(x = x, y = y), colour = "red") + 
+  geom_vline(aes(xintercept = mean(low.prop)), colour = "red") +
+  geom_hline(yintercept = mean(high.prop), colour = "red") + 
+  geom_abline(aes(intercept = 0, slope = 2.12, colour = "observed rr"), lty = 2, lwd = 1) + 
+  geom_abline(aes(intercept = 0, slope = ci[1], colour = "bootstrap CI"), lty = 2, lwd = 1) + 
+  geom_abline(intercept = 0, slope = ci[2], colour = "blue", lty = 2, lwd = 1) +
+  scale_colour_manual(name="", values=c("observed rr"="black", "bootstrap CI" = "blue")) +
+  labs(x = "Proportion in low blood pressure group", y = "Proportion in high blood pressure group")
+```

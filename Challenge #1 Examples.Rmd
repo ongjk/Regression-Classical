@@ -1,0 +1,132 @@
+---
+
+title: "Challenge #1 Examples"
+author: "Author: Jill Thomley"
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document:
+    theme: readable
+    highlight: textmate
+---
+
+***
+
+#### Instructions
+
+Using the `flights` and `airlines` datasets in `nycflights13`...
+
+* Create a barplot of airports from which flights originated.
+* Create a barplot of the airlines associated with the flights.
+* For each plot, add a title, better labels on the axes, and a caption source: nycflights13.
+* Can you add color or other adjustments to the plots to make them more attractive?
+* Can you change the labels on the individual bars from their default variable values?
+* Can you left_join flights and airlines so you can use airline names instead of codes?
+* Can you flip the plot so that the bars are displayed horizontally rather than vertically?
+
+
+#### Set `R` code chunk options and load packages
+
+```{r global_setup}
+# Set options for code chunks
+# Suppress non-warning messages 
+# Remove default ## from output
+knitr::opts_chunk$set(message = FALSE, comment = "")
+```
+
+```{r load_packages}
+library(nycflights13)
+library(ggplot2)
+library(dplyr)
+```
+
+
+#### Create a basic barplot for the `origin` of flights
+
+```{r origin_barplot_basic}
+ggplot(flights, aes(x = origin)) +
+  geom_bar()
+```
+
+
+#### Format the plot to make it more attractive/useful
+
+```{r origin_barplot_formatted}
+ggplot(flights, aes(x = origin)) +
+  geom_bar(fill = "lightgreen", color = "darkgray", width = -1) +
+  labs(title = "Number of flights departing NYC metropolitan airports in 2013",
+       x = "airport of origin",
+       y = "number of flights",
+       caption = "source: nycflights13") +
+  scale_x_discrete(labels = c("Newark", "JFK", "LaGuardia")) +
+  scale_y_continuous(labels = scales::comma)
+```
+
+
+#### Create a basic barplot for the `carrier` of flights
+
+```{r carrier_barplot_basic}
+ggplot(flights, aes(x = carrier)) +
+  geom_bar()
+```
+
+
+#### Format the plot to make it more attractive/useful
+
+```{r carrier_barplot_formatted}
+ggplot(flights, aes(x = carrier)) +
+  geom_bar(fill = "lightblue", color = "darkgray", width = .75) +
+  labs(title = "Number of flights per carrier departing NYC metro airports in 2013",
+       x = "airline code",
+       y = "number of flights",
+       caption = "source: nycflights13") +
+  scale_y_continuous(labels = scales::comma)
+```
+
+
+#### Merge `flights` and `airlines` so we can use carrier names
+
+```{r lj_flights_airlines}
+flightsM <- left_join(flights, airlines, key = carrier)
+```
+
+
+#### Recreate the barplot using `name` instead of `carrier`
+
+```{r airname_barplot_formatted}
+ggplot(flightsM, aes(x = name)) +
+  geom_bar(fill = "lightblue", color = "darkgray", width = .75) +
+  labs(title = "Flights per carrier departing NYC metro airports in 2013",
+       x = "airline name",
+       y = "number of flights",
+       caption = "source: nycflights13") +
+  scale_y_continuous(labels = scales::comma) +
+  coord_flip()
+```
+
+
+#### To arrange bar order, we need to use summarized data
+
+```{r count_airname}
+carrierCounts <- flightsM %>% 
+  group_by(name) %>% 
+  summarize(freq = n())
+carrierCounts
+```
+
+```{r sorted_barplot_formatted}
+ggplot(carrierCounts, aes(x = reorder(name, -freq), y = freq)) +
+  geom_bar(stat = "identity", fill = "violet", color = "black", width = .75) +
+  labs(title = "Flights per carrier departing NYC metro airports in 2013",
+       x = "airline name",
+       y = "number of flights",
+       caption = "source: nycflights13") +
+  scale_y_continuous(labels = scales::comma) +
+  coord_flip()
+```
+
+
+***
+
+```{r}
+sessionInfo()
+```

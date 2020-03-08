@@ -1,0 +1,537 @@
+---
+title: "Inference for Categorical Data HW"
+author: "Jefferson Ong"
+date: "4/8/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(readr)
+library(infer)
+
+# iran <- read_csv("https://assets.datacamp.com/production/repositories/1703/datasets/a777b2366f4e576da5d58fda42f8337332acd3ae/iran.csv")
+
+# iowa <- read.csv("https://assets.datacamp.com/production/repositories/1703/datasets/3e73a6c4432671bff5e6f05d340ac1ee41f2ba76/iowa.csv")
+
+# gss <- read_csv("https://assets.datacamp.com/production/repositories/846/datasets/1c0f04aae31ed37d453234a2b373315609492a7e/gss_wordsum_class.csv")
+```
+
+Couldn't load in data set. Got "Error in open.connection(con, "rb") : 
+  Timeout was reached: Operation timed out after 10002 milliseconds with 0 out of 0 bytes received"
+  
+  I googled a bit and didn't understand how to implement the fixes people were suggesting. 
+
+
+
+# Inference for a single parameter
+
+Confidence Intervals
+● Interpretation: “We’re 95% confident that the true
+proportion of Americans that are very happy is between .705
+and .841.”
+● Width of interval affected by
+● n
+● confidence level
+● p”
+
+
+
+
+```{r}
+# Subset data from 2016
+# gss2016 <- gss %>%
+#   filter(year == 2016)
+# # Plot distribution of consci
+# ggplot(gss2016, aes(x = consci)) +
+#   geom_bar()
+# # Compute proportion of high conf
+# p_hat <- gss2016 %>%
+#   summarize(p = mean(consci == "High", na.rm = TRUE)) %>%
+#   pull()
+```
+
+```{r}
+# Create single bootstrap data set
+# b1 <- gss2016 %>%
+#   specify(response = consci, success = "High") %>%
+#   generate(reps = 1, type = "bootstrap")
+# 
+# # Plot distribution of consci
+# ggplot(b1, aes(x = consci)) +
+#   geom_bar()
+# 
+# # Compute proportion with high conf
+# b1 %>%
+#   summarize(p = mean(consci == "High")) %>%
+#   pull()
+```
+
+
+```{r}
+# Create bootstrap distribution for proportion that favor
+# boot_dist <- gss2016 %>%
+#   specify(response = consci, success = "High") %>%
+#   generate(reps = 500, type = "bootstrap") %>%
+#   calculate(stat = "prop")
+# 
+# # Plot distribution
+# ggplot(boot_dist, aes(x = stat)) +
+#   geom_density()
+# 
+# # Compute estimate of SE
+# SE <- boot_dist %>%
+#   summarize(se = sd(stat)) %>%
+#   pull()
+# 
+# # Create CI
+# c(p_hat - 2 * SE, p_hat + 2 * SE)
+```
+
+```{r}
+# Create bootstrap distribution for proportion that have hardy any
+# boot_dist <- gss2016 %>%
+#   specify(response = consci, success = "Low") %>%
+#   generate(reps = 500, type = "bootstrap") %>%
+#   calculate(stat = "prop", na.rm = TRUE)
+# 
+# # Compute estimate of SE
+# SE_low_p <- boot_dist %>%
+#   summarize(se = sd(stat)) %>%
+#   pull()
+```
+
+```{r}
+# Compute p-hat and n
+# p_hat <- gss2016_small %>%
+#   summarize(p = mean(consci == "High")) %>%
+#   pull()
+# n <- nrow(gss2016_small)
+# 
+# # Check conditions
+# n * p_hat >= 10
+# n * (1 - p_hat) >= 10
+# 
+# # Calculate SE
+# SE_approx <- sqrt(p_hat * (1 - p_hat) / n)
+# 
+# # Form 95% CI
+# c(p_hat - 2 * SE_approx, p_hat + 2 * SE_approx)
+```
+
+
+
+# Proportions: testing and power
+
+Hypothesis test
+● Null hypothesis: theory about the state of the world
+● Null distribution: distribution of test statistics assuming null
+is true.
+● p-value: a measure of consistency between null hypothesis
+and your observations.
+● high p-value: consistent (p-val > alpha)
+● low p-value: inconsistent (p-val < alpha)
+
+
+
+```{r}
+# Generate one data set under H0
+# sim1 <- gss2016 %>%
+#   specify(response = postlife, success = "YES") %>%
+#   hypothesize(null = "point", p = .75) %>%
+#   generate(reps = 1, type = "simulate")
+# 
+# # Construct plot
+# ggplot(sim1, aes(x = postlife)) +
+#   geom_bar()
+# 
+# # Compute proportion that believe
+# sim1 %>%
+#   summarize(mean(postlife == "YES")) %>%
+#   pull()
+```
+
+```{r}
+# Generate null distribution
+# null <- gss2016 %>%
+#   specify(response = postlife, success = "YES") %>%
+#   hypothesize(null = "point", p = .75) %>%
+#   generate(reps = 100, type = "simulate") %>%
+#   calculate(stat = "prop")
+# 
+# # Visualize null distribution
+# ggplot(null, aes(x = stat)) +
+#   geom_density() +
+#   geom_vline(xintercept = p_hat, color = "red")
+# 
+# # Compute the two-tailed p-value
+# null %>%
+#   summarize(mean(stat > p_hat)) %>%
+#   pull() * 2
+```
+
+
+```{r}
+# Plot distribution
+# ggplot(gss2016, aes(x = sex, fill = cappun)) +
+#   geom_bar(position = "fill")
+#   
+# # Compute two proportions
+# p_hats <- gss2016 %>%
+#   group_by(sex) %>%
+#   summarize(mean(cappun == "FAVOR", na.rm = TRUE)) %>%
+#   pull()
+# 
+# # Compute difference in proportions
+# d_hat <- diff(p_hats)
+```
+
+```{r}
+# Create null distribution
+# null <- gss2016 %>%
+#   specify(cappun ~ sex, success = "FAVOR") %>%
+#   hypothesize(null = "independence") %>%
+#   generate(reps = 500, type = "permute") %>%
+#   calculate(stat = "diff in props", order = c("FEMALE", "MALE"))
+#   
+# # Visualize null
+# ggplot(null, aes(x = stat)) +
+#   geom_density() +
+#   geom_vline(xintercept = d_hat)
+#   
+# # Compute two-tailed p-value
+# null %>%
+#   summarize(mean(stat < d_hat)) %>%
+#   pull() * 2
+```
+
+```{r}
+# Reference code for null distribution
+# null <- gss2016 %>%
+#    specify(cappun ~ sex, success = "FAVOR") %>%
+#    hypothesize(null = "independence") %>%
+#    generate(reps = 500, type = "permute") %>%
+#    calculate(stat = "diff in props", order = c("FEMALE", "MALE"))
+  
+# Create the bootstrap distribution
+# boot <- gss2016 %>%
+#     specify(cappun ~ sex, success = "FAVOR") %>%
+#     generate(reps = 500, type = "bootstrap") %>%
+#     calculate(stat = "diff in props", order = c("FEMALE", "MALE"))
+# 
+# # Compute the standard error
+# SE <- boot %>%
+#   summarize(sd(stat)) %>%
+#   pull()
+#   
+# # Form the CI (lower, upper)
+# c(d_hat - 2 * SE, d_hat + 2 * SE)
+# 
+```
+
+```{r}
+# Compute two proportions
+# p_hats <- gssmod %>%
+#   group_by(coinflip) %>%
+#   summarize(mean(cappun == "FAVOR", na.rm = TRUE)) %>%
+#   pull()
+#   
+# Compute difference in proportions
+# d_hat <- diff(p_hats)
+# 
+# # Form null distribution
+# null <- gssmod %>%
+#   specify(cappun ~ coinflip, success = "FAVOR") %>%
+#   hypothesize(null = "independence") %>%
+#   generate(reps = 500, type = "permute") %>%
+#   calculate(stat = "diff in props", order = c("heads", "tails"))
+# 
+# # Visualize null
+# ggplot(null, aes(x = stat)) +
+#   geom_density() +
+#   geom_vline(xintercept = d_hat, color = "red")
+# 
+# # Set alpha
+# alpha <- .05
+# 
+# # Find cutoffs
+# upper <- null %>%
+#   summarize(quantile(stat, probs = 1 - alpha/2)) %>%
+#   pull()
+# lower <- null %>%
+#   summarize(quantile(stat, probs = alpha/2)) %>%
+#   pull()
+#   
+# # Visualize cutoffs
+# ggplot(null, aes(x = stat)) +
+#   geom_density() +
+#   geom_vline(xintercept = d_hat, color = "red") +
+#   geom_vline(xintercept = lower, color = "blue") +
+#   geom_vline(xintercept = upper, color = "blue")
+# 
+# # check if inside cutoffs
+# d_hat %>%
+#   between(lower, upper)
+```
+
+
+
+
+
+
+# Comparing many parameters: independence
+
+
+
+
+```{r}
+# Exclude "other" party
+# gss_party <- gss2016 %>%
+#   filter(party != "O") %>%
+#   droplevels()
+# 
+# # Bar plot of proportions
+# gss_party %>%
+#   ggplot(aes(x = party, fill = natspac)) +
+#   geom_bar(position = "fill")
+#   
+# # Bar plot of counts
+# gss_party %>%
+#   ggplot(aes(x = party, fill = natspac)) +
+#   geom_bar()
+```
+
+```{r}
+# Create table of natspac and party
+# O <- gss_party %>%
+#   select(natspac, party) %>%
+#   table()
+# 
+# # Convert table back to tidy df
+# O %>%
+#   tidy() %>%
+#   uncount(n)
+```
+
+```{r}
+# Create one permuted data set
+# perm_1 <- gss_party %>%
+#   specify(natarms ~ party) %>%
+#   hypothesize(null = "independence") %>%
+#   generate(reps = 1, type = "permute")
+#   
+# # Visualize permuted data
+# ggplot(perm_1, aes(x = party, fill = natarms)) +
+#   geom_bar()
+# 
+# # Make contingency table
+# tab <- perm_1 %>%
+#   ungroup() %>%
+#   select(party, natarms) %>%
+#   table()
+#   
+# # Compute chi-squared stat
+# chisq.test(tab)$statistic
+```
+
+
+```{r}
+# generate null distribution
+# null <- gss2016 %>%
+#   specify(happy ~ region, success = "HAPPY") %>%
+#   hypothesize(null = "independence") %>%
+#   generate(reps = 100, type = "permute") %>%
+#   calculate(stat = "Chisq")
+# 
+# # plot null(s)
+# ggplot(null, aes(x = stat)) +
+#   geom_density() +
+#   geom_vline(xintercept = chi_obs_stat) +
+#   stat_function(fun = dchisq, args = list(df = 8), color = "blue")
+# 
+# # permutation p-value
+# null %>% 
+#   summarize(mean(stat > chi_obs_stat)) %>% 
+#   pull()
+# 
+# # approximation p-value
+# 1 - pchisq(chi_obs_stat, df = 8)
+```
+
+
+
+
+
+
+
+# Comparing many parameters: goodness of fit
+
+
+Methods for Categorical Data
+Confidence Intervals Hypothesis Tests
+• One proportion
+• Difference in
+proportions
+• One proportion
+• Difference in
+proportions
+• Test of independence
+• Goodness of Fit
+
+
+```{r}
+# Compute candidate totals
+# totals <- iran %>%
+#   summarize(ahmadinejad = sum(ahmadinejad),
+#             rezai = sum(rezai),
+#             karrubi = sum(karrubi),
+#             mousavi = sum(mousavi))
+# 
+# # Plot totals
+# totals %>%
+#   gather(key = "candidate", value = "votes") %>%
+#   ggplot(aes(x = candidate, y = votes)) +
+#   geom_bar(stat = "identity")
+#   
+# # Cities won by #2
+# iran %>%
+#   group_by(province) %>%
+#   summarize(mousavi = sum(mousavi),
+#             ahmadinejad = sum(ahmadinejad)) %>%
+#   mutate(mousavi_win = mousavi > ahmadinejad) %>%
+#   filter(mousavi_win)
+# 
+# # Print get_first
+# get_first
+# 
+# # Create first_digit
+# iran2 <- iran %>%
+#   mutate(first_digit = get_first(total_votes_cast))
+#   
+# # Construct barchart
+# ggplot(iran2, aes(x = first_digit)) +
+#   geom_bar()
+```
+
+
+
+
+
+```{r}
+# Tabulate the counts of each digit
+# tab <- iran %>%
+#   select(first_digit) %>%
+#   table()
+# 
+# # Compute observed stat
+# sum(p_benford)
+# chi_obs_stat <- chisq.test(tab, p = p_benford)$stat
+# 
+# # Form null distribution
+# null <- iran %>%
+#   specify(response = first_digit) %>%
+#   hypothesize(null = "point", p = p_benford) %>%
+#   generate(reps = 500, type = "simulate") %>%
+#   calculate(stat = "Chisq")
+```
+
+
+```{r}
+# plot both nulls
+# ggplot(null, aes(x = stat)) +
+#   geom_density() +
+#   geom_vline(xintercept = chi_obs_stat) + 
+#   stat_function(fun = dchisq, args = list(df = 8), color = "blue")
+# 
+# # permutation p-value
+# null %>%
+#   summarize(mean(stat > chi_obs_stat)) %>%
+#   pull()
+# 
+# # approximation p-value
+# 1 - pchisq(chi_obs_stat, df = 8)
+```
+
+
+
+
+```{r}
+# Get R+D county totals
+# iowa2 <- iowa %>%
+#   filter(candidate == "Hillary Clinton / Tim Kaine" | candidate == "Donald Trump / Mike Pence") %>%
+#   group_by(county) %>%
+#   summarize(dem_rep_votes = sum(votes, na.rm = TRUE)) 
+# 
+# # Add first_digit
+# iowa3 <- iowa2 %>%
+#   mutate(first_digit = get_first(dem_rep_votes))
+# 
+# # Construct bar plot
+# ggplot(iowa3, aes(x = first_digit)) +
+#   geom_bar()
+```
+
+
+```{r}
+# Tabulate the counts of each digit
+# tab <- iowa %>%
+#   select(first_digit) %>%
+#   table()
+# 
+# # Compute observed stat
+# chi_obs_stat <- chisq.test(tab, p = p_benford)$statistic
+# 
+# # Form null distribution
+# null <- iowa %>%
+#   specify(response = first_digit) %>%
+#   hypothesize(null = "point", p = p_benford) %>%
+#   generate(reps = 500, type = "simulate") %>%
+#   calculate(stat = "Chisq")
+#   
+# # Visualize null
+# ggplot(null, aes(x = stat)) +
+#   geom_density() +
+#   geom_vline(xintercept = chi_obs_stat)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

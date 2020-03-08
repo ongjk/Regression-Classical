@@ -1,0 +1,46 @@
+---
+title: "Class 01/29 Winterization Activity"
+author: "Jefferson Ong"
+date: "1/29/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Dataset Structure
+
+A dataset is a collection of data values for the observations and variables in a study (e.g., survey or experiment). 
+
+-An observational unit (or observation) is a single individual, object, or entity about which we have collected data for one or underlying attributes (variables).
+
+## `tidy` Data
+
+* Each column is a variable
+
+* Each row is an observation
+
+* Each type of observational unit forms a "table"
+
+* Untidy data is sometimes called wide (versus long) format
+
+
+## Types of Variables
+
+* categorical / qualitative
+
+These are nominal or ordinal.
+
+* numerical / quantitative
+
+These are interval or ratio. ALso classified as discrete ro continuous. 
+
+
+
+## Reading Data into R
+
+
+
+
+

@@ -1,0 +1,358 @@
+---
+title: "Winterization Activity"
+author: "Jefferson Ong"
+date: "1/29/2019"
+output: html_document
+---
+
+
+## Dataset Structure
+
+A dataset is a collection of data values for the observations and variables in a study (e.g., survey or experiment). 
+
+-An observational unit (or observation) is a single individual, object, or entity about which we have collected data for one or underlying attributes (variables).
+
+## `tidy` Data
+
+* Each column is a variable
+
+* Each row is an observation
+
+* Each type of observational unit forms a "table"
+
+* Untidy data is sometimes called wide (versus long) format
+
+
+## Types of Variables
+
+* categorical / qualitative
+
+These are nominal or ordinal.
+
+* numerical / quantitative
+
+These are interval or ratio. ALso classified as discrete ro continuous. 
+
+
+
+## Reading Data into R
+
+
+The `read.csv()` function converts a `.csv `file into a data frame. The `read_csv()` function in the` readr `package coverts a `.csv` file into an enhanced data frame known as a `tibble`.
+
+```{r}
+library(readr)
+draft <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv"))
+
+draft_wide <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft_wide.csv"))
+```
+
+How to specify in dataframes
+
+dataset_name$column_name
+
+list_name$list_component
+
+## Some Useful Functions
+
+str()
+
+glimpse() # from dplyr
+
+attributes()
+
+names()
+
+class()
+
+dim()
+
+nrow()
+
+ncol()
+
+head()
+
+tail()
+
+summary()
+
+## Missing Values
+
+```{r}
+sum(complete.cases(draft)) # this is two nested functions
+sum(!complete.cases(draft)) # what does the ! do?
+
+
+```
+
+
+```{r}
+index <- which(is.na(draft$draftnumber) == TRUE)
+draft[index,]
+draft[index, 1:3]
+draft[index, "day"]
+draft[index, c("month", "day", "draftyear")]
+```
+
+```{r}
+library(tidyr)
+draft_wide_gathered <- draft_wide %>% 
+  gather(key = "draftyear", value = "draftnumber", num1970:num1973)
+
+
+draft_wide_gathered
+```
+
+```{r}
+library(tidyr)
+draft_spread <- draft %>% 
+  spread(key = "draftyear", value = "draftnumber")
+
+draft_spread
+```
+
+```{r, warning=FALSE, echo=FALSE}
+library(gapminder)
+library(tidyverse)
+
+(my_gap <- gapminder)
+```
+
+
+```{r}
+## let output print to screen, but do not store
+my_gap %>% filter(country == "Canada")
+
+## store the output as an R object
+my_precious <- my_gap %>% filter(country == "Canada")
+```
+
+```{r}
+my_gap %>%
+  mutate(gdp = pop * gdpPercap)
+```
+
+
+```{r}
+ctib <- my_gap %>%
+  filter(country == "Canada")
+## this is a semi-dangerous way to add this variable
+## I'd prefer to join on year, but we haven't covered joins yet
+my_gap <- my_gap %>%
+  mutate(tmp = rep(ctib$gdpPercap, nlevels(country)),
+         gdpPercapRel = gdpPercap / tmp,
+         tmp = NULL)
+
+my_gap
+```
+
+```{r}
+my_gap %>% 
+  filter(country == "Canada") %>% 
+  select(country, year, gdpPercapRel)
+```
+
+```{r}
+summary(my_gap$gdpPercapRel)
+```
+
+
+```{r}
+my_gap %>%
+  arrange(year, country)
+```
+
+```{r}
+my_gap %>%
+  filter(year == 2007) %>%
+  arrange(lifeExp)
+```
+
+```{r}
+my_gap %>%
+  filter(year == 2007) %>%
+  arrange(desc(lifeExp))
+```
+
+
+
+```{r}
+my_gap %>%
+  rename(life_exp = lifeExp,
+         gdp_percap = gdpPercap,
+         gdp_percap_rel = gdpPercapRel)
+```
+
+
+```{r}
+my_gap %>%
+  filter(country == "Burundi", year > 1996) %>% 
+  select(yr = year, lifeExp, gdpPercap) %>% 
+  select(gdpPercap, everything())
+```
+
+
+## dplyr 
+
+* `group_by()` adds extra structure to your dataset – grouping information – which lays the groundwork for computations within the groups.
+
+* `summarize()` takes a dataset with n observations, computes requested summaries, and returns a dataset with 1 observation.
+
+* Window functions take a dataset with n observations and return a dataset with n observations.
+
+* `mutate()` and `summarize()` will honor groups.
+
+* You can also do very general computations on your groups with `do()`, though elsewhere in this course, I advocate for other approaches that I find more intuitive, using the purrr package.
+
+
+
+```{r}
+my_gap %>%
+  group_by(continent) %>%
+  summarize(n = n())
+```
+
+
+```{r}
+table(gapminder$continent)
+```
+
+```{r}
+str(table(gapminder$continent))
+```
+
+```{r}
+str(table(gapminder$continent))
+```
+
+
+```{r}
+my_gap %>% 
+  count(continent)
+```
+
+```{r}
+my_gap %>%
+  group_by(continent) %>%
+  summarize(n = n(),
+            n_countries = n_distinct(country))
+```
+
+
+## General summarization
+
+The functions you’ll apply within `summarize()` include classical statistical summaries, like `mean()`, `median()`,  `var()`, `sd()`, `mad()`, `IQR()`, `min()`, and `max()`. 
+
+```{r}
+my_gap %>%
+  group_by(continent) %>%
+  summarize(avg_lifeExp = mean(lifeExp))
+```
+
+
+```{r}
+my_gap %>%
+  filter(year %in% c(1952, 2007)) %>%
+  group_by(continent, year) %>%
+  summarize_at(vars(lifeExp, gdpPercap), funs(mean, median))
+```
+
+```{r}
+my_gap %>%
+  filter(continent == "Asia") %>%
+  group_by(year) %>%
+  summarize(min_lifeExp = min(lifeExp), max_lifeExp = max(lifeExp))
+```
+
+```{r}
+my_gap %>% 
+  group_by(country) %>% 
+  select(country, year, lifeExp) %>% 
+  mutate(lifeExp_gain = lifeExp - first(lifeExp)) %>% 
+  filter(year < 1963)
+```
+
+```{r}
+my_gap %>%
+  filter(continent == "Asia") %>%
+  select(year, country, lifeExp) %>%
+  group_by(year) %>%
+  filter(min_rank(desc(lifeExp)) < 2 | min_rank(lifeExp) < 2) %>% 
+  arrange(year) %>%
+  print(n = Inf)
+```
+
+
+```{r}
+asia <- my_gap %>%
+  filter(continent == "Asia") %>%
+  select(year, country, lifeExp) %>%
+  group_by(year)
+asia
+```
+
+
+```{r}
+asia %>%
+  mutate(le_rank = min_rank(lifeExp),
+         le_desc_rank = min_rank(desc(lifeExp))) %>% 
+  filter(country %in% c("Afghanistan", "Japan", "Thailand"), year > 1995)
+```
+
+```{r}
+
+# filter(min_rank(desc(lifeExp)) < 2 | min_rank(lifeExp) < 2)
+
+my_gap %>%
+  filter(continent == "Asia") %>%
+  select(year, country, lifeExp) %>%
+  arrange(year) %>%
+  group_by(year) %>%
+  #top_n(1, wt = lifeExp)        ## gets the min
+  top_n(1, wt = desc(lifeExp)) ## gets the max
+```
+
+
+```{r}
+my_gap %>%
+  select(country, year, continent, lifeExp) %>%
+  group_by(continent, country) %>%
+  ## within country, take (lifeExp in year i) - (lifeExp in year i - 1)
+  ## positive means lifeExp went up, negative means it went down
+  mutate(le_delta = lifeExp - lag(lifeExp)) %>% 
+  ## within country, retain the worst lifeExp change = smallest or most negative
+  summarize(worst_le_delta = min(le_delta, na.rm = TRUE)) %>% 
+  ## within continent, retain the row with the lowest worst_le_delta
+  top_n(-1, wt = worst_le_delta) %>% 
+  arrange(worst_le_delta)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

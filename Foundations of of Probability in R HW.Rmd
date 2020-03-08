@@ -1,0 +1,809 @@
+---
+title: 'DataCamp: Foundations of Probability in R'
+author: 'Jefferson Ong'
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: false
+    theme: yeti
+    highlight: textmate
+---
+
+**Course Link:** [Foundations of Probability in R](https://www.datacamp.com/courses/foundations-of-probability-in-r)
+
+***
+
+> **INSTRUCTIONS:** Replicate all of the exercises from the DataCamp course, including information from the videos. In cases where you are told that an object is "available in your workspace" for an exercise, you will have to create it for yourself here. See comments in the R code chunks below for additional instructions. You are welcome to include other relevant text or comments for your own reference, since this assignment will also serve as course notes. You should use the [R Style Guide](http://adv-r.had.co.nz/Style.html) for your document. Load all packages and datasets in the code chunk provided.
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+```{r packages&datasets}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+#
+```
+
+### Course Description
+
+Probability is the study of making predictions about random phenomena. In this course, you'll learn about the concepts of random variables, distributions, and conditioning, using the example of coin flips. You'll also gain intuition for how to solve probability problems through random simulation. These principles will help you understand statistical inference and can be applied to draw conclusions from data.
+
+### <span style="font-size: 100%; color: #2780E3;">&#9312;</span> The Binomial Distribution
+
+One of the simplest and most common examples of a random phenomenon is a coin flip: an event that is either "yes" or "no" with some probability. Here you'll learn about the binomial distribution, which describes the behavior of a combination of yes/no trials and how to predict and simulate its behavior.
+
+  + Flipping coins in R (50 xp) --- `VIDEO`
+  
+```{r}
+# Replicate the code shown in the video
+
+rbinom(1, 1, .5)  # First number is number of coins, the second is how many trials, the last is the probability of yes or no.
+
+rbinom(10, 1, .5)
+
+rbinom(1, 10, .5) # has 10 trials then adds all the heads up
+
+rbinom(10, 10, .5)
+
+rbinom(10, 10, .8)
+
+rbinom(10, 10, .2)
+# Create your own comments for the code
+# You do not need to include the graphs
+```
+
+  + Simulating coin flips (100 xp)
+```{r}
+# Generate 10 separate random flips with probability .3
+
+rbinom(10, 1, .3)
+```
+
+  + Simulating draws from a binomial (100 xp)
+```{r}
+# Generate 100 occurrences of flipping 10 coins, each with 30% probability
+
+rbinom(100, 10, .3)
+```
+
+  + Density and cumulative density (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+# Do NOT include flips == 5, the vector is TOO LARGE!
+
+flips <- rbinom(100000, 10, .5) #Can visualize using a histogram to help see all the probability distribution
+
+mean(flips) 
+
+mean(rbinom(100000, 100, .2))
+
+# flips == 5 This seems the specific probablity of that number occuring
+
+mean(flips == 5) # THis means that its the percent of the outcome
+
+dbinom(5, 10, .5) #These calculate those probablity density, so exactly getting 5, from all 10
+
+dbinom(6, 10, .5)
+
+dbinom(10, 10, .5) # exacting 10 out of 10
+# 
+# X ∼ Binomial(10, .5)
+# Pr(X ≤ 4)
+
+mean(flips <= 4)
+
+pbinom(4, 10, .5) #This means that the probability of getting 4 or fewer heads, think from the graph, reads from left to right. 
+
+
+```
+
+  + Calculating density of a binomial (100 xp)
+```{r}
+# Calculate the probability that 2 are heads using dbinom
+
+# 1 - (dbinom(4, 10, .3) + dbinom(3, 10, .3) + dbinom(2, 10, .3) + dbinom(1, 10, .3) + dbinom(0, 10, .3))
+  
+# Confirm your answer with a simulation using rbinom
+# Calculate the probability that 2 are heads using dbinom
+dbinom(2, 10, .3)
+
+# Confirm your answer with a simulation using rbinom
+mean(rbinom(10000, 10, .3) == 2)
+```
+
+  + Calculating cumulative density of a binomial (100 xp)
+```{r}
+# Calculate the probability that at least five coins are heads
+1 - (dbinom(4, 10, .3) + dbinom(3, 10, .3) + dbinom(2, 10, .3) + dbinom(1, 10, .3) + dbinom(0, 10, .3))
+# Confirm your answer with a simulation of 10,000 trials
+
+# Calculate the probability that at least five coins are heads
+1 - pbinom(4, 10, .3)
+
+# Confirm your answer with a simulation of 10,000 trials
+mean(rbinom(10000, 10, .3) >= 5)
+```
+
+  + Varying the number of trials (100 xp)
+```{r}
+# Here is how you computed the answer in the last problem
+
+# Try now with 100, 1000, 10,000, and 100,000 trials
+
+# Here is how you computed the answer in the last problem
+mean(rbinom(10000, 10, .3) >= 5)
+
+# Try now with 100, 1000, 10,000, and 100,000 trials
+mean(rbinom(100, 10, .3) >= 5)
+mean(rbinom(1000, 10, .3) >= 5)
+mean(rbinom(10000, 10, .3) >= 5)
+mean(rbinom(100000, 10, .3) >= 5)
+```
+
+  + Expected value and variance  (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+# flips
+
+flips <- rbinom(100000, 10, .5)
+
+X <- rbinom(100000, 10, .5)
+
+Y <- rbinom(100000, 100, .5)
+
+var(X)
+
+var(Y)
+```
+
+  + Calculating the expected value (100 xp)
+```{r}
+# Calculate the expected value using the exact formula
+25 * .3
+
+# Confirm with a simulation using rbinom
+mean(rbinom(10000, 25, .3))
+```
+
+  + Calculating the variance (100 xp)
+```{r}
+
+# Calculate the variance using the exact formula
+25 * .3 * (1 - .3)
+
+# Confirm with a simulation using rbinom
+var(rbinom(10000, 25, .3))
+```
+
+
+### <span style="font-size: 100%; color: #2780E3;">&#9313;</span> Laws of Probability
+
+In this chapter you'll learn to combine multiple probabilities, such as the probability two events both happen or that at least one happens, and confirm each with random simulations. You'll also learn some of the properties of adding and multiplying random variables.
+
+  + Probability of event A and event B (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+# Do NOT include A & B, the vector is TOO LARGE!
+
+A <- rbinom(100000, 1, .5)
+B <- rbinom(100000, 1, .5)
+
+mean(A | B) # Pr(A or B) = Pr(A) + Pr(B) − Pr(A and B
+
+# Z <- X + Y # E[X + Y ] = E[X] + E[Y ]
+```
+
+  + Solving for probability of A and B (50 xp)
+```{r}
+# Write the code to solve this problem
+.4 * .2
+
+# Use simulation and direct calculation
+```
+
+  + Simulating the probability of A and B (100 xp)
+```{r}
+# Simulate 100,000 flips of a coin with a 40% chance of heads
+A <- rbinom(100000, 1, .4)
+
+# Simulate 100,000 flips of a coin with a 20% chance of heads
+B <- rbinom(100000, 1, .2)
+
+# Estimate the probability both A and B are heads
+mean(A & B)
+```
+
+  + Simulating the probability of A, B, and C (100 xp)
+```{r}
+# You've already simulated 100,000 flips of coins A and B
+A <- rbinom(100000, 1, .4)
+B <- rbinom(100000, 1, .2)
+
+# Simulate 100,000 flips of coin C (70% chance of heads)
+C <- rbinom(100000, 1, .7)
+
+# Estimate the probability A, B, and C are all heads
+mean(A & B & C)
+```
+
+  + Probability of A or B (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+A <- rbinom(100000, 1, .5)
+B <- rbinom(100000, 1, .5)
+
+mean(A | B) # Pr(A or B) = Pr(A) + Pr(B) − Pr(A and B
+```
+
+  + Solving for probability of A or B (50 xp)
+```{r}
+# Write the code to solve this problem
+# Use simulation and direct calculation
+
+# P(A) + P(B) - P(A) * P(B).
+.6 + .1 - .6 * .1
+
+```
+
+  + Simulating probability of A or B (100 xp)
+```{r}
+# Simulate 100,000 flips of a coin with a 60% chance of heads
+A <- rbinom(100000, 1, .6)
+
+# Simulate 100,000 flips of a coin with a 10% chance of heads
+B <- rbinom(100000, 1, .1)
+
+# Estimate the probability either A or B is heads
+mean(A | B)
+```
+
+  + Probability either variable is less than or equal to 4 (100 xp)
+```{r}
+# Use rbinom to simulate 100,000 draws from each of X and Y
+X <- rbinom(100000, 10, .6)
+Y <- rbinom(100000, 10, .7)
+
+# Estimate the probability either X or Y is <= to 4
+mean(X <= 4 | Y <= 4)
+
+# Use pbinom to calculate the probabilities separately
+prob_X_less <- pbinom(4, 10, .6)
+prob_Y_less <- pbinom(4, 10, .7)
+
+# Combine these to calculate the exact probability either <= 4
+prob_X_less + prob_Y_less - prob_X_less * prob_Y_less
+```
+
+  + Multiplying random variables (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+xX <- rbinom(100000, 10, .5)
+
+var(xX)
+
+xY <- 3 * xX
+
+# Var[X + Y ] = Var[X] + Var[Y]
+```
+
+  + Expected value of multiplying a random variable (50 xp)
+```{r}
+# Write the code to solve this problem
+# Use simulation and direct calculation
+
+# If X is a binomial with size 50 and p = .4, what is the expected value of 3*X?
+
+# The expected value of a binomial is size * p, and the expected value of k * X is k * E[X].
+
+3 * (50 * .4)
+```
+
+  + Simulating multiplying a random variable (100 xp)
+```{r}
+# Simulate 100,000 draws of a binomial with size 20 and p = .1
+X <- rbinom(100000, 20, .1)
+
+# Estimate the expected value of X
+mean(X)
+
+# Estimate the expected value of 5 * X
+mean(5 * X)
+```
+
+  + Variance of a multiplied random variable (100 xp)
+```{r}
+# X is simulated from 100,000 draws of a binomial with size 20 and p = .1
+X <- rbinom(100000, 20, .1)
+
+# Estimate the variance of X
+var(X)
+
+# Estimate the variance of 5 * X
+var(5 * X)
+```
+
+  + Adding two random variables (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+X <- rbinom(100000, 10, .5)
+
+Y <- rbinom(100000, 100, .2)
+
+Z <- X + Y
+```
+
+  + Solving for the sum of two binomial variables (50 xp)
+```{r}
+# Write the code to solve this problem
+# Use simulation and direct calculation
+
+# If X is drawn from a binomial with size 20 and p = .3, and Y from size 40 and p = .1, what is the expected value (mean) of X + Y?
+
+# Compute the expected value of X and the expected value of Y separately, then add them together.
+
+(20 * .3) + (40 * .1)
+```
+
+  + Simulating adding two binomial variables (100 xp)
+```{r}
+# Simulate 100,000 draws of X (size 20, p = .3) and Y (size 40, p = .1)
+X <- rbinom(100000, 20, .3) 
+Y <- rbinom(100000, 40, .1)
+
+# Estimate the expected value of X + Y
+mean(X + Y)
+```
+
+  + Simulating variance of sum of two binomial variables (100 xp)
+```{r}
+# Simulation from last exercise of 100,000 draws from X and Y
+X <- rbinom(100000, 20, .3) 
+Y <- rbinom(100000, 40, .1)
+
+# Find the variance of X + Y
+var(X + Y)
+
+# Find the variance of 3 * X + Y
+var(3 * X + Y)
+```
+
+
+### <span style="font-size: 100%; color: #2780E3;">&#9314;</span> Bayesian Statistics
+
+Bayesian statistics is a mathematically rigorous method for updating your beliefs based on evidence. In this chapter, you'll learn to apply Bayes' theorem to draw conclusions about whether a coin is fair or biased, and back it up with simulations.
+
+  + Updating with evidence (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+fair <- rbinom(50000, 20, .5)
+sum(fair == 14)
+
+biased <- rbinom(50000, 20, .3)
+sum(biased == 14)
+```
+
+  + Updating (50 xp)
+```{r}
+# Record the text of the question here
+
+# Suppose you have a coin that is equally likely to be fair (50% heads) or biased (75% # heads). You then flip the coin 20 times and see 11 heads.
+# 
+# Without doing any math, which do you now think is more likely- that the coin is fair, or # that the coin is biased?
+
+# If the coin were fair, how many heads would you expect to see on average? What if the coin # were biased? Which is 11 closer to?
+
+# More likely that the coin is fair
+
+```
+
+  + Updating with simulation (100 xp)
+```{r}
+# Simulate 50000 cases of flipping 20 coins from fair and from biased
+fair <- rbinom(50000, 20, .5)
+biased <- rbinom(50000, 20, .75)
+
+# How many fair cases, and how many biased, led to exactly 11 heads?
+fair_11 <- sum(fair == 11)
+biased_11 <- sum(biased == 11)
+
+# Find the fraction of fair coins that are 11 out of all coins that were 11
+fair_11 / (fair_11 + biased_11)
+```
+
+  + Updating after 16 heads (50 xp)
+```{r}
+# Record the text of the question here
+
+# Suppose that when you flip a different coin (that could either be fair or biased) 20 times, # you see 16 heads.
+# 
+# Without doing any math, which do you now think is more likely- that this coin is fair, or # that it's biased?
+# 
+# If the coin were fair, how many heads would you expect to see on average? What if the coin # were biased? Which is 16 closer to?
+# 
+# More likely that the coin is biased.
+```
+
+  + Updating with simulation after 16 heads (100 xp)
+```{r}
+# Simulate 50000 cases of flipping 20 coins from fair and from biased
+fair <- rbinom(50000, 20, .5)
+biased <- rbinom(50000, 20, .75)
+
+# How many fair cases, and how many biased, led to exactly 16 heads?
+fair_16 <- sum(fair == 16)
+biased_16 <- sum(biased == 16)
+
+# Find the fraction of fair coins that are 16 out of all coins that were 16
+fair_16 / (fair_16 + biased_16)
+```
+
+  + Prior probability (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+fair <- rbinom(90000, 20, .5)
+sum(fair == 14)
+
+biased <- rbinom(10000, 20, .3)
+sum(biased == 14)
+```
+
+  + Updating with priors (100 xp)
+```{r}
+# Simulate 8000 cases of flipping a fair coin, and 2000 of a biased coin
+fair_flips <- rbinom(8000, 20, .5)
+biased_flips <- rbinom(2000, 20, .75)
+
+# Find the number of cases from each coin that resulted in 14/20
+fair_14 <- sum(fair_flips == 14)
+biased_14 <- sum(biased_flips == 14)
+
+# Use these to estimate the posterior probability
+fair_14 / (fair_14 + biased_14)
+```
+
+  + Updating with three coins (100 xp)
+```{r}
+# Simulate 80,000 draws from fair coin, 10,000 from each of high and low coins
+flips_fair <- rbinom(80000, 20, .5)
+flips_high <- rbinom(10000, 20, .75)
+flips_low <- rbinom(10000, 20, .25)
+
+# Compute the number of coins that resulted in 14 heads from each of these piles
+fair_14 <- sum(flips_fair == 14)
+high_14 <- sum(flips_high == 14)
+low_14 <- sum(flips_low == 14)
+
+# Compute the posterior probability that the coin was fair
+fair_14 / (fair_14 + low_14 + high_14)
+```
+
+  + Bayes' theorem (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+fair <- rbinom(90000, 20, .5)
+sum(fair == 14)
+
+dbinom(14, 20, .5) * .9
+
+biased <-rbinom(10000, 20, .3)
+sum(biased == 14)
+
+dbinom(14, 20, .75) * .1
+
+
+prob_14_fair <- dbinom(14, 20, .5) * .9
+
+prob_14_biased <- dbinom(14, 20, .75) * .1
+
+prob_14_biased / (prob_14_fair + prob_14_biased)
+```
+
+  + Updating with Bayes theorem (100 xp)
+```{r}
+# Use dbinom to calculate the probability of 11/20 heads with fair or biased coin
+probability_fair <- dbinom(11, 20, .5)
+probability_biased <- dbinom(11, 20, .75)
+
+# Calculate the posterior probability that the coin is fair
+probability_fair / (probability_fair + probability_biased)
+```
+
+  + Updating for other outcomes (100 xp)
+```{r}
+# Find the probability that a coin resulting in 14/20 is fair
+probability_fair <- dbinom(14, 20, .5)
+probability_biased <- dbinom(14, 20, .75)
+probability_fair / (probability_fair + probability_biased)
+
+
+dbinom(14, 20, .5) / (dbinom(14, 20, .5) + dbinom(14, 20, .75))
+
+# Find the probability that a coin resulting in 18/20 is fair
+probability_fair <- dbinom(18, 20, .5)
+probability_biased <- dbinom(18, 20, .75)
+probability_fair / (probability_fair + probability_biased)
+
+
+
+dbinom(18, 20, .5) / (dbinom(18, 20, .5) + dbinom(18, 20, .75))
+```
+
+  + More updating with priors (100 xp)
+```{r}
+# Use dbinom to find the probability of 16/20 from a fair or biased coin
+probability_16_fair <- dbinom(16, 20, .5)
+probability_16_biased <- dbinom(16, 20, .75)
+
+# Use Bayes' theorem to find the posterior probability that the coin is fair
+.99* probability_16_fair / (.99* probability_16_fair +  .01 * probability_16_biased)
+
+(probability_16_fair * .99) / (probability_16_fair * .99 + probability_16_biased * .01)
+```
+
+
+### <span style="font-size: 100%; color: #2780E3;">&#9315;</span> Related Distributions
+
+So far we've been talking about the binomial distribution, but this is one of many probability distributions a random variable can take. In this chapter we'll introduce three more that are related to the binomial: the normal, the Poisson, and the geometric.
+
+  + The normal distribution (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+# rnorm(10000, expected_value, stdev)
+
+binomial <- rbinom(100000, 1000, 1 / 1000)
+
+flips <- rbinom(100000, 10, .5)
+
+flips <- rbinom(100, 1, .1)
+
+which(flips == 1)
+
+poisson <- rpois(100000, 1)
+
+replicate(10, which(rbinom(100, 1, .1) == 1))
+```
+
+  + Approximating a binomial to the normal (50 xp)
+```{r}
+# Write the code to solve this problem
+# Use simulation and direct calculation
+
+# Suppose you flipped 1000 coins, each with a 20% chance of being heads. What would be the # mean and variance of the binomial distribution?
+#   
+# The variance of the binomial can be computed as n * p * (1 - p).
+# 
+# Mean 200; variance 160
+```
+
+  + Simulating from the binomial and the normal (100 xp)
+```{r}
+# Draw a random sample of 100,000 from the Binomial(1000, .2) distribution
+binom_sample <- rbinom(100000, 1000, .2)
+# Draw a random sample of 100,000 from the normal approximation
+normal_sample <- rnorm(100000, 200, sqrt(160))
+# USE THIS CODE INSTEAD OF compare_histograms()
+# Uncomment the code before you knit it to HTML
+ plotdata <- tibble(variable = c(rep("binom", 100000), rep("normal", 100000)),   
+                    simvalue = c(binom_sample, normal_sample))
+ ggplot(plotdata, aes(x = simvalue)) +
+   geom_histogram() +
+   facet_wrap(~ variable, ncol = 1)
+
+
+```
+
+  + Comparing the cumulative density of the binomial (100 xp)
+```{r}
+# Simulations from the normal and binomial distributions
+binom_sample <- rbinom(100000, 1000, .2)
+normal_sample <- rnorm(100000, 200, sqrt(160))
+
+# Use binom_sample to estimate the probability of <= 190 heads
+mean(binom_sample <= 190)
+
+# Use normal_sample to estimate the probability of <= 190 heads
+mean(normal_sample <= 190)
+
+# Calculate the probability of <= 190 heads with pbinom
+pbinom(190, 1000, .2)
+
+# Calculate the probability of <= 190 heads with pnorm
+pnorm(190, 200, sqrt(160))
+```
+
+  + Comparing the distributions of the normal and binomial for low n (100 xp)
+```{r}
+# Draw a random sample of 100,000 from the Binomial(10, .2) distribution
+binom_sample <- rbinom(100000, 10, .2)
+
+# Draw a random sample of 100,000 from the normal approximation
+normal_sample <- rnorm(100000, 2, sqrt(1.6))
+
+# USE THIS CODE INSTEAD OF compare_histograms()
+# Uncomment the code before you knit it to HTML
+ plotdata <- tibble(variable = c(rep("binom", 100000), rep("normal", 100000)),   
+                    simvalue = c(binom_sample, normal_sample))
+ ggplot(plotdata, aes(x = simvalue)) +
+   geom_histogram() +
+   facet_wrap(~ variable, ncol = 1)
+```
+
+  + The Poisson distribution (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+binomial <- rbinom(10000, 1000, 1 / 1000)
+
+poisson <- rpois(100000, 1)
+```
+
+  + Approximating a binomial with a Poisson (50 xp)
+```{r}
+# Write the code to solve this problem
+# Use simulation and direct calculation
+# 
+# If you were drawing from a binomial with size = 1000 and p = .002, what would be the mean # of the Poisson approximation?
+#   
+# How does the mean of the Poisson approximation relate to the mean of the binomial random # variable?
+#   
+# 2
+```
+
+  + Simulating from a Poisson and a binomial (100 xp)
+```{r}
+# Draw a random sample of 100,000 from the Binomial(1000, .002) distribution
+binom_sample <- rbinom(100000, 1000, .002)
+
+# Draw a random sample of 100,000 from the Poisson approximation
+poisson_sample <- rpois(100000, 2)
+
+# USE THIS CODE INSTEAD OF compare_histograms()
+# Uncomment the code before you knit it to HTML
+ plotdata <- tibble(variable = c(rep("binom", 100000), rep("poisson", 100000)),   
+                    simvalue = c(binom_sample, poisson_sample))
+ ggplot(plotdata, aes(x = simvalue)) +
+   geom_histogram() +
+   facet_wrap(~ variable, ncol = 1)
+```
+
+  + Density of the Poisson distribution (100 xp)
+```{r}
+# Simulate 100,000 draws from Poisson(2)
+poisson_sample <- rpois(100000, 2)
+
+# Find the percentage of simulated values that are 0
+mean(poisson_sample == 0)
+
+# Use dpois to find the exact probability that a draw is 0
+dpois(0, 2)
+```
+
+  + Sum of two Poisson variables (100 xp)
+```{r}
+# Simulate 100,000 draws from Poisson(1)
+X <- rpois(100000, 1)
+
+# Simulate 100,000 draws from Poisson(2)
+Y <- rpois(100000, 2)
+
+# Add X and Y together to create Z
+Z <- X + Y
+
+# USE THIS CODE INSTEAD OF compare_histograms()
+# Uncomment the code before you knit it to HTML
+ plotdata <- tibble(variable = c(rep("Poi(1) + Poi(2)", 100000), rep("Poi(3)", 100000)),  
+                    simvalue = c(Z, rpois(100000,3)))
+ ggplot(plotdata, aes(x = simvalue)) +
+   geom_histogram() +
+   facet_wrap(~ variable, ncol = 1)
+```
+
+  + The geometric distribution (50 xp) --- `VIDEO`
+```{r}
+# Replicate the code shown in the video
+# Create your own comments for the code
+# You do not need to include the graphs
+
+which(rbinom(100, 1, .1) == 1)
+
+replicate(10, which(rbinom(100, 1, .1) == 1))
+
+geom <- rgeom(10000, .1)
+
+mean(geom)
+```
+
+  + Waiting for first coin flip (100 xp)
+```{r}
+# Simulate 100 instances of flipping a 20% coin
+flips <- rbinom(100, 1, .2)
+
+# Use which to find the first case of 1 ("heads")
+which(flips == 1)[1]
+```
+
+  + Using replicate() for simulation (100 xp)
+```{r}
+# Existing code for finding the first instance of heads
+which(rbinom(100, 1, 0.2) == 1)[1]
+
+# Replicate this 100,000 times using replicate()
+replications <- replicate(100000, which(rbinom(100, 1, 0.2) == 1)[1])
+
+# Histogram the replications with qplot
+qplot(replications)
+```
+
+  + Simulating from the geometric distribution (100 xp)
+```{r}
+# Replications from the last exercise
+replications <- replicate(100000, which(rbinom(100, 1, .2) == 1)[1])
+
+# Generate 100,000 draws from the corresponding geometric distribution
+geom_sample <- rgeom(100000, .2)
+
+# USE THIS CODE INSTEAD OF compare_histograms()
+# Uncomment the code before you knit it to HTML
+ plotdata <- tibble(variable = c(rep("Replications", 100000), rep("geom_sample", 100000)),  
+                    simvalue = c(replications, geom_sample))
+ ggplot(plotdata, aes(x = simvalue)) +
+   geom_histogram() +
+   facet_wrap(~ variable, ncol = 1)
+```
+
+  + Probability of a machine lasting X days (100 xp)
+```{r}
+# Find the probability the machine breaks on 5th day or earlier
+pgeom(4, .1)
+
+# Find the probability the machine is still working on 20th day
+1 - pgeom(19, .1)
+```
+
+  + Graphing the probability that a machine still works (100 xp)
+```{r}
+# Calculate the probability of machine working on day 1-30
+still_working <- 1 - pgeom(0:29, .1)
+
+# Plot the probability for days 1 to 30
+qplot(1:30, still_working)
+```
+
+
+***
+```{r}
+sessionInfo()
+```

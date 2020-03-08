@@ -1,0 +1,127 @@
+---
+title: "Basic Probability"
+author: "Jefferson Ong"
+date: "2/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Randomness!
+
+---
+
+We can define the concept of randomness as a lack of pattern or exact predictability in a sequence or set of events.
+
+Individual random events are by definition unpredictable, but the relative frequency of different outcomes over a very large number of events (often called "trials") is predictable.
+
+Example: if you roll two six-sided dice and add the values, the result of individual rolls is unpredictable, but in the long run a sum of seven will occur twice as often as a sum of four.
+
+Randomness reflects our uncertainty about an outcome, not haphazardness in the process that produces an outcome.
+
+
+---
+
+
+## Random Circumstance
+
+
+A random circumstance is a scenario in which an exact outcome or sequence of outcomes is unpredictable. We can think about two kinds of random circumstances.
+
+The outcome is not determined until we observe it.
+Example: will the coin flip at the beginning of a football game be heads or tails?
+
+The outcome has already been determined, but our state of knowledge about the outcome is uncertain.
+Example: does someone have a BRCA or PALB2 gene mutation? They either have it or they do not, but we do not know until we perform an appropriate genetic test.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

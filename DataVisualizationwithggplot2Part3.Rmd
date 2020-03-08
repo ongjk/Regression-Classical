@@ -1,0 +1,1396 @@
+---
+title: "Data Visualization with ggplot2 (Part 3)"
+author: "Jefferson Ong"
+date: "3/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(lattice)
+library(readr)
+```
+
+
+```{r}
+UScities <- read_csv("https://assets.datacamp.com/production/repositories/414/datasets/24739149e0dbdbdc84dcbf275b68616cb2481005/US_Cities.txt")
+
+Usstates <- read_csv("https://assets.datacamp.com/production/repositories/414/datasets/7eef36579d107fefbcb38d0c314c963e608c9609/US_States.txt")
+
+Germanyunem <- read_csv("https://assets.datacamp.com/production/repositories/414/datasets/bdedafb52d7060a90f9bf320cf11a274ce02bcfd/germany_unemployment.txt")
+
+JapPop <- read_csv("https://assets.datacamp.com/production/repositories/414/datasets/f2efc9d1f2f07a22843aabef510094c6e5474616/japanPOP.txt")
+
+ParisWea <- read_csv("https://assets.datacamp.com/production/repositories/414/datasets/df61e885cc58b88db51968a13ca7827897b098e8/FRPARIS.txt")
+
+ReyWea <- read_csv("https://assets.datacamp.com/production/repositories/414/datasets/45d984ccc4d2afa2023b7139824116040aac3a54/ILREYKJV.txt")
+
+
+NewyrkWea <- read.csv("https://assets.datacamp.com/production/repositories/414/datasets/c37fafe15bfa05a338f8c835e79ee5e242400438/NYNEWYOR.txt")
+
+LondonWea <- read_csv("https://assets.datacamp.com/production/repositories/414/datasets/89250a654c2f83331a90e6538f89d501aa966181/UKLONDON.txt")
+```
+
+```{r}
+mammals <- readRDS("mammals.RDS")
+
+```
+
+# Statistical plots
+
+
+```{r}
+# Create movies_small
+library(ggplot2movies)
+set.seed(123)
+movies_small <- movies[sample(nrow(movies), 1000), ]
+movies_small$rating <- factor(round(movies_small$rating))
+
+# Explore movies_small with str()
+str(movies_small)
+
+# Build a scatter plot with mean and 95% CI
+ggplot(movies_small, aes(x = rating, y = votes)) +
+  geom_point() +
+  stat_summary(fun.data = "mean_cl_normal",
+               geom = "crossbar",
+               width = 0.2,
+               col = "red") +
+  scale_y_log10()
+
+# Reproduce the plot
+ggplot(diamonds, aes(x = carat, y = price, col = color)) +
+  geom_point(alpha = 0.5, size = 0.5, shape = 16) +
+  scale_x_log10(expression(log[10](Carat)), limits = c(0.1,10)) +
+  scale_y_log10(expression(log[10](Price)), limits = c(100,100000)) +
+  scale_color_brewer(palette = "YlOrRd") +
+  coord_equal() +
+  theme_classic()
+
+# Reproduce the plot
+ggplot(diamonds, aes(x = carat, y = price, col = color)) +
+  geom_point(alpha = 0.5, size = 0.5, shape = 16) +
+  scale_x_log10(expression(log[10](Carat)), limits = c(0.1,10)) +
+  scale_y_log10(expression(log[10](Price)), limits = c(100,100000)) +
+  scale_color_brewer(palette = "YlOrRd") +
+  coord_equal() +
+  theme_classic()
+```
+
+```{r}
+# movies_small is available
+
+# Add a boxplot geom
+d <- ggplot(movies_small, aes(x = rating, y = votes)) +
+  geom_point() +
+  geom_boxplot() +
+  stat_summary(fun.data = "mean_cl_normal",
+               geom = "crossbar",
+               width = 0.2,
+               col = "red")
+
+# Untransformed plot
+d
+
+# Transform the scale
+d + scale_y_log10()
+
+# Transform the coordinates
+# d + coord_trans(y = "log10")
+
+
+
+
+# Plot object p
+p <- ggplot(diamonds, aes(x = carat, y = price))
+
+# Use cut_interval
+p + geom_boxplot(aes(group = cut_interval(carat, n = 10)))
+
+# Use cut_number
+p + geom_boxplot(aes(group = cut_number(carat, n = 10)))
+
+# Use cut_width
+p + geom_boxplot(aes(group = cut_width(carat, width = 0.25)))
+```
+
+
+
+## Box Plots
+
+Box plot
+● John Tukey - Exploratory Data Analysis
+● Visualizing the 5 number summary
+
+
+```{r}
+# test_data is available
+
+# Calculating density: d
+# d <- density(test_data$norm)
+# 
+# # Use which.max() to calculate mode
+# mode <- d$x[which.max(d$y)]
+# 
+# # Finish the ggplot call
+# ggplot(test_data, aes(x = norm)) +
+#   geom_rug() +
+#   geom_density() +
+#  geom_vline(xintercept = mode, col = "red")
+```
+
+```{r}
+# test_data is available
+
+# Arguments you'll need later on
+# fun_args <- list(mean = mean(test_data$norm), sd = sd(test_data$norm))
+
+# Finish the ggplot
+# ggplot(test_data, aes(x = norm)) +
+#   geom_histogram(aes(y = ..density..)) +
+#   geom_density(col = "red") +
+#   stat_function(fun = dnorm, args = fun_args, col = "blue")
+```
+
+```{r}
+# small_data is available
+
+# Get the bandwith
+# get_bw <- density(small_data$x)$bw
+# 
+# # Basic plotting object
+# p <- ggplot(small_data, aes(x = x)) +
+#   geom_rug() +
+#   coord_cartesian(ylim = c(0,0.5))
+# 
+# # Create three plots
+# p + geom_density()
+# p + geom_density(adjust = 0.25)
+# p + geom_density(bw = 0.25 * get_bw)
+# 
+# # Create two plots
+# p + geom_density(kernel = "r")
+# p + geom_density(kernel = "e")
+```
+```{r}
+# Individual densities
+ggplot(mammals[mammals$vore == "Insectivore",], aes(x = sleep_total, fill = vore)) +
+  geom_density(col = NA, alpha = 0.35) +
+  scale_x_continuous(limits = c(0, 24)) +
+  coord_cartesian(ylim = c(0, 0.3))
+
+# With faceting
+ggplot(mammals, aes(x = sleep_total, fill = vore)) +
+  geom_density(col = NA, alpha = 0.35) +
+  scale_x_continuous(limits = c(0, 24)) +
+  coord_cartesian(ylim = c(0, 0.3)) +
+  facet_wrap( ~ vore, nrow = 2)
+
+# By default, the x ranges fill the scale
+ggplot(mammals, aes(x = sleep_total, fill = vore)) +
+  geom_density(col = NA, alpha = 0.35) +
+  scale_x_continuous(limits = c(0, 24)) +
+  coord_cartesian(ylim = c(0, 0.3))
+
+# Trim each density plot individually
+ggplot(mammals, aes(x = sleep_total, fill = vore)) +
+  geom_density(col = NA, alpha = 0.35, trim = TRUE) +
+  scale_x_continuous(limits = c(0, 24)) +
+  coord_cartesian(ylim = c(0, 0.3))
+```
+
+
+```{r}
+# Unweighted density plot from before
+ggplot(mammals, aes(x = sleep_total, fill = vore)) +
+  geom_density(col = NA, alpha = 0.35) +
+  scale_x_continuous(limits = c(0, 24)) +
+  coord_cartesian(ylim = c(0, 0.3))
+
+# Unweighted violin plot
+ggplot(mammals, aes(x = vore, y = sleep_total, fill = vore)) +
+  geom_violin()
+
+# Calculate weighting measure
+library(dplyr)
+mammals2 <- mammals %>%
+  group_by(vore) %>%
+  mutate(n = n() / nrow(mammals)) -> mammals
+
+# Weighted density plot
+ggplot(mammals2, aes(x = sleep_total, fill = vore)) +
+  geom_density(aes(weight = n), col = NA, alpha = 0.35) +
+  scale_x_continuous(limits = c(0, 24)) +
+  coord_cartesian(ylim = c(0, 0.3))
+
+# Weighted violin plot
+ggplot(mammals2, aes(x = vore, y = sleep_total, fill = vore)) +
+  geom_violin(aes(weight = n), col = NA)
+```
+
+```{r}
+# Base layers
+p <- ggplot(faithful, aes(x = waiting, y = eruptions)) +
+  scale_y_continuous(limits = c(1, 5.5), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(40, 100), expand = c(0, 0)) +
+  coord_fixed(60 / 4.5)
+
+# 1 - Use geom_density_2d()
+p + geom_density_2d()
+
+# 2 - Use stat_density_2d() with arguments
+p + stat_density_2d(aes(col = ..level..), h = c(5, 0.5))
+```
+```{r}
+# Load in the viridis package
+library(viridis)
+
+# Add viridis color scale
+ggplot(faithful, aes(x = waiting, y = eruptions)) +
+  scale_y_continuous(limits = c(1, 5.5), expand = c(0,0)) +
+  scale_x_continuous(limits = c(40, 100), expand = c(0,0)) +
+  coord_fixed(60/4.5) +
+  stat_density_2d(geom = "tile", aes(fill = ..density..), h=c(5,.5), contour = FALSE) +
+  scale_fill_viridis()
+```
+
+
+## Density plot
+
+ Distribution of univariate data
+● Statistics
+● Probability Density Function
+● Theoretical: based on formula
+● Empirical: based on data
+
+## Kernel Density Estimate (KDE)
+
+A sum of 'bumps' placed at the observations.
+The kernel function determines the shape of the bumps
+while the window width, h, determines their width.
+
+
+# Plots for specific data types (Part 1)
+
+Defining largeness
+
+● Many observations
+● High-resolution time series
+● Large surveys
+● Website analytics
+● Many variables
+● Multidimensional data
+● Combination
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_point(shape = 1)
+
+ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_point(shape = ".")
+
+ ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_point(shape = 16, alpha = 0.2)
+ 
+  ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_point(shape = 16, alpha = 0.2) +
+ stat_density2d(col = "blue")
+  
+   ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_point(shape = 16, alpha = 0.2) +
+ stat_density2d(aes(colour=..level..))
+   
+   
+    ggplot(diamonds, aes(x = carat, y = price)) +
+ stat_density2d(geom = "tile",
+ aes(fill = ..density..),
+ contour = FALSE)
+```
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_bin2d(bins = 100)
+
+
+ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_hex()
+
+ggplot(diamonds, aes(x = carat, y = price)) +
+ geom_hex(bins = 100)
+
+```
+Many observations
+
+● Reducing over-plo!ing
+● Reducing amount of information that is plo!ed
+● Aggregates
+
+
+Many variables
+
+● Multi-variate or high-dimensional data
+● Data reduction methods
+● Previously: facets
+● Two plot types
+
+
+### SPLOM - Sca!er PLOt Matrix
+
+```{r}
+pairs(iris[-5])
+```
+
+### Correlation matrix
+
+```{r}
+library(PerformanceAnalytics)
+ chart.Correlation(iris[-5])
+```
+
+### ggAlly::ggpairs()
+
+```{r}
+library(GGally)
+ ggpairs(mtcars)
+```
+
+
+### Parallel coordinate plot
+
+```{r}
+ggparcoord(iris, columns = 1:4,
+ groupColumn = 5,
+ scale = "globalminmax",
+ order = "anyClass", alphaLines = 0.4)
+```
+
+## Ternary Plots
+
+● Triangle plot
+● Compositional trivariate data
+● Add up to 100%
+● Typical example: soil composition
+● Sand
+● Silt
+● Clay
+
+
+```{r}
+# africa.sample
+
+# library(ggtern)
+#  ggtern(africa, aes(Sand, Silt, Clay)) +
+#  geom_density_tern()
+```
+
+## Network Plots
+
+Blood types
+● Four main types
+● A, B, AB, O
+● Rho negative or positive
+● 8 different types
+● Not all compatible
+● Which blood type can be used as a donor?
+
+```{r}
+# ggplot(Blood_donors, aes(x = to, y = from)) +
+#  geom_tile()
+```
+
+## Diagnostic Plots
+
+● Quantitative data
+● Ordinary least squares model
+● Assess how the model fits the data
+
+```{r}
+ res <- lm(Volume ~ Girth, data = trees)
+ plot(Volume ~ Girth, data = trees)
+ abline(res, col = "red")
+```
+
+```{r}
+# pairs
+pairs(iris[1:4])
+
+# chart.Correlation
+library(PerformanceAnalytics)
+chart.Correlation(iris[1:4])
+
+# ggpairs
+library(GGally)
+# ggpairs(mtcars_fact[1:3])
+```
+```{r}
+library(ggplot2)
+library(reshape2)
+
+cor_list <- function(x) {
+  L <- M <- cor(x)
+  
+  M[lower.tri(M, diag = TRUE)] <- NA
+  M <- melt(M)
+  names(M)[3] <- "points"
+  
+  L[upper.tri(L, diag = TRUE)] <- NA
+  L <- melt(L)
+  names(L)[3] <- "labels"
+  
+  merge(M, L)
+}
+
+# Calculate xx with cor_list
+library(dplyr)
+xx <- iris %>%
+  group_by(Species) %>%
+  do(cor_list(.[1:4])) 
+
+# Finish the plot
+ggplot(xx, aes(x = Var1, y = Var2)) +
+  geom_point(aes(col = points, size = abs(points)), shape = 16) +
+  geom_text(aes(col = labels,  size = abs(labels), label = round(labels, 2))) +
+  scale_size(range = c(0, 6)) +
+  scale_color_gradient("r", limits = c(-1, 1)) +
+  scale_y_discrete("", limits = rev(levels(xx$Var1))) +
+  scale_x_discrete("") +
+  guides(size = FALSE) +
+  geom_abline(slope = -1, intercept = nlevels(xx$Var1) + 1) +
+  coord_fixed() +
+  facet_grid(. ~ Species) +
+  theme(axis.text.y = element_text(angle = 45, hjust = 1),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        strip.background = element_blank())
+```
+
+```{r}
+# # Load ggtern
+# library(ggtern)
+# 
+# # Build ternary plot
+# ggtern(africa, aes(x = Sand, y = Silt, z = Clay)) +
+#   geom_point(shape = 16, alpha = 0.2)
+```
+
+
+```{r}
+library(geomnet)
+str(madmen)
+
+# Merge edges and vertices
+mmnet <- merge(madmen$edges, madmen$vertices,
+               by.x = "Name1", by.y = "label",
+               all = TRUE)
+
+# Examine structure of mmnet
+str(mmnet)
+```
+
+```{r}
+# geomnet is pre-loaded
+
+# Merge edges and vertices
+mmnet <- merge(madmen$edges, madmen$vertices,
+               by.x = "Name1", by.y = "label",
+               all = TRUE)
+
+# Finish the ggplot command
+ggplot(mmnet, aes(from_id = Name1, to_id = Name2)) +
+  geom_net(aes(col = Gender),
+           size = 6,
+           linewidth = 1,
+           labelon = TRUE,
+           fontsize = 3,
+           labelcolour = "black")
+```
+
+```{r}
+# geomnet is pre-loaded and mmnet is defined
+head(mmnet)
+
+# Node colors
+pink_and_blue <- c(female = "#FF69B4", male = "#0099ff")
+
+# Tweak the network plot
+ggplot(data = mmnet, aes(from_id = Name1, to_id = Name2)) +
+  geom_net(aes(col = Gender),
+           size = 6,
+           linewidth = 1,
+           labelon = TRUE,
+           fontsize = 3,
+           labelcolour = "black",
+           # Make the graph directed
+           directed = TRUE) +
+  # Add manual color scale
+  scale_color_manual(values = pink_and_blue) + 
+  # Set x-axis limits
+  xlim(c(-0.05, 1.05)) +
+  # Set void theme
+  theme_void()
+```
+
+
+```{r}
+# Create linear model: res
+res <- lm(Volume ~ Girth, data = trees)
+
+# Plot res
+plot(res)
+
+# Import ggfortify and use autoplot()
+library(ggfortify)
+autoplot(res, ncol = 2)
+```
+
+```{r}
+# ggfortify and Canada are available
+
+# Inspect structure of Canada
+# str(Canada)
+# 
+# # Call plot() on Canada
+# plot(Canada)
+# 
+# # Call autoplot() on Canada
+# autoplot(Canada)
+
+# ggfortify and eurodist are available
+# Autoplot + ggplot2 tweaking
+autoplot(eurodist) +
+  coord_fixed()
+  
+# Autoplot of MDS
+autoplot(cmdscale(eurodist, eig = TRUE),
+         label = TRUE, 
+         label.size = 3, 
+         size = 0)
+```
+
+
+
+
+
+```{r}
+# Perform clustering
+iris_k <- kmeans(iris[-5], 3)
+
+# Autplot: color according to cluster
+autoplot(iris_k, data = iris, frame = TRUE)
+
+# Autoplot: above, plus shape according to species
+autoplot(iris_k, data = iris, frame = TRUE, shape = 'Species')
+```
+
+
+
+
+
+
+
+
+# Plots for specific data types (Part 2)
+
+
+```{r}
+# maps, ggplot2, and ggmap are pre-loaded
+# Use map_data() to create usa
+library(purrr)
+usa <- map_data("usa")
+str(usa)
+
+# Build the map
+ggplot(usa, aes(x = long, y = lat, group = group)) +
+  geom_polygon() +
+  coord_map() 
+```
+```{r}
+# usa, cities, and all required packages are available
+
+# Finish plot 1
+# ggplot(usa, aes(x = long, y = lat, group = group)) +
+#   geom_polygon() +
+#   geom_point(data = cities, aes(group = State, size = Pop_est),
+#              col = "red", shape = 16, alpha = 0.6) +
+#   coord_map() +
+#   theme_map()
+
+# Arrange cities
+# library(dplyr)
+# cities_arr <- arrange(cities, Pop_est)
+# 
+# # Copy-paste plot 1 and adapt
+# ggplot(usa, aes(x = long, y = lat, group = group)) +
+#   geom_polygon(fill = "grey90") +
+#   geom_point(data = cities_arr, aes(group = State, col = Pop_est),
+#              shape = 16, size = 2) +
+#   coord_map() +
+#   theme_map() +
+#  scale_color_viridis()
+
+# pop and all required packages are available
+
+# Use map_data() to create state
+state <- map_data("state")
+
+# Map of states
+ggplot(state, aes(x = long, y = lat, fill = region, group = group)) +
+  geom_polygon(col = "white") +
+  coord_map() 
+#  theme_nothing()
+
+# Merge state and pop: state2
+# state2 <- merge(state, pop)
+
+# Map of states with populations
+# ggplot(state2, aes(x = long, y = lat, fill = Pop_est, group = group)) +
+#   geom_polygon(col = "white") +
+#   coord_map() +
+#   theme_map()
+```
+
+
+```{r}
+# pop and all required packages are available
+
+# Use map_data() to create state
+# state <- map_data("state")
+# 
+# # Map of states
+# ggplot(state, aes(x = long, y = lat, fill = region, group = group)) +
+#   geom_polygon(col = "white") +
+#   coord_map() +
+#   theme_nothing()
+# 
+# # Merge state and pop: state2
+# state2 <- merge(state, pop)
+# 
+# # Map of states with populations
+# ggplot(state2, aes(x = long, y = lat, fill = Pop_est, group = group)) +
+#   geom_polygon(col = "white") +
+#   coord_map() +
+#  theme_map()
+```
+
+
+```{r}
+# All required packages are available
+
+# # Import shape information: germany
+# germany <- readOGR(dsn = "shapes", layer = "DEU_adm1")
+# 
+# # fortify germany: bundes
+# bundes <- fortify(germany)
+# 
+# # Plot map of germany
+# ggplot(bundes, aes(x = long, y = lat, group = group)) +
+#     geom_polygon(fill = "blue", col = "white") +
+#     coord_map() +
+#    theme_nothing()
+```
+
+
+```{r}
+library(ggplot2)
+usa <- map_data("usa")
+ggplot(usa, aes(long, lat, group = group)) +
+ geom_polygon() +
+ coord_map()
+# 
+# library(ggalt)
+#  usa <- map_data("usa")
+#  ggplot(usa, aes(long, lat, group = group)) +
+#  geom_polygon() +
+# coord_proj("+proj=wintri")
+```
+### Cartographic map
+
+Drawn
+● Topographical maps
+● Altitude, infrastructure ...
+● Photographic
+● Satellite images
+● Hybrid
+● ggmap
+
+```{r}
+# Default style - zoom = 3
+ library(ggmap)
+# def_03 <- get_map(location = "Berlin, Germany", zoom = 3)
+# ggmap(def_03, extent = "device")
+
+#  library(ggmap)
+#  def_13 <- get_map(location = "Berlin, Germany", zoom = 13)
+# ggmap(def_13, extent = "device")
+# 
+# def_20 <- get_map(location = "Berlin, Germany", zoom = 20)
+# ggmap(def_20, extent = "device")
+# 
+#  sat_13 <- get_map(location = "Berlin, Germany", zoom = 13,
+#  source = "google", maptype = "satellite")
+#ggmap(ton_13, extent = "device")
+```
+
+## Get coordinates
+
+```{r}
+berlin_sites <- c("Brandenburger Tor", "Potsdamer Platz",
+ "Victory Column Berlin", "Checkpoint Charlie",
+ "Reichstag Berlin", "Alexander Platz")
+# xx <- geocode(berlin_sites)
+# Information from URL : http://maps.googleapis.com/maps/...
+# Information from URL : ...
+ # Add column with cleaned up names
+ xx$location <- sub(" Berlin",
+"", berlin_sites)
+ str(xx) 
+```
+## Animations
+
+● Dense temporal data
+● Great exploratory tool
+● Several ways
+● for loop to produce gif
+● animation
+● gganimate
+
+## Motion Chart
+
+Hans Rosling
+● Karolinska Institute in Stockholm
+● Founder of Gapminder
+● UN data
+● Life expectancy, GDP ...
+
+```{r}
+# gapminder <- read.delim("gapminder.tsv",
+#  stringsAsFactors = FALSE) 
+
+```
+
+## Static plot
+
+```{r}
+library(gapminder)
+ggplot(gapminder, aes(x = gdpPercap,
+ y = lifeExp,
+ colour = continent,
+ size = pop)) +
+ geom_point(alpha = 0.6) # details omitted
+```
+
+```{r}
+p <- ggplot(gapminder, aes(x = gdpPercap,
+ y = lifeExp,
+ colour = continent,
+ size = pop,
+ frame = year)) +
+ geom_point(alpha = 0.6) # details omitted
+# gg_animate(p, "chart1.gif")
+```
+
+```{r}
+# Inspect structure of japan
+#str(japan)
+#
+## Finish the code inside saveGIF
+#saveGIF({
+#
+#  # Loop through all time points
+#  for (i in unique(japan$time)) {
+#
+#    # Subset japan: data
+#    data <- subset(japan, time == i)
+#
+#    # Finish the ggplot command
+#    p <- ggplot(data, aes(x = AGE, y = POP, fill = SEX, width = 1)) +
+#      coord_flip() +
+#      geom_bar(data = data[data$SEX == "Female",], stat = "identity") +
+#      geom_bar(data = data[data$SEX == "Male",], stat = "identity") +
+#      ggtitle(i)
+#
+#    print(p)
+#
+#  }
+#
+# }, movie.name = "pyramid.gif", interval = 0.1)
+```
+
+```{r}
+# Vocab, gganimate and ggplot2 are available
+
+# Update the static plot
+# p <- ggplot(Vocab, aes(x = education, y = vocabulary,
+#                        color = year, group = year,
+#                        frame = year, cumulative = TRUE)) +
+#     stat_smooth(method = "lm", se = FALSE, size = 3)
+# 
+# # Call gg_animate on p
+# x <- gg_animate(p, filename = "vocab.gif", interval = 1.0)
+```
+
+
+
+
+# ggplot2 Internals
+
+## ggplot2 internals
+
+Explore grid graphics
+● Elements of ggplot2 plot
+● How do graphics work in R?
+● 2 plo!ing systems
+● base package
+● grid graphics
+
+```{r}
+plot(mtcars$wt, mtcars$mpg, pch = 16, col = "#00000080")
+
+plot(mtcars$wt, mtcars$mpg, pch = 16, col = "#C3212766",
+ cex = 2, xlab = "Weight", ylab = "mpg (US gallons)")
+ abline(lm(mpg ~ wt, data = mtcars), col = "red")
+ 
+  plot(mtcars$wt, mtcars$mpg, pch = 16, col = "#00000080")
+ abline(lm(mpg ~ wt, data = mtcars), col = "red")
+ points(mtcars$wt, mtcars$mpg, pch = 16,
+ col = "#C3212766", cex = 2)
+```
+
+## Graphic output
+
+```{r}
+# grid.rect()
+# grid.lines()
+
+# grid.rect(x = 0.5, y = 0.5,
+#  width = 0.5, height = 0.5,
+#  just = "center",
+#  gp = gpar(fill = "darkgreen"))
+
+#  grid.rect(gp = gpar(fill = "grey80"))
+# ...
+#  grid.points(mtcars$wt,mtcars$mpg, pch = 16,
+#  gp = gpar(col = "#00000080"),
+#  name = "datapoints")
+#  grid.edit("datapoints",
+#  gp = gpar(col = "#C3212766", cex = 4))
+```
+
+## Grobs
+
+● Graphical objects = grobs
+● ggplot2 object = collection of grobs
+
+```{r}
+p <- ggplot(iris, aes(x = Sepal.Length,
+ y = Sepal.Width,
+ col = Species)) +
+ geom_point(alpha = 0.3, size = 5, shape = 16) +
+ geom_smooth(method = "lm", se = FALSE) +
+ scale_y_continuous("Width", limits = c(2, 4.5), expand = c(0,0)) +
+ scale_x_continuous("Length", limits = c(4, 8), expand = c(0,0)) +
+ coord_equal() +
+ ggtitle("Iris Sepals") +
+ theme(rect = element_blank())
+```
+
+```{r}
+ library(grid)
+g <- ggplotGrob(p)
+ g
+
+library(gtable)
+# gtable_show_layout(g$grob[[8]])
+```
+```{r}
+# Populate null viewport
+grid.rect(gp = gpar(fill = "grey90"))
+grid.text("null viewport")
+grid.lines(x = c(0,0.75), y = c(0.25, 1),
+           gp = gpar(lty = 2, col = "red"))
+
+# Create new viewport: vp
+vp <- viewport(x = 0.5, y = 0.5, width = 0.5, height = 0.5, just = "center")
+
+# Push vp
+pushViewport(vp)
+
+# Populate new viewport with rectangle
+grid.rect(gp = gpar(fill = "blue"))
+```
+
+```{r}
+# 1 - Create plot viewport: pvp
+mar <- c(5, 4, 2, 2)
+pvp <- plotViewport(mar)
+
+# 2 - Push pvp
+pushViewport(pvp)
+
+# 3 - Add rectangle
+grid.rect(gp = gpar(fill = "grey80"))
+
+# Create data viewport: dvp
+dvp <- dataViewport(xData = mtcars$wt, yData = mtcars$mpg)
+
+# 4 - Push dvp
+pushViewport(dvp)
+
+# Add two axes
+grid.xaxis()
+grid.yaxis()
+```
+
+
+```{r}
+# Work from before
+pushViewport(plotViewport(c(5, 4, 2, 2)))
+grid.rect(gp = gpar())
+pushViewport(dataViewport(xData = mtcars$wt, yData = mtcars$mpg))
+grid.xaxis()
+grid.yaxis()
+
+# Work from before - add names
+grid.text("Weight", y = unit(-3, "lines"), name = "xaxis")
+grid.text("MPG", x = unit(-3, "lines"), rot = 90, name = "yaxis")
+grid.points(x = mtcars$wt, y = mtcars$mpg, pch = 16, name = "datapoints")
+
+# Edit "xaxis"
+grid.edit("xaxis", label = "Weight (1000 lbs)")
+
+# Edit "yaxis"
+grid.edit("yaxis", label = "Miles/(US) gallon")
+
+# Edit "datapoints"
+grid.edit("datapoints", gp = gpar(col = "#C3212766", cex = 2))
+```
+
+```{r}
+# Code from before
+p <- ggplot(mtcars, aes(x = wt, y = mpg, col = factor(cyl))) + geom_point()
+gtab <- ggplotGrob(p)
+g <- gtab$grobs
+legend_index <- which(vapply(g, inherits, what = "gtable", logical(1)))
+grid.draw(g[[legend_index]])
+
+# 1 - Show layout of legend grob
+gtable_show_layout(g[[legend_index]])
+
+# Create text grob
+my_text <- textGrob(label = "Motor Trend, 1974", gp = gpar(fontsize = 7, col = "gray25"))
+
+# 2  -Use gtable_add_grob to modify original gtab
+new_legend <- gtable_add_grob(gtab$grobs[[legend_index]], my_text, 3, 2)
+
+# 3 - Update in gtab
+gtab$grobs[[legend_index]] <- new_legend
+
+# 4 - Draw gtab
+grid.draw(gtab)
+```
+
+```{r}
+# Box plot of mtcars: p
+p <- ggplot(mtcars, aes(x = factor(cyl), y = wt)) + geom_boxplot()
+
+# Build pdata
+pdata <- ggplot_build(p)$data
+
+# Access the first element of the list, a data frame
+class(pdata[[1]])
+
+# Isolate this data frame
+my_df <- pdata[[1]]
+
+# The x labels
+my_df$group <- c("4", "6", "8")
+
+# Print out specific variables
+my_df[c(1:6, 11)]
+```
+
+
+```{r}
+# # Definitions of g1 and g2
+# g1 <- ggplot(mtcars, aes(wt, mpg, col = cyl)) +
+#   geom_point() +
+#   theme(legend.position = "bottom")
+# 
+# g2 <- ggplot(mtcars, aes(disp, fill = cyl)) +
+#   geom_histogram(binwidth = 20) +
+#   theme(legend.position = "none")
+# 
+# # Extract the legend from g1
+# my_legend <- ggplotGrob(g1)$grobs[[legend_index]]  
+# 
+# # Create g1_noleg
+# g1_noleg <- g1 + theme(legend.position = "none")
+# 
+# # Calculate the height: legend_height
+# legend_height <- sum(my_legend$heights)
+# 
+# # Arrange g1_noleg, g2 and my_legend
+# grid.arrange(g1_noleg, g2, my_legend,
+#              layout_matrix = matrix(c(1, 3, 2, 3), ncol = 2),
+#              heights = unit.c(unit(1, "npc") - legend_height, legend_height))
+```
+
+
+# Data Munging and Visualization Case Study
+
+## Case Study I
+Bag Plot
+
+```{r}
+# df$ID <- seq_len(nrow(df) / 2)
+# ggplot(df, aes(x = type, Value, group = ID)) +
+# geom_line(alpha = 0.3)
+```
+
+
+```{r}
+# library(viridis)
+#  ggplot(dat, aes(x = group1, y = group2)) +
+#  stat_density_2d(geom = "tile", aes(fill = ..density..),
+#  contour = FALSE) +
+# scale_fill_viridis()
+```
+```{r}
+library(aplpack)
+# bagplot(dat[1:2])
+```
+```{r}
+# ggplot(past, aes(x = new_day, y = temp, group = year)) +
+# geom_line(alpha = 0.4) +
+# geom_line(data = present, aes(group = 1), col = "red")
+```
+
+
+```{r}
+# ggplot(my_data, aes(x = new_day, y = temp, fill = year)) +
+#  stat_historical()
+```
+
+```{r}
+# Call bagplot() on test_data
+# bagplot(test_data)
+# 
+# # Call compute.bagplot on test_data: bag
+# bag <- compute.bagplot(test_data)
+# 
+# # Display information
+# bag$hull.loop
+# bag$hull.bag
+# bag$pxy.outlier
+# 
+# # Highlight components
+# points(bag$hull.loop, col = "green", pch = 16)
+# points(bag$hull.bag, col = "orange", pch = 16)
+# points(bag$pxy.outlier, col = "purple", pch = 16)
+
+
+# # Call bagplot() on test_data
+# bagplot(test_data)
+# 
+# # Call compute.bagplot on test_data: bag
+# bag <- compute.bagplot(test_data)
+# 
+# # Display information
+# bag$hull.loop
+# bag$hull.bag
+# bag$pxy.outlier
+# 
+# # Highlight components
+# points(bag$hull.loop, col = "green", pch = 16)
+# points(bag$hull.bag, col = "orange", pch = 16)
+# points(bag$pxy.outlier, col = "purple", pch = 16)
+```
+
+```{r}
+# ggproto for StatLoop (hull.loop)
+# StatLoop <- ggproto("StatLoop", Stat,
+#                     required_aes = c("x", "y"),
+#                     compute_group = function(data, scales) {
+#                       bag <- compute.bagplot(x = data$x, y = data$y)
+#                       data.frame(x = bag$hull.loop[,1], y = bag$hull.loop[,2])
+#                     })
+# 
+# # ggproto for StatBag (hull.bag)
+# StatBag <- ggproto("StatBag", Stat,
+#                    required_aes = c("x", "y"),
+#                    compute_group = function(data, scales) {
+#                      bag <- compute.bagplot(x = data$x, y = data$y)
+#                      data.frame(x = bag$hull.bag[,1], y = bag$hull.bag[,2])
+#                    })
+# 
+# # ggproto for StatOut (pxy.outlier)
+# StatOut <- ggproto("StatOut", Stat,
+#                    required_aes = c("x", "y"),
+#                    compute_group = function(data, scales) {
+#                      bag <- compute.bagplot(x = data$x, y = data$y)
+#                      data.frame(x = bag$pxy.outlier[,1], y = bag$pxy.outlier[,2])
+#                   })
+```
+
+```{r}
+# StatLoop, StatBag and StatOut are available
+
+# # Combine ggproto objects in layers to build stat_bag()
+# stat_bag <- function(mapping = NULL, data = NULL, geom = "polygon",
+#                      position = "identity", na.rm = FALSE, show.legend = NA,
+#                      inherit.aes = TRUE, loop = FALSE, ...) {
+#   list(
+#     # StatLoop layer
+#     layer(
+#       stat = StatLoop, data = data, mapping = mapping, geom = geom, 
+#       position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+#       params = list(na.rm = na.rm, alpha = 0.35, col = NA, ...)
+#     ),
+#     # StatBag layer
+#     layer(
+#       stat = StatBag, data = data, mapping = mapping, geom = geom, 
+#       position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+#       params = list(na.rm = na.rm, alpha = 0.35, col = NA, ...)
+#     ),
+#     # StatOut layer
+#     layer(
+#       stat = StatOut, data = data, mapping = mapping, geom = "point", 
+#       position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+#       params = list(na.rm = na.rm, alpha = 0.7, col = NA, shape = 21, ...)
+#     )
+#   )
+# }
+```
+
+```{r}
+# hull.loop, hull.bag and pxy.outlier are available
+# stat_bag, test_data and test_data2 are available
+
+# Previous method
+# ggplot(test_data, aes(x = x, y = y)) +
+#   geom_polygon(data = hull.loop, fill = "green") +
+#   geom_polygon(data = hull.bag, fill = "orange") +
+#   geom_point(data = pxy.outlier, col = "purple", pch = 16, cex = 1.5)
+# 
+# # stat_bag
+# ggplot(test_data, aes(x = x, y = y)) +
+#   stat_bag(fill = 'black')
+# 
+# # stat_bag on test_data2
+# ggplot(test_data2, aes(x = x, y = y, fill = treatment)) +
+#  stat_bag()
+```
+```{r}
+# Import weather data
+# weather <- read.fwf("NYNEWYOR.txt",
+#                     header = FALSE,
+#                     col.names = c("month", "day", "year", "temp"),
+#                     widths = c(14, 14, 13, 4))
+# 
+# # Check structure of weather
+# str(weather)
+# 
+# # Create past with two filter() calls
+# past <- weather %>%
+#   filter(!(month == 2 & day == 29)) %>%
+#   filter(year != max(year))
+#   
+# # Check structure of past
+# str(past)
+```
+
+
+```{r}
+# Finish the clean_weather function
+clean_weather <- function(file) {
+  weather <- read.fwf(file,
+                      header = FALSE,
+                      col.names = c("month", "day", "year", "temp"),
+                      widths = c(14, 14, 13, 4))
+  weather %>%
+    filter(!(month == 2 & day == 29)) %>%
+    group_by(year) %>%
+    mutate(yearday = 1:length(day)) %>%
+    ungroup() %>%
+    filter(temp != -99)
+}
+
+# Import NYNEWYOR.txt: my_data
+# my_data <- clean_weather("NYNEWYOR.txt")
+```
+
+```{r}
+# Create the stats object
+StatHistorical <- ggproto("StatHistorical", Stat,
+                    compute_group = function(data, scales, params) {
+                      data <- data %>%
+                        filter(year != max(year)) %>%
+                        group_by(x) %>%
+                        mutate(ymin = Hmisc::smean.cl.normal(y)[3],
+                               ymax = Hmisc::smean.cl.normal(y)[2]) %>%
+                        ungroup()
+                    },
+                    required_aes = c("x", "y", "year"))
+
+# Create the layer
+stat_historical <- function(mapping = NULL, data = NULL, geom = "point",
+                            position = "identity", na.rm = FALSE, show.legend = NA, 
+                            inherit.aes = TRUE, ...) {
+  list(
+    layer(
+      stat = "identity", data = data, mapping = mapping, geom = geom,
+      position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+      params = list(na.rm = na.rm, col = "#EED8AE", alpha = 0.3, shape = 16, ...)
+    ),
+    layer(
+      stat = StatHistorical, data = data, mapping = mapping, geom = "linerange",
+      position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+      params = list(na.rm = na.rm, col = "#8B7E66", ...)
+    )
+  )
+}
+
+# Build the plot
+# my_data <- clean_weather("NYNEWYOR.txt")
+# ggplot(my_data, aes(x = yearday, y = temp, year = year)) +
+#   stat_historical()
+```
+```{r}
+# Create the stats object
+StatPresent <- ggproto("StatPresent", Stat,
+                       compute_group = function(data, scales, params) {
+                         data <- filter(data, year == max(year))
+                       },
+                       required_aes = c("x", "y", "year"))
+
+# Create the layer
+stat_present <- function(mapping = NULL, data = NULL, geom = "line",
+                       position = "identity", na.rm = FALSE, show.legend = NA, 
+                       inherit.aes = TRUE, ...) {
+  layer(
+    stat = StatPresent, data = data, mapping = mapping, geom = geom,
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+
+# # Build the plot
+# my_data <- clean_weather("NYNEWYOR.txt")
+# ggplot(my_data, aes(x = yearday, y = temp, year = year)) +
+#   stat_historical() +
+#  stat_present()
+```
+
+
+```{r}
+# Create the stats object
+StatExtremes <- ggproto("StatExtremes", Stat,
+                        compute_group = function(data, scales, params) {
+                          
+                          present <- data %>%
+                            filter(year == max(year)) 
+                          
+                          past <- data %>%
+                            filter(year != max(year)) 
+                          
+                          past_extremes <- past %>%
+                            group_by(x) %>%
+                            summarise(past_low = min(y),
+                                      past_high = max(y))
+                          
+                          # transform data to contain extremes
+                          data <- present %>%
+                            left_join(past_extremes) %>%
+                            mutate(record = ifelse(y < past_low, 
+                                                   "#0000CD", 
+                                                   ifelse(y > past_high, 
+                                                          "#CD2626", 
+                                                          "#00000000")))
+
+                        },
+                        required_aes = c("x", "y", "year"))
+
+# Create the layer
+stat_extremes <- function(mapping = NULL, data = NULL, geom = "point",
+                          position = "identity", na.rm = FALSE, show.legend = NA, 
+                          inherit.aes = TRUE, ...) {
+  layer(
+    stat = StatExtremes, data = data, mapping = mapping, geom = geom,
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+
+# Build the plot
+# my_data <- clean_weather("NYNEWYOR.txt")
+# ggplot(my_data, aes(x = yearday, y = temp, year = year)) +
+#   stat_historical() +
+#   stat_present() +
+#   stat_extremes(aes(col = ..record..)) +
+#  scale_color_identity()
+```
+
+```{r}
+# File paths of all datasets
+my_files <- c("NYNEWYOR.txt","FRPARIS.txt", "ILREYKJV.txt", "UKLONDON.txt")
+
+# Build my_data with a for loop
+# my_data <- NULL
+# for (file in my_files) {
+#   temp <- clean_weather(file)
+#   temp$id <- sub(".txt", "", file)
+#   my_data <- rbind(my_data, temp)
+# }
+# 
+# # Build the final plot, from scratch!
+# ggplot(my_data, aes(x = yearday, y = temp, year = year)) +
+#   stat_historical() +
+#   stat_present() +
+#   stat_extremes(aes(col = ..record..)) +
+#   scale_color_identity() +
+# facet_wrap(~id, ncol = 2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

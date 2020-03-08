@@ -1,0 +1,345 @@
+---
+title: 'Data Science Project 1'
+author: 'Jefferson Ong'
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document:
+    toc: true
+    theme: united
+    highlight: tango
+    toc_float: false
+    toc_depth: 4
+    number_sections: true
+    code_folding: hide
+---
+
+
+```{r setup_chunk}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = "")
+```
+
+```{r, package_chunk}
+# Load all packages here
+library(readr)
+library(dplyr)
+library(ggplot2)
+
+# library("devtools")
+# install_github(c("hadley/ggplot2", "jrnold/ggthemes"))
+```
+
+```{r, dataset_chunk}
+# Read in datasets here
+ co2_monthly <- 
+   read.table(file = url("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt"),
+              col.names = c("year", "month", "date", "mean_co2", "int_mean_co2", "trend_mean_co2", "numdays")) %>% 
+   mutate(decade = case_when(year %in% 1950:1959 ~ "1950s",
+                             year %in% 1960:1969 ~ "1960s",
+                             year %in% 1970:1979 ~ "1970s",
+                             year %in% 1980:1989 ~ "1980s",
+                             year %in% 1990:1999 ~ "1990s",
+                             year %in% 2000:2009 ~ "2000s",
+                             year %in% 2010:2019 ~ "2010s"))
+ 
+ co2_annual <- 
+   read.table(file = url("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_annmean_mlo.txt"),
+              col.names = c("year", "mean_co2", "uncertainty")) %>% 
+   mutate(decade = case_when(year %in% 1950:1959 ~ "1950s",
+                             year %in% 1960:1969 ~ "1960s",
+                             year %in% 1970:1979 ~ "1970s",
+                             year %in% 1980:1989 ~ "1980s",
+                             year %in% 1990:1999 ~ "1990s",
+                             year %in% 2000:2009 ~ "2000s",
+                             year %in% 2010:2019 ~ "2010s"))
+
+ anthro <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/anthropometric.csv")
+```
+
+
+### MAUNA LOA CO~2~ MODELING AND VISUALIZATION
+
+#### The Question
+
+In 1966, the World Meteorological Organization (WMO) put forth the term "climatic change" to refer to climatic variability on time-scales longer than ten years, regardless of the cause for such change. During the next decade, scientists began to suspect that human activities had the potential to drastically alter the global climate in ways that would have negative impacts on our environment. The term evolved into "climate change" and is now used to describe both the process of change and the perceived problem. Sometimes the term "global warming" is used, though in many ways this fails to adequately describe the variability in impact, since climate change can cause both hot and cold extremes in weather. *Anthropogenic* climate change is change that is caused by human activity, as opposed to the Earth’s natural processes. However, in the context of environmental policy, the term "climate change" is often used to mean anthropogenic climate change.
+
+Mauna Loa Observatory is a world-renowned atmospheric research facility. It has been continuously monitoring and collecting data since the 1950’s and its remote location makes it very well-suited for monitoring atmospheric components that can contribute to climate change, including the heat-trapping greenhouse gas carbon dioxide (CO~2~). Carbon overload from burning fossil fuels and deforestation is cited as the primary cause of anthropogenic climate change by proponents of such theories, while opponents assert that natural process (such as photosynthesis) contribute more to atmospheric CO~2~ than humans and observed changes are simply Earth’s cycle.
+
+
+#### Monthly Mean CO~2~: The Last Five Years
+
+Create your own version of the plot found [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/index.html). Do not replicate it, but rather design your own. Use one of the themes found in the `ggplot2` or `ggthemes` packages. You are encouraged to make style adjustments to help you informatively display the data. 
+
+```{r}
+str(co2_monthly)
+summary(co2_monthly)
+names(co2_monthly)
+
+co2_monthly15 <- co2_monthly %>%
+  filter(year >= 2015)
+```
+
+
+```{r}
+ggplot(co2_monthly15) +
+  geom_line(aes(x = date, y = mean_co2), col = "blue", linetype = 1) +
+  geom_point(aes(x = date, y = mean_co2), col = "orange", shape = 0) +
+  geom_line(aes(x = date, y = trend_mean_co2), col = "red") +
+  geom_point(aes(x = date, y = trend_mean_co2), col = "red", shape = 2) +
+  scale_x_continuous(breaks = seq(2015, 2020, .25), 
+                     labels = c("2015", rep("", 3), 
+                                "2016", rep("", 3),
+                                "2017", rep("", 3),
+                                "2018", rep("", 3),
+                                "2019", rep("", 3),
+                                "2020"),
+                     limits = c(2015, 2020)) +
+  scale_y_continuous(breaks = 395:415, 
+                     labels = c("395", rep("", 4),
+                                "400", rep("", 4),
+                                "405", rep("", 4),
+                                "410", rep("", 4),
+                                "415"),
+                     limits = c(395, 415)) +
+  ggtitle(expression("RECENT AVERAGE MONTHLY CO_2 LEVELS AT MAUNA LOA")) +
+  ylab("PARTS PER MILLION") +
+  xlab("YEAR") +
+  theme_bw()
+```
+
+
+#### Monthly Mean CO~2~: A Major Milestone
+
+An atmospheric CO~2~ level of 400 ppm is considered by many to be a symbolic threshold with regard to climate change. "In the centuries to come, history books will likely look back on September 2016 as a major milestone for the world’s climate. At a time when atmospheric carbon dioxide is usually at its minimum, the monthly value failed to drop below 400 parts per million." ([source](https://www.scientificamerican.com/article/earth-s-co2-passes-the-400-ppm-threshold-maybe-permanently/))
+
+Adapt your plot above to include a red dashed line at 400 ppm and a large red dot on September 2016, with appropriate annotations to indicate what these additions represent. 
+
+```{r}
+co2_monthly15dot <- co2_monthly15 %>%
+  filter(year == 2016 & month == 9)
+
+ggplot(co2_monthly15) +
+  geom_line(aes(x = date, y = mean_co2), col = "blue", linetype = 1) +
+  geom_point(aes(x = date, y = mean_co2), col = "orange", shape = 0) +
+  geom_line(aes(x = date, y = trend_mean_co2), col = "red") +
+  geom_point(aes(x = date, y = trend_mean_co2), col = "red", shape = 2) +
+  scale_x_continuous(breaks = seq(2015, 2020, .25), 
+                     labels = c("2015", rep("", 3), 
+                                "2016", rep("", 3),
+                                "2017", rep("", 3),
+                                "2018", rep("", 3),
+                                "2019", rep("", 3),
+                                "2020"),
+                     limits = c(2015, 2020)) +
+  scale_y_continuous(breaks = 395:415, 
+                     labels = c("395", rep("", 4),
+                                "400", rep("", 4),
+                                "405", rep("", 4),
+                                "410", rep("", 4),
+                                "415"),
+                     limits = c(395, 415)) +
+  ggtitle(expression("RECENT AVERAGE MONTHLY CO_2 LEVELS AT MAUNA LOA")) +
+  ylab("PARTS PER MILLION") +
+  xlab("YEAR") +
+  theme_bw() +
+  geom_hline(yintercept = 400, color = "red", linetype = "dashed") +
+  geom_point(data = co2_monthly15dot, aes(x = date, y = mean_co2), colour = 'red', size = 5)
+```
+
+
+#### Trends Over Time in CO~2~ Growth
+
+Consider the full Mauna Loa CO~2~ record found [here](https://www.esrl.noaa.gov/gmd/ccgg/trends/full.html). The overall trend is not linear, but segments of it may be piecewise linear. Filter to remove the incomplete decades 1950s and 2010s and create a scatterplot that shows the interpolated CO~2~ values with a fitted linear model for each remaining decade. Do not include standard error bands.
+
+```{r}
+str(co2_monthly)
+summary(co2_monthly)
+names(co2_monthly)
+```
+
+
+```{r}
+#
+co2_monthlyB <- co2_monthly %>%
+  filter(decade != "1950s" & decade != "2010s")
+
+ggplot(co2_monthlyB, aes(x = date, y = int_mean_co2)) + 
+  geom_point(size = .5) + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(title = "Trends Over Time in CO~2~ Growth", 
+       y = "interpolated CO~2~ values", 
+       x = "date")
+```
+
+
+#### Annual Mean CO~2~ Since 1959
+
+Replicate as closely as possible the annual mean plot found [here](https://github.com/STAT-JET-ASU/DataScience1/blob/master/Projects/annualCO2plot.png). Hint: It uses a `ggplot` theme for some of the formatting.
+
+```{r}
+ggplot(co2_annual, aes(y = mean_co2, x = year)) + 
+  geom_col(col = "white", fill = "lightblue") +
+  geom_smooth(method = "loess", se = FALSE) +
+  geom_hline(yintercept = 400, color = "red") +
+  geom_hline(yintercept = 200) +
+  geom_hline(yintercept = 280) +
+  annotate("label", x = 1988, y = 400, label = "crisis threshold") +
+  annotate("label", x = 1988, y = 280, label = "pre-industrial mean") +
+  annotate("label", x = 1988, y = 200, label = "ice age mean") +
+  labs(title = "Annual Mean Atmospheric CO_2 at Mauna Loa Observatory", 
+       subtitle = "with loess smoothed trend curve and estimated historical reference values",
+       y = "CO_2 (ppm)", 
+       x = "measurement year",
+       caption  = "data source: https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html") + 
+  theme(panel.background = element_blank(), axis.line = element_line(color = "black")) +
+  scale_y_continuous(breaks = seq(0, 400, 50)) +
+  scale_x_continuous(breaks = seq(1960, 2020, 5)) 
+```
+
+
+#### Discussion
+
+In what way could these visualizations be used to support the theory of anthropogenic climate change? 
+
+**ANSWER:**
+
+We see in the data there is a positive linear increase. One could argue that they are correlated positively and thus support the theory of anthropogenic climate change.
+
+Why are data such as these considered *evidence* rather than *proof* of anthropogenic climate change?
+
+**ANSWER:**
+
+Hmmm we were told not to assume things outside the dataset, especially after dealing in regression models where things can lok pretty janky outside the model. Not pure evidence since its attempting to predict the future. Which we will need predictive analysis to do properly. I'd guess those analysis are what you'd call "proof", we haven't really done anything like that with this, just shows a relationship is happening and thats something. Which can be considered evidence? maybe. 
+
+### ANTHROPOMETRIC MODELING AND VISUALIZATION
+
+#### The Question
+
+Are people generally happy with their heights? If not, how tall do they want to be? Dr. Thomley's  [anthropometric](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/anthropometric.html) dataset contains measurements of students' heights and their self-selected ideal heights. You will fit a parallel slopes model to predict ideal height using measured height and gender, then interpret the results of your model.
+
+#### Exploratory Data Analysis
+
+Filter the dataset to include only students who self-identified as male or female (there are not enough data points in the other categories to create a model for them). Perform EDA to determine whether you need to perform any transformations or remove any data points before you fit your model. Create your modeling dataset and call it `anthro_mod`. 
+
+```{r}
+str(anthro)
+summary(anthro)
+names(anthro)
+```
+
+
+```{r}
+anthroC <-  anthro %>%
+  filter(gender %in% c("male" , "female"), !is.na(ideal))
+
+anthro_mod <-  anthroC %>%
+  filter(ideal >= mean(ideal) - IQR(ideal) * 1.5, 
+         ideal <= mean(ideal) + IQR(ideal) * 1.5)
+
+ggplot(anthro_mod, aes(x = height, y = ideal)) + 
+  geom_point()
+```
+
+
+#### Fitting the Model
+
+Create a scatterplot of ideal height versus measured height showing separate fitted linear models for males and females. Then fit a parallel slopes model with measured height and gender as predictors and save it as `ideal_model`. Display its summary.
+
+```{r}
+ideal_model <- ggplot(anthro_mod, aes(x = height, y = ideal, col = gender)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+summary(ideal_model)
+
+ideal_model
+```
+
+
+#### Examine Residuals
+
+Create a residual scatterplot and histogram for your model.
+
+```{r}
+#
+library(moderndive)
+ideal_modelLM <- lm(ideal ~ height, data = anthro_mod)
+
+ggplot(get_regression_points(ideal_modelLM), aes(x = height, y = residual)) +
+  geom_point() +
+  geom_hline(yintercept = 0, col = "blue")
+
+ggplot(get_regression_points(ideal_modelLM), aes(x = residual)) +
+  geom_histogram(fill = "lightblue", color = "gray")
+```
+
+
+#### Predicting Ideal Height
+
+Create a dataset containing heights at one-inch intervals from 60 to 80 for each gender. Use your parallel slopes model to predict the ideal heights for these values. Use `mutate` to create a new variable in your results `tibble` that shows whether the ideal height is less than, equal to, or greater than height. The `case_when` function may be useful here. Display the results.
+
+```{r}
+str(anthro)
+summary(anthro)
+names(anthro)
+```
+
+```{r}
+# 
+inta <- c(60:80)
+intb <- c(60:80)
+genm <- c(rep.int("male",21))
+genf <- c(rep.int("female",21))
+
+newheights <- tibble(height  = c(inta, intb),
+                    gender = c(genm,genf))
+
+newheightsLM <- get_regression_points(ideal_modelLM, newdata = newheights)
+
+newheightsLM2 <- newheightsLM %>%
+mutate(equality = case_when(height >= ideal_hat ~ "less than", 
+                            height <= ideal_hat ~ "greater than", 
+                            height == ideal_hat ~ "equal to"))
+newheightsLM2
+```
+
+
+#### Additional Visualization
+
+Create a plot that shows the same fitted lines for males and females as your scatterplot (but without points), as well as an annotated line indicating the relationship ideal height = measured height. Format this line in some way other than the default (e.g., color, style).
+
+```{r}
+#
+ggplot(anthro_mod, aes(x = height, y = ideal)) +
+  geom_smooth(data = anthro_mod, aes(col = gender), method = "lm", se = FALSE) +
+  geom_smooth(method = "lm", se = FALSE, linetype = 9) +
+  annotate("text", x = 65, y = 68, angle = 33, label = "ideal height = measured height") +
+  labs(title = expression("Regression model seperated by gender"), 
+       y = "ideal",
+       x = "height") 
+```
+
+
+#### Discussion
+
+Explain your rationale for any transformations or deletions you chose to make in the dataset.
+
+**ANSWER:**
+
+Took out any empty sets and genders that aren't male or female to focus on what the majority of dataset is saying. Took out any outliers that is too far from mean - IQR * 1.5. A bit arbritrary but a simple calculation that would remove any points that will significantly impact the datset set as a whole. No real transformation. 
+
+
+Does the model seem appropriate for the data? Be sure to include discussion of the residuals.
+
+**ANSWER:**
+
+Yeah, seems appropriate enough. The residual looks pretty decent, nothing really stands out from it. THe scatter plot is well spread out, with is good. The histogram is normally distribution, although it looks like theres something I missed at 10. Likely something I didn't completely filter out. 
+
+Do the people in this sample generally seem to be happy with their heights or do their ideal heights differ? Do males and females seem to have the same attitudes regarding what is an ideal height? What group patterns do you notice? Discuss.
+
+**ANSWER:**
+
+Looks like about the same attitude towards height. I would've guessed that males would've wanted much more height than women, however the model doesn't really show that, It would've made the model for men much steeper, which didn't happen. Its clear that men are generally taller and that everyone is some degree want to be a bit taller than what they are. If not then the model wouldn't be so positively linear. 
+
+<hr>
+
+END !!!

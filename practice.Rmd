@@ -1,0 +1,94 @@
+---
+title: "Inference"
+author: "Jefferson Ong"
+date: "3/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggthemes)
+library(moderndive)
+```
+
+```{r}
+# Read in datasets here
+co2_monthly <-
+  read.table(file = url("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt"),
+             col.names = c("year", "month", "date", "mean_co2", "int_mean_co2", "trend_mean_co2", "numdays")) %>%
+  mutate(decade = case_when(year %in% 1950:1959 ~ "1950s",
+                            year %in% 1960:1969 ~ "1960s",
+                            year %in% 1970:1979 ~ "1970s",
+                            year %in% 1980:1989 ~ "1980s",
+                            year %in% 1990:1999 ~ "1990s",
+                            year %in% 2000:2009 ~ "2000s",
+                            year %in% 2010:2019 ~ "2010s"))
+
+co2_annual <-
+  read.table(file = url("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_annmean_mlo.txt"),
+             col.names = c("year", "mean_co2", "uncertainty")) %>%
+  mutate(decade = case_when(year %in% 1950:1959 ~ "1950s",
+                            year %in% 1960:1969 ~ "1960s",
+                            year %in% 1970:1979 ~ "1970s",
+                            year %in% 1980:1989 ~ "1980s",
+                            year %in% 1990:1999 ~ "1990s",
+                            year %in% 2000:2009 ~ "2000s",
+                            year %in% 2010:2019 ~ "2010s"))
+
+anthro <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/anthropometric.csv")
+```
+
+```{r}
+str(co2_monthly)
+summary(co2_monthly)
+```
+
+
+```{r}
+co2_monthly %>% 
+  ggplot() + 
+  geom_line(aes(x = date, y = trend_mean_co2), col = "black") +
+  geom_point(aes(x = date, y = trend_mean_co2), col = "coral3", shape = 18, size = .01) +
+  geom_line(aes(x = date, y = int_mean_co2), col = "coral3", alpha = .90) + 
+  geom_point(aes(x = date, y = int_mean_co2), col = "black", shape = 15, size = .2) +
+  labs(title = expression("Monthly CO"[2]*" at Mauna Loa"), 
+       y = expression("CO"[2]*" (ppm)"),
+       x = "Year") +
+  theme_minimal() 
+ theme(plot.title = element_text(hjust = 0.5),
+       panel.background = element_rect(fill = 'mistyrose1'),
+       panel.grid.major = element_line(colour = "seashell1", size = 2),
+       panel.grid.minor = element_line(colour = "rosybrown2", size = .25, linetype = "solid"),
+       panel.border = element_blank(),
+       axis.line.x = element_line(colour = "snow4", size = 1.5, lineend = "butt"),
+       axis.line.y = element_line(colour = "snow4", size = 1.5))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

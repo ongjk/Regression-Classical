@@ -1,0 +1,138 @@
+---
+title: "R for Data Science CH06--CH08"
+author: "Jefferson Ong"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = "")
+```
+
+***
+
+Read [Chapter 3](https://r4ds.had.co.nz/data-visualisation.html), [Chapter 4](https://r4ds.had.co.nz/workflow-basics.html), and [Chapter 5](https://r4ds.had.co.nz/transform.html) of _R for Data Science_. Work through the activities below and complete this accompanying Markdown document. Knit to HTML and submit your work as instructed. 
+
+```{r, message = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(nycflights13)
+library(tidyverse)
+```
+
+
+### 6.3 Practice (modified)
+
+1) Go to the [RStudio Tips twitter account](https://twitter.com/rstudiotips) and find three tips that looks interesting or useful. What are they?
+
+Tip #1: Ctrl + Shift + 1 (Script) 
+
+Ctrl + Shift + 2 (Console)
+
+Ctrl + Shift + 3 (File Viewer)
+
+Ctrl + Shift + 4 (Environment)
+
+Tip #2: Use alt when highlighting to copy/paste certain parts but not the whole line. 
+
+Tip #3: Use addin to paste in data as a vector/tibble/etc. 
+
+
+### Chapter 7 (overall)
+
+1) What is exploratory data analysis (EDA)?
+
+ANSWER: Generate questions about your data. Search for answers by visualising, transforming, and modelling your data. Use what you learn to refine your questions and/or generate new questions. Its a standard method of thinking in statistic similar to scientific method in Science. 
+
+
+2) Why is EDA necessarily an *iterative* process?
+
+ANSWER: its something you have to constantly think about when you're dataset change or shows you something you didn't expect. The questioning is something that has to be constantly applied throughout the process. 
+
+
+### 7.3.4 Exercises
+
+2) Explore the distribution of price. Do you discover anything unusual or surprising? (Hint: Try different binwidth values. Show at least two different histograms.)
+
+```{r}
+str(diamonds)
+summary(diamonds)
+names(diamonds)
+```
+
+
+```{r}
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = y), binwidth = 1) +
+  coord_cartesian(ylim = c(0, 50)) 
+
+
+
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = y), binwidth = 10) +
+  coord_cartesian(ylim = c(0, 50))
+
+unusual <- diamonds %>% 
+  filter(y < 3 | y > 20) %>% 
+  select(price, x, y, z) %>%
+  arrange(y)
+unusual
+```
+
+ANSWER: The chapter basically already went over it. The graphs shows 2 big outliers on the right and you could also consider zero as an outlier but it isn't too far out. Effectively found 2 y that are 30 and 60 which are much bigger than the norm. THe different binwidth helped see that but filtering and arrange would've also gotten the value. 
+
+
+3) How many diamonds are 0.99 carat? How many are 1 carat? What do you think is the cause of the difference?
+
+```{r}
+diamonds %>%
+  filter(carat == .99) %>%
+  summarize(count = n())
+
+diamonds %>%
+  filter(carat == 1) %>%
+  summarize(count = n())
+```
+
+ANSWER: Don't know enough about diamond cuts and carats. Theres a much more that are carat of 1 over .99. Maybe its more in demand, common, made, etc. Not really sure why .99 is rarer. Maybe more difficult to cut? Maybe carat of 1 is manufacture and used over .99 so its cut more often. 
+
+
+### 7.4.1 Exercises
+
+1) What happens to missing values in a histogram? What happens to missing values in a bar chart? Why is there a difference?
+
+```{r}
+diamonds %>%
+  ggplot(aes(price)) +
+  geom_histogram(bins = 1000)
+```
+
+ANSWER: In a histogram, they simply leave a gap in the distribution, as in the gap in the above histogram of price. For the barplot, the function removes the `NA` value. Its because of the type of data histogram shows continous numeric data while barplots show categorical data. 
+
+
+2) What does `na.rm = TRUE` do in `mean()` and `sum()` (and in many other summarising functions)?
+
+ANSWER: Removes na from calculation.
+
+
+### Chapter 8 (overall)
+
+1) Briefly summarize the information presented in Chapter 8. 
+
+ANSWER: I was a bit lost with all the different termanology that was used in describing directories and where things go but I understood the gist of it. How to effective store and file code and working directories that I should be using. Not just saving it to file and leaving things un-organized. It takes about creating projects so that things aren't so clutter when I'm looking for code and I can specific things. It wasn't talk about but I imagine github is a big part of this process and saving/storage. 
+
+
+2) How does the information presented in this chapter differ if you are using an RStudio server like we have at Appalachian versus an installation on your personal computer?
+
+ANSWER: I don't think its all that different. You could still do those things on the studio server. I've downloaded R studio on my computer before, theres little difference from waht I can tell. Appstate just has easier access since you only need to login rather than install it into a new computer you go on. I imagine Most of my "real" storage of work that are crucial will get push into github and keep notes and help on R studio as a guideline to help with some code. There is also the R studio cloud, although its quiet slow. 
+
+
+***
+
+```{r}
+sessionInfo()
+```

@@ -1,0 +1,229 @@
+---
+title: 'NOAA Plot Replication'
+author: 'Created by: Jill E. Thomley'
+date: 'Updated: `r format(Sys.time(), "%A, %B %d, %Y @ %X")`'
+output: html_document
+---
+
+<hr> 
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+# Read in the datasets and load any necessary packages here
+
+library(tidyr)    # needed for gather() function
+library(dplyr)    # needed for cool data manipulation
+library(ggplot2)  # needed for cool data visualization
+library(ggthemes) # needed for theme_base()
+
+# Mauna Loa data from https://www.esrl.noaa.gov/gmd/ccgg/trends/data.html
+
+CO2_monthly <- 
+  read.table(file = url("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt"),
+             col.names = c("year", "month", "decimaldate", "average", "interpolated", "trend", "numdays"))
+
+# write.csv(CO2_monthly, file = "CO2_monthly.csv", row.names = FALSE)
+
+CO2_growth <- 
+  read.table(file = url("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_gr_mlo.txt"),
+             col.names = c("year", "ann_inc", "unc"))
+
+# write.csv(CO2_growth, file = "CO2_growth.csv", row.names = FALSE)
+
+CO2_weekly <- 
+  read.table(file = url("ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_weekly_mlo.txt"),
+             col.names = c("startyear",
+                           "startmonth",
+                           "startday",
+                           "decimal",
+                           "CO2ppm",
+                           "numdays",
+                           "1yr_ago",
+                           "10yr_ago",
+                           "since1800"))
+
+# write.csv(CO2_weekly, file = "CO2_weekly.csv", row.names = FALSE)
+```
+
+```{r, echo=FALSE}
+# ggplot themes https://ggplot2.tidyverse.org/reference/ggtheme.html
+# ggthemes package http://www.rpubs.com/Mentors_Ubiqum/ggthemes_1
+
+NOAATHEME <- theme_base(base_size = 15) +
+             theme(axis.ticks.length = unit(-0.15, "cm"),
+                   axis.text.x = element_text(margin = unit(c(0.4, 0.4, 0.4, 0.4), "cm")), 
+                   axis.text.y = element_text(margin = unit(c(0.4, 0.4, 0.4, 0.4), "cm")),
+                   plot.title = element_text(hjust = 0.5, margin = unit(c(0, 0, -0.4, 0), "cm")),
+                   plot.background = element_blank())
+```
+
+#### Replicate the content of the graph shown on [this page](https://www.esrl.noaa.gov/gmd/ccgg/trends/full.html).
+
+```{r, echo=FALSE}
+ggplot(CO2_monthly) +
+  geom_line(aes(x = decimaldate, y = interpolated), col = "red") +
+  geom_line(aes(x = decimaldate, y = trend), col = "black") +
+  ggtitle(expression("Atmospheric CO"[2]*" at Mauna Loa Observatory")) +
+  scale_x_continuous(breaks = seq(1960, 2020, 5), 
+                     labels = c("1960", "", 
+                                "1970", "", 
+                                "1980", "", 
+                                "1990", "", 
+                                "2000", "",
+                                "2010", "", 
+                                "2020"),
+                     limits = c(min(CO2_monthly$year), 2020),
+                     sec.axis = dup_axis(labels = NULL, name = "")) +  
+  scale_y_continuous(breaks = seq(320, 410, 10), 
+                     labels = c("320", "",
+                                "340", "",
+                                "360", "",
+                                "380", "",
+                                "400", ""),
+                     sec.axis = dup_axis(labels = NULL, name = "")) +
+  ylab("PARTS PER MILLION") +
+  xlab("YEAR") +
+  NOAATHEME
+```
+
+#### Replicate the content of the graph shown on [this page](https://www.esrl.noaa.gov/gmd/ccgg/trends/index.html).
+
+```{r, echo=FALSE}
+CO2_monthly2015 <- CO2_monthly %>% filter(year >= 2015)
+
+ggplot(CO2_monthly2015) +
+  geom_line(aes(x = decimaldate, y = interpolated), col = "red", linetype = 5) +
+  geom_point(aes(x = decimaldate, y = interpolated), col = "red", shape = 18) +
+  geom_line(aes(x = decimaldate, y = trend), col = "black") +
+  geom_point(aes(x = decimaldate, y = trend), col = "black", shape = 15) +
+  scale_x_continuous(breaks = seq(2015, 2020, .25), 
+                     labels = c("2015", rep("", 3), 
+                                "2016", rep("", 3),
+                                "2017", rep("", 3),
+                                "2018", rep("", 3),
+                                "2019", rep("", 3),
+                                "2020"),
+                     limits = c(2015, 2020),
+                     sec.axis = dup_axis(labels = NULL, name = "")) +
+  scale_y_continuous(breaks = 395:415, 
+                     labels = c("395", rep("", 4),
+                                "400", rep("", 4),
+                                "405", rep("", 4),
+                                "410", rep("", 4),
+                                "415"),
+                     limits = c(395, 415),
+                     sec.axis = dup_axis(labels = NULL, name = "")) +
+  ggtitle(expression("RECENT CO2_monthly MEAN CO"[2]*" AT MAUNA LOA")) +
+  ylab("PARTS PER MILLION") +
+  xlab("YEAR") +
+  NOAATHEME
+
+# Note: expand = c(0, 0) will get rid of the exta padding at the ends
+# of the x-axis, but the tick marks and axis lines will overlap oddly 
+```
+
+#### Replicate the content of the graph shown on [this page](https://www.esrl.noaa.gov/gmd/ccgg/trends/gr.html).
+
+```{r}
+# One way to create a decade variable from the years variable
+# This method uses the fact that years is a numerical vector
+# The floor function rounds down to the nearest whole number
+# Means computed by decade to create the black line segments
+
+DECM <- CO2_growth %>% 
+  mutate(decade1 = floor(year/10)*10) %>%
+  filter(decade1 >= 1960 & decade1 <= 2000) %>%
+  group_by(decade1) %>%
+  summarize(mean = mean(ann_inc)) %>%
+  mutate(decade2 = decade1 + 10)
+
+# A method to create the decade variable using case_when()
+# The case_when() function works like a multiple if / then  
+
+DECM_alt <- CO2_growth %>% 
+  mutate(decade1 = case_when(year %in% 1950:1959 ~ 1950,
+                             year %in% 1960:1969 ~ 1960,
+                             year %in% 1970:1979 ~ 1970,
+                             year %in% 1980:1989 ~ 1980,
+                             year %in% 1990:1999 ~ 1990,
+                             year %in% 2000:2009 ~ 2000,
+                             year %in% 2010:2019 ~ 2010)) %>%
+  filter(decade1 >= 1960 & decade1 <= 2000) %>%
+  group_by(decade1) %>%
+  summarize(mean = mean(ann_inc)) %>%
+  mutate(decade2 = decade1 + 10)
+
+
+# Plot uses the DECM dataset for the segments, but alts could be used
+
+ggplot(CO2_growth, aes(x = year, y = ann_inc)) +
+  geom_bar(stat = "identity", col = "cyan", fill = "cyan", width = .5) +
+  geom_segment(DECM, 
+               mapping = aes(x = decade1, 
+                             y = mean, 
+                             xend = decade2, 
+                             yend = mean), 
+               size = 1) +
+  ggtitle(expression("annual mean CO2_growth rate of CO"[2]*" at Mauna Loa")) +
+  scale_y_continuous(breaks = seq(0, 3.5, .1), 
+                     labels = c("0.0", rep("", 4), 
+                                "0.5", rep("", 4),
+                                "1.0", rep("", 4),
+                                "1.5", rep("", 4),
+                                "2.0", rep("", 4), 
+                                "2.5", rep("", 4),
+                                "3.0", rep("", 5)),
+                     limits = c(0, 3.5),
+                     expand = c(0, 0),
+                     sec.axis = dup_axis(labels = NULL, name = "")) +
+  scale_x_continuous(breaks = c(min(CO2_growth$year):2020),
+                     labels = c("", 
+                                "1960", rep("", 9),
+                                "1970", rep("", 9),
+                                "1980", rep("", 9),
+                                "1990", rep("", 9), 
+                                "2000", rep("", 9),
+                                "2010", rep("", 9),
+                                "2020"),              
+                     limits = c(min(CO2_growth$year), 2020),
+                     expand = c(0, 0),
+                     sec.axis = dup_axis(labels = NULL, name = "")) +
+  ylab("ppm per year") +
+  xlab("") +
+  NOAATHEME
+```
+
+
+#### Make one other original plot showing change over time.
+
+```{r}
+# we need to manipulate the raw dataset first
+# it's not in the kind of tidy format we need
+
+CO2_weekly_21st <- 
+  CO2_weekly %>% 
+  filter(startyear >= 2000 & startyear < 2018 & CO2ppm > 0 & X1yr_ago > 0 & X10yr_ago > 0 ) %>%
+  mutate(since1yr = CO2ppm - X1yr_ago, since10yr = CO2ppm - X10yr_ago) %>% 
+  select(decimal, since1yr, since10yr, since1800) %>%
+  gather(key = "period", value = "change", since1yr:since1800) %>% # key is new column that tells you where the stacked or gathered values come from(grouping var). value = change the name where the contents of the column go. c(sin1yr,sin10yr,since1800)
+  mutate(period = factor(period, 
+                         levels = c("since1yr", "since10yr", "since1800"),
+                         labels = c("one year ago", "ten years ago", "the year 1800")))
+```
+
+```{r}
+ggplot(CO2_weekly_21st, aes(x = decimal, y = change, color = period)) +
+  geom_line() +
+  labs(title = expression("Change in CO"[2]*" Concentrations*"), 
+       subtitle = "weekly aggregate data from Mauna Loa",
+       y = "parts per million",
+       x = "year",
+       caption  = "*raw CO2 values",
+       color = "change since")
+```
+
+
+

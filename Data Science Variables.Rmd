@@ -1,0 +1,92 @@
+---
+title: "Data Science Variables"
+author: "Jefferson Ong"
+date: "1/31/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Types of Variables
+
+
+categorical / qualitative
+nominal
+ordinal
+
+Often Character or factor
+
+
+numerical / quantitative
+interval
+ratio
+
+
+Often integer, numerical, dbl(real numbers)
+
+-----------------------
+
+```{r}
+library(readr)
+
+draft <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv"))
+
+draft_wide <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft_wide.csv"))
+
+
+```
+
+```{r}
+class(draft)
+class(draft_wide)
+```
+
+
+```{r}
+summary(draft_wide)
+summary(draft)
+```
+
+```{r}
+complete.cases(draft)
+sum(!complete.cases(draft))
+```
+```{r}
+index <- which(is.na(draft$draftnumber) == TRUE)
+draft[index,]
+draft[index, 1:3]
+draft[index, "day"]
+draft[index, c("month", "day", "draftyear")]
+index
+```
+
+
+Vector (1d) [i]
+
+matrix (2d) [i, j] row, column
+
+draft[1, ]
+
+draft[1:2, ] 
+
+draft[index, ] go into index and give all rows, first location draft[426, ], draft[1158, ]
+
+
+```{r}
+
+draft[index, ] 
+```
+```{r}
+
+draft[1, ]
+
+draft[1:2, ] 
+```
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+---
+title: "Untitled"
+author: "Jefferson Ong"
+date: "2/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+read.csv("https://github.com/STAT-JET-ASU/basicwebpagetemplate.git")
+```
+
+In remote repository then I want to copy it then I can pull it to markdown. Need to do forking. Then need to rename( setting -> rename to username.github.io). Now can pull to markdown.
+
+Cloning it to R, so any changes will be to my forked copy. 

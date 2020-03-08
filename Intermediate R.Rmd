@@ -1,0 +1,542 @@
+---
+title: "Intermediate R"
+author: "Jefferson Ong"
+date: "4/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Conditionals and Control Flow
+
+Equality ==
+
+Inequality !=
+
+
+< and > 
+
+
+<= and >=
+
+AND operator &
+● OR operator |
+● NOT operator !
+
+```{r}
+# The social data has been created for you
+linkedin <- c(16, 9, 13, 5, 2, 17, 14)
+facebook <- c(17, 7, 5, 16, 8, 13, 14)
+views <- matrix(c(linkedin, facebook), nrow = 2, byrow = TRUE)
+
+# When does views equal 13?
+views == 13
+
+# When is views less than or equal to 14?
+views <= 14
+
+# The linkedin and last variable are already defined for you
+linkedin <- c(16, 9, 13, 5, 2, 17, 14)
+last <- tail(linkedin, 1)
+
+# Is last under 5 or above 10?
+last < 5 | last > 10
+
+# Is last between 15 (exclusive) and 20 (inclusive)?
+last > 15 & last <= 20
+```
+
+
+```{r}
+# Variables related to your last day of recordings
+medium <- "LinkedIn"
+num_views <- 14
+
+# Examine the if statement for medium
+if (medium == "LinkedIn") {
+  print("Showing LinkedIn information")
+}
+
+# Write the if statement for num_views
+if (num_views > 15) {
+  print("You're popular!")
+}
+```
+
+```{r}
+# Variables related to your last day of recordings
+medium <- "LinkedIn"
+num_views <- 14
+
+# Control structure for medium
+if (medium == "LinkedIn") {
+  print("Showing LinkedIn information")
+} else if (medium == "Facebook") {
+  # Add code to print correct string when condition is TRUE
+  print("Showing Facebook information")
+} else {
+  print("Unknown medium")
+}
+
+# Control structure for num_views
+if (num_views > 15) {
+  print("You're popular!")
+} else if (num_views <= 15 & num_views > 10) {
+  # Add code to print correct string when condition is TRUE
+  print("Your number of views is average")
+} else {
+  print("Try to be more visible!")
+}
+```
+
+```{r}
+# Variables related to your last day of recordings
+li <- 15
+fb <- 9
+
+# Code the control-flow construct
+if (li >= 15 & fb >= 15) {
+  sms <- 2 * (li + fb)
+} else if (li < 10 & fb < 10) {
+  sms <- 0.5 * (li + fb)
+} else {
+  sms <- li + fb
+}
+
+# Print the resulting sms to the console
+sms
+```
+
+
+
+
+# Loops
+
+
+
+
+```{r}
+# Initialize the speed variable
+speed <- 88
+
+while (speed > 30) {
+  print(paste("Your speed is", speed))
+  
+  # Break the while loop when speed exceeds 80
+  if (speed > 80) {
+    break
+  }
+  
+  if (speed > 48) {
+    print("Slow down big time!")
+    speed <- speed - 11
+  } else {
+    print("Slow down!")
+    speed <- speed - 6
+  }
+}
+```
+
+```{r}
+# Initialize i as 1 
+i <- 1
+
+# Code the while loop
+while (i <= 10) {
+  print(3 * i)
+  if ( (3 * i) %% 8 == 0) {
+    break
+  }
+  i <- i + 1
+}
+```
+
+```{r}
+# The linkedin vector has already been defined for you
+linkedin <- c(16, 9, 13, 5, 2, 17, 14)
+
+# Adapt/extend the for loop
+for (li in linkedin) {
+  if (li > 10) {
+    print("You're popular!")
+  } else {
+    print("Be more visible!")
+  }
+  
+  # Add if statement with break
+  if (li > 16) {
+    print("This is ridiculous, I'm outta here!")
+    break
+  }
+  
+  # Add if statement with next
+  if (li < 5) {
+    print("This is too embarrassing!")
+    next
+  }
+  
+  print(li)
+}
+```
+
+```{r}
+# Pre-defined variables
+rquote <- "r's internals are irrefutably intriguing"
+chars <- strsplit(rquote, split = "")[[1]]
+
+# Initialize rcount
+rcount <- 0
+
+# Finish the for loop
+for (char in chars) {
+  if (char == "r") {
+    rcount <- rcount + 1
+  }
+  if (char == "u") {
+    break
+  }
+}
+
+# Print out rcount
+rcount
+```
+
+
+
+
+
+# Functions
+
+
+● Create a list: list()
+● Display a variable: print()
+
+Argument names: x, na.rm
+● na.rm = FALSE
+● sd(values) works?
+
+
+```{r}
+linkedin <- c(16, 9, 13, 5, NA, 17, 14)
+facebook <- c(17, NA, 5, 16, 8, 13, 14)
+
+# Basic average of linkedin
+mean(linkedin)
+
+# Advanced average of linkedin
+mean(linkedin, na.rm = TRUE)
+```
+```{r}
+# Create a function pow_two()
+pow_two <- function(x) {
+  x ^ 2
+}
+
+# Use the function
+pow_two(12)
+
+# Create a function sum_abs()
+sum_abs <- function(x, y) {
+  abs(x) + abs(y)
+}
+
+# Use the function
+sum_abs(-2, 3)
+```
+
+```{r}
+# The linkedin and facebook vectors have already been created for you
+linkedin <- c(16, 9, 13, 5, 2, 17, 14)
+facebook <- c(17, 7, 5, 16, 8, 13, 14)
+
+# The interpret() can be used inside interpret_all()
+interpret <- function(num_views) {
+  if (num_views > 15) {
+    print("You're popular!")
+    return(num_views)
+  } else {
+    print("Try to be more visible!")
+    return(0)
+  }
+}
+
+# Define the interpret_all() function
+# views: vector with data to interpret
+# return_sum: return total number of views on popular days?
+interpret_all <- function(views, return_sum = TRUE) {
+  count <- 0
+
+  for (v in views) {
+    count <- count + interpret(v)
+  }
+
+  if (return_sum) {
+    return(count)
+  } else {
+    return(NULL)
+  }
+}
+
+# Call the interpret_all() function on both linkedin and facebook
+interpret_all(linkedin)
+interpret_all(facebook)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+# The apply family
+
+sapply(), vapply(), lapply()
+
+sort()
+ print()
+ identical() 
+ 
+ 
+● lapply()
+apply function over list or vector
+output = list
+● sapply()
+apply function over list or vector
+try to simplify list to array
+● vapply()
+apply function over list or vector
+explicitly specify output format
+ 
+ 
+ 
+ lapply()
+● Apply function over list or vector
+● Function can return R objects of different classes
+● List necessary to store heterogeneous content
+● However, o"en homogeneous content
+
+```{r}
+# The vector pioneers has already been created for you
+pioneers <- c("GAUSS:1777", "BAYES:1702", "PASCAL:1623", "PEARSON:1857")
+
+# Split names from birth year
+split_math <- strsplit(pioneers, split = ":")
+
+# Convert to lowercase strings: split_low
+split_low <- lapply(split_math, tolower)
+
+# Take a look at the structure of split_low
+str(split_low)
+```
+
+```{r}
+# Code from previous exercise:
+pioneers <- c("GAUSS:1777", "BAYES:1702", "PASCAL:1623", "PEARSON:1857")
+split <- strsplit(pioneers, split = ":")
+split_low <- lapply(split, tolower)
+
+# Write function select_first()
+select_first <- function(x) {
+  x[1]
+}
+
+# Apply select_first() over split_low: names
+names <- lapply(split_low, select_first)
+
+# Write function select_second()
+select_second <- function(x) {
+  x[2]
+}
+
+# Apply select_second() over split_low: years
+years <- lapply(split_low, select_second)
+
+# Generic select function
+select_el <- function(x, index) {
+  x[index]
+}
+
+# Use lapply() twice on split_low: names and years
+names <- lapply(split_low, select_el, index = 1)
+years <- lapply(split_low, select_el, index = 2)
+```
+
+```{r}
+# # temp has already been defined in the workspace
+# 
+# # Use lapply() to find each day's minimum temperature
+# lapply(temp, min)
+# 
+# # Use sapply() to find each day's minimum temperature
+# sapply(temp, min)
+# 
+# # Use lapply() to find each day's maximum temperature
+# lapply(temp, max)
+# 
+# # Use sapply() to find each day's maximum temperature
+# sapply(temp, max)
+```
+```{r}
+# # Definition of below_zero()
+# below_zero <- function(x) {
+#   return(x[x < 0])
+# }
+# 
+# # Apply below_zero over temp using sapply(): freezing_s
+# freezing_s <- sapply(temp, below_zero)
+# 
+# # Apply below_zero over temp using lapply(): freezing_l
+# freezing_l <- lapply(temp, below_zero)
+# 
+# # Are freezing_s and freezing_l identical?
+# identical(freezing_s, freezing_l)
+```
+
+
+
+```{r}
+# 
+# # Definition of basics()
+# basics <- function(x) {
+#   c(min = min(x), mean = mean(x), max = max(x))
+# }
+# 
+# # Apply basics() over temp using vapply()
+# vapply(temp, basics, numeric(3))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Utilities
+
+```{r}
+# The errors vector has already been defined for you
+errors <- c(1.9, -2.6, 4.0, -9.5, -3.4, 7.3)
+
+# Sum of absolute rounded values of errors
+sum(abs(round(errors)))
+```
+
+```{r}
+# Don't edit these two lines
+vec1 <- c(1.5, 2.5, 8.4, 3.7, 6.3)
+vec2 <- rev(vec1)
+
+# Fix the error
+mean(c(abs(vec1), abs(vec2)))
+```
+
+```{r}
+# The linkedin and facebook lists have already been created for you
+linkedin <- list(16, 9, 13, 5, 2, 17, 14)
+facebook <- list(17, 7, 5, 16, 8, 13, 14)
+
+# Convert linkedin and facebook to a vector: li_vec and fb_vec
+li_vec <- unlist(linkedin)
+fb_vec <- unlist(facebook)
+
+# Append fb_vec to li_vec: social_vec
+social_vec <- append(li_vec, fb_vec)
+
+# Sort social_vec
+sort(social_vec, decreasing = TRUE)
+```
+
+```{r}
+# Fix me
+rep(seq(1, 7, by = 2), times = 7)
+
+# Create first sequence: seq1
+seq1 <- seq(1, 500, by = 3)
+
+# Create second sequence: seq2
+seq2 <- seq(1200, 900, by = -7)
+
+# Calculate total sum of the sequences
+sum(seq1) + sum(seq2)
+```
+
+```{r}
+# Get the current date: today
+today <- Sys.Date()
+
+# See what today looks like under the hood
+unclass(today)
+
+# Get the current time: now
+now <- Sys.time()
+
+# See what now looks like under the hood
+unclass(now)
+```
+
+```{r}
+# Definition of character strings representing times
+str1 <- "May 23, '96 hours:23 minutes:01 seconds:45"
+str2 <- "2012-3-12 14:23:08"
+
+# Convert the strings to POSIXct objects: time1, time2
+time1 <- as.POSIXct(str1, format = "%B %d, '%y hours:%H minutes:%M seconds:%S")
+time2 <- as.POSIXct(str2)
+
+# Convert times to formatted strings
+format(time1, "%M")
+format(time2, "%I:%M %p")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

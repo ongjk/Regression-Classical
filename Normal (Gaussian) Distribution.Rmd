@@ -1,0 +1,452 @@
+---
+title: "Normal (Gaussian) Distribution"
+author: "Jefferson Ong"
+date: "2/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+```
+
+## Normal Distribution
+
+
+The normal distribution is a continuous probability distribution. Very few concepts in real life are truly normally distributed, but many are approximately normal. The normal is also the limiting distribution for many common statistics and other distributions when sample size n →∞.
+
+
+
+(Use probability and distribution glossary)
+
+X \sim N(\mu,\sigma^2)
+
+X is the random variable that behaves according to the probability model. 
+
+tilda is "is distributed as" or "has the distribution"
+
+N means normal
+
+The noraml is defined by its shape and parameters
+
+So Mu is mean and Sigma squared is variance. 
+
+When we input the model in R, the function will want sigma, not sigma squared as the input. 
+
+
+
+
+sample space x = {-∞ to +∞}
+
+μ = the mean of the distribution (any real value)
+
+σ2 = the variance of the distribution (any value > 0)
+
+The standard normal distribution Z has μ = 0 and σ2 = σ = 1.
+
+
+Standard normal curve Z ~ N(0, 1)
+
+We can use a linear transformationto turn any normal curve X into Z. 
+
+Z = (X - mu_x)/ sigma_x
+
+
+
+## Probability Density Function (pdf)
+
+
+Unlike the pmf in discrete distributions, the probability density function (pdf) of a continuous distribution does not compute probability, because the area under a point is zero. Instead it gives the height of the function (y) at x.
+
+
+f(x)=\frac{1}{\sqrt{2\pi}\sigma}e^{-(x-\mu)^2/(2\sigma^2)}
+
+R has a function to solve the pmf for any given normal model. Inputs may be single values or vectors.
+
+f(x) = dnorm(x, mu, sigma)
+
+Note that the function uses σ rather than σ2 as the parameter.
+
+There is dnorm(density) (also called f(x)), pnorm (proability) F(x), qnorm (quantile), rnorm (random(uses "n" for sample))
+
+```{r}
+dnorm(x = 0, mean = 0, sd = 1)
+
+```
+
+## Standard Normal Density
+
+```{r}
+ggplot(NULL, aes(-4:4)) + 
+  stat_function(fun = dnorm, args = list(0, 1)) + # The 0 is mean, 1 is standard deviation
+  scale_x_continuous(breaks = seq(-4, 4, 1)) +
+  labs(x = "x", y = "f(x)")
+```
+
+
+Most area of a bell curve is within 3 standard deviation of the curve. 
+
+
+
+## Cumulative Distribution Function (CDF)
+
+
+The probability of a given number of successes or fewer is found using the CDF, which integrates the area under the curve. This is similar to a discrete distribution. The normal has no closed-form solution for F(x). R has a function for the normal CDF / inverse.
+
+F(x)=P(X \leq x) = \int\limits_{-\infty}^{+\infty} \frac{1}{\sqrt{2\pi}\sigma}e^{-(x-\mu)^2/(2\sigma^2)}dx
+
+
+
+P(X≤x) = F(x) = pnorm(x, mu, sigma)
+
+P(X>x) = 1−F(x) = pnorm with lower.tail = FALSE
+
+qth percentile (approx) = F−1(x) = qnorm(q, mu, sigma)
+
+
+Tells how much area is there to the left, thats what pnorm solves. Left side is pnorm(x, mu, sigma). Right side is 1 - pnorm(x, mu, sigma)
+
+qnorm (means quantile) - what % of area is to the left of X.
+
+qnorm(area, mu, sigma)
+
+qnorm(area, mu, sigma, tower.tail = FALSE)
+
+
+
+
+## Standard Normal CDF
+
+```{r}
+ggplot(NULL, aes(-4:4)) + 
+  stat_function(fun = pnorm, args = list(0, 1)) +
+  scale_x_continuous(breaks = seq(-4, 4, 1)) +
+  labs(x = "x", y = "F(x)")
+```
+
+Gives out the area under the bell curve
+
+
+
+## Expected Value and Variance
+
+The expected (mean) number of successes and the variance of number of successes are found as follows. The expressions for expected value and variance simplify to parameters μ and σ2.
+
+E[X] = \int\limits_{-\infty}^{+\infty} x f(x) \rightarrow \mu
+
+
+Var[X] = \int\limits_{-\infty}^{+\infty} (x - \mu)^2 f(x) \rightarrow \sigma^2
+
+
+SD[X] = \sqrt{Var[X]}
+
+
+
+The Empirical Rule
+
+
+The normal distribution is unimodal and perfectly symmetric.
+
+![Empirical Rule](https://stat-jet-asu.github.io/Moodlepics/normaldist.jpg)
+
+approximately 50% of the curve area is between μ±(2/3)σ
+
+approximately 68% of the curve area is between μ±1σ
+
+approximately 95% of the curve area is between μ±2σ (or 1.96)
+
+approximately 99.7% of the curve area is between μ±3σ
+
+
+## Simulating the Normal Distribution
+
+
+In addition to calculating probabilities, we can simulate random normal values in R using rnorm (s, mu, sigma).
+
+s = the number of random values we want to generate
+
+μ = the mean of the distribution
+
+σ2 = the variance of the distribution
+
+Default parameter settings in rnorm() are mu=0 and sigma=1, so if we want a sample from the standard normal distribution, we only need to enter sample size, rnorm(s).
+
+
+```{r}
+rnorm(n = 10, mean = 0, sd = 1)
+```
+
+
+
+# Assessing Normality
+
+## Are data from a normal distribution?
+
+
+
+
+---
+
+```{r}
+pnorm(q = -2, mean = 0, sd = 1)
+
+pnorm(q = -2, mean = 0, sd = 1, lower.tail = FALSE)
+
+
+pnorm(q = 2, mean = 0, sd = 1, lower.tail = FALSE)
+
+
+
+pnorm(-1, 0, 1) - pnorm(-2, 0, 1)  # P(-2 <= X <= -1)
+
+
+```
+
+![Empirical Rule](https://stat-jet-asu.github.io/Moodlepics/normaldist.jpg)
+
+---
+
+A bell curve with - 1.89 on left side and 1.62 on the right side. What is the total area of those shaded areas
+
+P(x <= -1.89 or X > 1.62)
+
+```{r}
+pnorm(q = -1.89, 0, 1) + pnorm(1.62, 0, 1, lower.tail = F)
+```
+
+---
+
+
+Distribution and want to know the 20th percentile of that distribution. What is the X? 
+
+So 20% is 0.20, P(X_bar <= x) = .2
+
+```{r}
+qnorm(.20, 0, 1)
+```
+
+dnorm(x, mean, sd)
+
+pnorm(q, mean, sd)
+
+qnorm(p, mean, sd)
+
+rnorm(n, mean, sd)
+
+P and Q have lower.tail = F or T optimal parameter, TRUE is default
+
+---
+
+Now I want the middle 50%, x_1 and x_2. This also means that theother pieces are 25% each.
+
+x_1 = qnorm(.25, 0, 1)
+
+x_2 = qnorm(.75, 0, 1)
+
+```{r}
+x_1 = qnorm(p = .25, mean = 0, sd = 1)
+
+x_2 = qnorm(p = .75, mean = 0, sd = 1)
+
+x_3 = qnorm(p = .25, mean = 0, sd = 1, lower.tail = F)
+
+x_1
+x_2
+x_3 # same as x_2
+
+
+qnorm(p = .025, mean = 0, sd = 1)
+qnorm(p = .025, mean = 0, sd = 1, lower.tail = F)
+```
+
+
+
+
+## Are data from a normal distribution?
+
+Many statistical tests require data to be drawn from a normal distribution. Researchers may also interested in determining whether some variable of interest is normally distributed. For example, Belgian scholar Adolphe Quetelet (1796-1874) had a hypothesis that the natural distribution of human heights is a bell curve (i.e., normal distribution).
+
+We can investigate this using height data gathered by another famous statistician. Francis Galton (1822-1911) investigated the relationship between the heights of parents and their offspring. Some of his data can be found in galtonparentheights.csv.
+
+
+## The Galton Height Data (Parents)
+
+```{r}
+library(readr)
+parent_hts <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/galtonparentheights.csv")
+```
+
+Proposing a normal model, N(mu, sigma^2)
+
+I don't know that mu and sigma^2, but I can estimate them using the sample x_bar(mean) and s(sd?)
+
+There sample values estimate mu and sigma. 
+
+```{r}
+glimpse(parent_hts)
+
+ht_stats <- parent_hts %>% 
+  summarize(xbar = mean(Father), s = sd(Father))
+ht_stats
+
+ht_stats$xbar # (sample mean)
+ht_stats$s #(sample standard deviation)
+```
+## Density Plot
+
+
+Does the density of the data match a theoretical normal density plot with the same mean and variance?
+
+
+```{r}
+ggplot(parent_hts, aes(x = Father)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(ht_stats$xbar, ht_stats$s),   
+                color = "red")
+```
+
+
+Create a density plot of the data and superimpose a theoretical normal model on the same axes. Does the data deviate too far from the shape of the theoretical model?
+
+Notice we are using dnorm because the density plot shows f(x).
+
+## Empirical Cumulative Distribution Plot
+
+Does the ECDF of the data match a theoretical normal CDF plot with the same mean and variance?
+
+
+```{r}
+ggplot(parent_hts, aes(x = Father)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(ht_stats$xbar, ht_stats$s), 
+                color = "red")
+```
+
+
+Create an ECDF plot of the data and superimpose a theoretical normal model on the same axes. Does the data deviate too far from the shape of the theoretical model?
+
+Notice we are using pnorm because the ECDF plot shows F(x).
+
+
+
+## Reminder: Theoretical Normal Curve
+
+
+![Empirical Rule](https://stat-jet-asu.github.io/Moodlepics/normaldist.jpg)
+
+Notice the placement of the percentiles (also called quantiles) on the theoretical normal distribution. If we know μ and σ we can determine the locations of the quantiles.
+
+This will allow us to contruct a normal quantile-quantile plot, also known as a qq plot or normal probability plot.
+
+
+## Example: Comparing Quantiles
+
+
+Do the data quantiles match the theoretical normal quantiles?
+
+
+```{r}
+deciles <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+tibble(data   = quantile(parent_hts$Father, deciles), 
+       theory = round(qnorm(deciles, ht_stats$xbar, ht_stats$s),2))
+```
+
+
+## Quantile-Quantile Plot (QQ Plot)
+
+
+Do the quantiles of the data match the theoretical quantiles of a normal distribution with the same mean and variance?
+
+
+
+```{r}
+ggplot(parent_hts, aes(sample = Father)) + 
+  stat_qq() +
+  stat_qq_line(color = "red")
+```
+
+Notice the difference in syntax in the aesthetics, which uses sample rather than x to indicate the variable to be plotted. In the final plot, the x axis will be the theoretical quantiles on a standard normal curve, while the y axis is the data quantiles. There is a point representing each data value.
+
+
+## Skewness and Kurtosis
+
+The skewness of a normal distribution is 0 and the kurtosis is 3. Data from a normal distribution should have similar values.
+
+
+```{r}
+library(moments)
+skewK <- tibble(statistic = c("Skewness", "Kurtosis", "Excess K"), #Excess kurtosis is kurt - 3
+                theory = c(0, 3, 0),
+                data   = round(c(skewness(parent_hts$Father), 
+                                 kurtosis(parent_hts$Father), 
+                                 kurtosis(parent_hts$Father) - 3), 
+                               2))
+print.data.frame(skewK, row.names = FALSE)
+```
+
+
+
+
+X_1 \text{~} Unif(0,1)
+
+uniform(a,b), a rectangle. All values equally likely to happen. No tail, flat. 
+
+dunif, punif, qunif, runif. 
+
+```{r}
+rand_dat <- tibble(unif_sample = runif(1000, 0, 1))
+
+rand_stat <- rand_dat %>%
+  summarize(randmean = mean(unif_sample), randsd = sd(unif_sample))
+
+ggplot(rand_dat , aes(x = unif_sample)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(rand_stat$randmean, rand_stat$randsd),   
+                color = "red")
+```
+
+```{r}
+ggplot(rand_dat, aes(x = unif_sample)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(rand_stat$randmean, rand_stat$randsd), 
+                color = "red")
+```
+
+
+```{r}
+names(rand_dat)
+```
+
+
+```{r}
+ggplot(rand_dat, aes(sample = unif_sample)) + 
+  stat_qq() +
+  stat_qq_line(color = "red")
+```
+
+
+
+```{r}
+library(moments)
+skewL <- tibble(statistic = c("Skewness", "Kurtosis", "Excess K"),
+                theory = c(0, 3, 0),
+                data   = round(c(skewness(rand_dat$unif_sample), 
+                                 kurtosis(rand_dat$unif_sample), 
+                                 kurtosis(rand_dat$unif_sample) - 3), 
+                               2))
+print.data.frame(skewL, row.names = FALSE)
+```
+
+
+
+
+
+
+
+
+

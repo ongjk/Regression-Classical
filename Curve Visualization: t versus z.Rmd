@@ -1,0 +1,93 @@
+---
+title: "Untitled"
+author: "Jefferson Ong"
+date: "3/28/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+library(tidyverse)
+
+ggplot(NULL, aes(-5:5)) +
+  stat_function(fun = dt, args = list(2), col = "red") +
+  stat_function(fun = dt, args = list(4), col = "orange") +
+  stat_function(fun = dt, args = list(10), col = "yellow") +
+  stat_function(fun = dt, args = list(25), col = "darkgreen") +
+  stat_function(fun = dt, args = list(50), col = "blue") +
+  stat_function(fun = dt, args = list(100), col = "purple") +
+  stat_function(fun = dnorm, args = list(0, 1), linetype = "twodash") +
+  scale_x_continuous(breaks = seq(-5, 5, 1))
+
+tibble(t_2 = pt(2, 2) - pt(-2, 2), # But only 80 ish %
+       t_4 = pt(2, 4) - pt(-2, 4),
+       t_10 = pt(2, 10) - pt(-2, 10), 
+       t_25 = pt(2, 25) - pt(-2, 25),
+       t_50 = pt(2, 50) - pt(-2, 50),       
+       t_100 = pt(2, 100) - pt(-2, 100),       
+       z = pnorm(2, 0, 1) - pnorm(-2, 0, 1)) # 95% of the standard normal
+
+ggplot(NULL, aes(-5:-2)) +
+  stat_function(fun = dt, args = list(2), col = "red") +
+  stat_function(fun = dt, args = list(4), col = "orange") +
+  stat_function(fun = dt, args = list(10), col = "yellow") +
+  stat_function(fun = dt, args = list(20), col = "darkgreen") +
+  stat_function(fun = dt, args = list(50), col = "blue") +
+  stat_function(fun = dt, args = list(100), col = "purple") +
+  stat_function(fun = dnorm, args = list(0, 1), linetype = "twodash") +
+  scale_x_continuous(breaks = seq(-5, -2, 1))
+
+tibble(t_2 = qt(.025, 2),
+       t_4 = qt(.025, 4),
+       t_10 = qt(.025, 10),
+       t_25 = qt(.025, 25),
+       t_50 = qt(.025, 50),       
+       t_100 = qt(.025, 100),       
+       z = qnorm(.025, 0, 1))
+```
+
+
+
+CI for one mean
+
+df = n - 1
+
+n = sample size
+
+X_bar +/- (Z (sigma/sqrt(n))) I'm not estimating anything here (right side)
+
+However in
+
+X_bar +/- T (S/sqrt(n)) we're estimating sigma using S. How good that is depends on the sample size. We have to take 1 away from that because we'd double count?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

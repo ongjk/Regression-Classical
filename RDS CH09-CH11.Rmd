@@ -1,0 +1,95 @@
+---
+title: "RDS CH09-CH11"
+author: "Jefferson Ong"
+date: "3/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+
+# 11.2.2 #1
+
+A: read_delim()
+
+
+
+# 11.2.2 #2
+
+```{r}
+union(names(formals(read_csv)), names(formals(read_tsv)))
+```
+A: 
+  `col_names` and `col_types` are used to specify the column names and how to parse the columns
+  `locale` is important for determining things like the encoding and whether "." or "," is used as a decimal mark.
+   `na` and `quoted_na` control which strings are treated as missing values when parsing vectors
+   `trim_ws` trims whitespace before and after cells before parsing
+   `n_max` sets how many rows to read
+   `guess_max` sets how many rows to use when guessing the column type
+   `progress` determines whether a progress bar is shown.
+   
+   
+   
+   
+
+# 11.3.5 #5
+
+A: read_cvs2() uses a semi-colon to separate data while read_csv() uses a comma.
+
+
+
+# 11.3.5 #6
+
+
+A: UTF-8 is standard
+    
+-   Western European Latin script languages: ISO-8859-1, Windows-1250 (also CP-1250 for code-point)
+-   Eastern European Latin script languages: ISO-8859-2, Windows-1252
+-   Greek: ISO-8859-7
+-   Turkish: ISO-8859-9, Windows-1254
+-   Hebrew: ISO-8859-8, IBM424, Windows 1255
+-   Russian: Windows 1251
+-   Japanese: Shift JIS, ISO-2022-JP, EUC-JP
+-   Korean: ISO-2022-KR, EUC-KR
+-   Chinese: GB18030, ISO-2022-CN (Simplified), Big5 (Traditional)
+-   Arabic: ISO-8859-6, IBM420, Windows 1256
+
+
+# 11.3.5 #7
+
+```{r}
+d1 <- "January 1, 2010"
+d2 <- "2015-Mar-07"
+d3 <- "06-Jun-2017"
+d4 <- c("August 19 (2015)", "July 1 (2015)")
+d5 <- "12/30/14" # Dec 30, 2014
+t1 <- "1705"
+t2 <- "11:15:10.12 PM"
+
+# ANSWER: 
+parse_date(d1, "%B %d, %Y")
+parse_date(d2, "%Y-%b-%d")
+parse_date(d3, "%d-%b-%Y")
+parse_date(d4, "%B %d (%Y)")
+parse_date(d5, "%m/%d/%y")
+parse_time(t1, "%H%M")
+```
+
+```{r}
+parse_time(t2, "%H:%M:%OS %p")
+```
+
+
+
+# EXTRA: What is an RDS file?
+
+A: R built in format. It allows storing in working environment, it can also be used as extensions.
+
+# EXTRA: What is JSON?
+
+
+A: JavaScript Object Notation. A minimal, readable format for structuring data. It is used primarily to transmit data between a server and web application. 

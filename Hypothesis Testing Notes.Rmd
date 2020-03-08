@@ -1,0 +1,147 @@
+---
+title: "Hypothesis Testing Notes"
+author: "Jefferson Ong"
+date: "4/4/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Logical flow similar to court system. Send someone to trial. WHen starts, what do we assume about the person.
+
+That they are innocent. Even if not believing it we need to set up as what we need to knock down. It is knock down by the burden of evidence. 
+
+Evidence is shown in a perscribe way. When done we make a binary decision. 
+
+If throw out innocent, they are guilty. 
+
+We cannot prove they are innocent but we may find that they are not guilty. Means we did not finding anything to prove that they are guilty. 
+
+"We fail to reject" 
+
+----
+"reality"
+
+H_o is True: Based on our test. We fail to reject the null(correct decision) -- or -- we reject H_o(Type 1 error(\alpha, the chance of type I))
+
+H_o is false: Based on our test. We fail to reject the null(Type 2 error(\beta, the chance of type II)) -- or -- we reject H_o (correct decision)
+
+----
+
+power: chance of correctly rejecting a false H_o. 1 - \beta
+
+We get to choose \alpha
+
+\alpha is our level of significance
+
+\beta depends on n and how different reality is from H_o
+
+```{r}
+library(resampledata)
+library(tidyverse)
+```
+
+H_o: \mu_NF = \mu_F (no difference) or \mu_NF - \mu_F = 0
+
+H_a(research hypothesis): \mu_NF < \mu_F  or \mu_NF - \mu_F < 0
+
+We are still going to estimate \mu_1 - \mu_2 with X_bar1 - X_bar2
+
+```{r}
+heights5_summ <- Spruce %>%
+  group_by(Fertilizer) %>%
+  summarise(xbar = mean(Height5),
+            s = sd(Height5))
+  
+print(heights5_summ)
+
+diff(heights5_summ$xbar)
+```
+
+I am seeing a non zero difference in the data- BUT.. its a sample so there will be sampling variability. There is variability in each group (look at SD). Is this a real difference ( \mu_1 != \mu_2) or just some randomness?
+
+WE're going to do PERMUTATION TEST, conceptually related to bootstrap. difference is that bootstrap we were using data as probability model. Here we're going to look at the data if we just shuffle it around into groups, so sampling WITHOUT replacement. 
+
+We will sample with out replacement to shuffle the observations between groups.
+
+Height5:
+
+Fertilizer: 
+
+Like innocent in count, we assume H_o is true until we evaluate evidence. 
+
+Alright, so 2 buckets with 36 each one of fert and not fert. then put into one bucket, 72. If H_o is true, then NF and F labels are basically arbitrary. I can make my own random grouping. 
+
+We will simulate that: I will randomly assign a new bucket F with size 36, same with NF. We will get a distribution if random differences, compare that to original.
+
+permutation distribution for X_bar1 - X_bar2 that I can measure my real data against. Logic is the same. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
